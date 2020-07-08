@@ -1,0 +1,120 @@
+---
+title: Kako preuzeti e-mailove sa web stranice pomoću R-a?
+author: Mislav Sagovac
+date: '2019-07-25'
+slug: kako-preuzeti-e-mailove-sa-web-stranice-pomo-u-r-a
+categories:
+  - R
+tags:
+  - web scraping
+type: ''
+subtitle: ''
+image: ''
+bigimg: 
+  - {src: "/img/post_web_scraping_email.jpg", desc: "Web"}
+
+---
+
+
+
+<p>Mali poduzetnici do novih potencijalnih klijenta dolaze na četiri glavna načina: poštom, e-mailom, hladnim pozivom ili preporukom. Iako postoji cijela teorija marketinga o tome kako doći do novih klijenata, prvi kontakt se u većini slučajeva temelji na ove 4 jednostavne tehnike (barem kada je riječ o B2B prodaji). U ovom postu ću pokazati kako se pomoću programskog jezika R može relativno jednostavno prikupiti javno dostupne e-mail adrese sa određene stranice. Studij slučaja koji ću prikazati isprogramirao sam s ciljem preuzimanja e-mail adresa banaka u BiH. Jednostavnim <em>google</em> pretraživanjem naišao sam na sljedeću <a href="https://www.cbbh.ba/Content/Read/7">stranicu</a>. Na toj web adresi nalaze se e-mail adrese svih banaka u Federaciji i Republici Srpskoj. Specifičnost ovoga pothvata je u tome što e-mail adrese nisu dio texta (nisu unutar <code>&lt;p&gt;</code> <em>taga</em>), nego su slika (tekst se nalazi unutar slike). U nastavku je opis kako programski preuzeti ove adrese koristeći R.</p>
+<p>Glavni alat za ovakav projekt je poznati paket za web scraping u R-u, <a href="https://cran.r-project.org/web/packages/rvest/rvest.pdf">rvest</a>. Prvo je potrebno učitati web stranicu kao html file:</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## -- Attaching packages ----------------------------------------------------------------------------------------------------------------------- tidyverse 1.2.1 --</code></pre>
+<pre><code>## &lt;U+221A&gt; ggplot2 3.2.0     &lt;U+221A&gt; purrr   0.3.2
+## &lt;U+221A&gt; tibble  2.1.3     &lt;U+221A&gt; dplyr   0.8.3
+## &lt;U+221A&gt; tidyr   0.8.3     &lt;U+221A&gt; stringr 1.4.0
+## &lt;U+221A&gt; readr   1.3.1     &lt;U+221A&gt; forcats 0.4.0</code></pre>
+<pre><code>## -- Conflicts -------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(rvest)</code></pre>
+<pre><code>## Loading required package: xml2</code></pre>
+<pre><code>## 
+## Attaching package: &#39;rvest&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     pluck</code></pre>
+<pre><code>## The following object is masked from &#39;package:readr&#39;:
+## 
+##     guess_encoding</code></pre>
+<pre class="r"><code>library(tesseract)
+
+
+# get pictures links
+p &lt;- read_html(&quot;https://www.cbbh.ba/Content/Read/7&quot;, encoding = &quot;UTF-8&quot;)
+p</code></pre>
+<pre><code>## {xml_document}
+## &lt;html&gt;
+## [1] &lt;head&gt;\n&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset= ...
+## [2] &lt;body class=&quot; &quot;&gt;    \r\n    &lt;div class=&quot;overlay&quot;&gt;&lt;/div&gt;\r\n    &lt;!--  ...</code></pre>
+<p>Output pokazuje status 200, što znači da je zahtjev prošao i da smo uspješno preuzeli web stranicu kao html dokument. Sljedeći korak je pronalaženje svih e-mail adresa na stranici. Za to ćemo koristiti dvije funkcije: <code>html_nodes</code> i <code>html_attr</code>. Prva funkcija izvlači dijelove HTML dokumenta prema zadanom <strong>XPath-u</strong> ili <strong>CSS selectoru</strong>, koji su posebno korisni u kombinaciji sa <a href="http://selectorgadget.com/:">selectorgadget</a> alatom koji omogućuje lako pronalaženje željenog dijela HTML dokumenta, odnosno poveznicu podatka koji se preuzima. Budući da su e-mailovi spremljeni kao slike, potražit ćemo sve dijelove HTML dokumenta koji imaju <code>&lt;img&gt;</code> <strong>tag</strong>, a zatim izvući poveznicu na kojoj se nalazi slika izvlačenjem <code>src</code> atributa. Postupak za to je sljedeći:</p>
+<pre class="r"><code>email &lt;- p %&gt;% 
+  html_nodes(&quot;img&quot;) %&gt;% 
+  html_attr(&quot;src&quot;) %&gt;% 
+  .[stringr::str_detect(., &quot;img_mails&quot;)]
+email</code></pre>
+<pre><code>##  [1] &quot;/data/images/img_mails/addico_bank.jpg&quot;            
+##  [2] &quot;/data/images/img_mails/asa-banka-signature.png&quot;    
+##  [3] &quot;/data/images/img_mails/bbi.png&quot;                    
+##  [4] &quot;/data/images/img_mails/intesasanpaolobanka.png&quot;    
+##  [5] &quot;/data/images/img_mails/kibbanka.png&quot;               
+##  [6] &quot;/data/images/img_mails/nlb.png&quot;                    
+##  [7] &quot;/data/images/img_mails/pbs-mail-2017.png&quot;          
+##  [8] &quot;/data/images/img_mails/procreditbank.png&quot;          
+##  [9] &quot;/data/images/img_mails/rbb-sarajevo.raiffeisen.png&quot;
+## [10] &quot;/data/images/img_mails/rbfbih.png&quot;                 
+## [11] &quot;/data/images/img_mails/sberbank.png&quot;               
+## [12] &quot;/data/images/img_mails/sparkasse.png&quot;              
+## [13] &quot;/data/images/img_mails/unicreditgroup.png&quot;         
+## [14] &quot;/data/images/img_mails/unionbank.png&quot;              
+## [15] &quot;/data/images/img_mails/vakuba.png&quot;                 
+## [16] &quot;/data/images/img_mails/ziraatbosnia.png&quot;           
+## [17] &quot;/data/images/img_mails/addico_rs.png&quot;              
+## [18] &quot;/data/images/img_mails/kombank-bl.png&quot;             
+## [19] &quot;/data/images/img_mails/mfbanka.png&quot;                
+## [20] &quot;/data/images/img_mails/novabanka.png&quot;              
+## [21] &quot;/data/images/img_mails/pavlovic-banka.png&quot;         
+## [22] &quot;/data/images/img_mails/sberbankbl.png&quot;             
+## [23] &quot;/data/images/img_mails/unicreditgroup-bl.png&quot;</code></pre>
+<p>Zadnja linija koda filtira samo one slike koje sadrže e-mail, to jest elemente vektora koji sadrže pojam “img_mails”. Output čine poveznice na slike koje sadrže e-mail adrese. Kada bi e-mailovi bili u tekstualnom fomatu, a ne slikovnom, posao bi bio ovdje završio. U samo tri linije koda bi preuzeli sve e-mail adrese sa stranice. Međutim, ovdje to nije slučaj. Sljedeći zadatak je preuzimanje svih slika pomoću poveznica i njihovo spremanje na lokalnom računalu. Ovo je relatinvo jednostavan zadatak i može se izvesti pomoću funkcije <code>download.file</code>. Koristeći poveznice kao prvi argument, lokaciju za lokalno pohranjivanje kao drugi i model za spremanje kao treći argument, u samo jednoj liniji koda preuzimamo sve dokumente:</p>
+<pre class="r"><code># doewnload pictures
+for (i in 1:length(email)) {
+  download.file(paste0(&quot;https://www.cbbh.ba&quot;, email[i]), paste0(&quot;C:/Users/Mislav/Documents/email_&quot;, i, &quot;.png&quot;), mode = &quot;wb&quot;)
+}</code></pre>
+<p>Glavna funbkcija je uklopljena u <em>for loop</em> koji za svaki e-mail primjenjuje <code>download.file</code> funkciju. Nakon što o smo preuzeli sve slike potrebno je napraviti samo još jedan korak, prepoznati tekst na slikama. Ovo je moguće pomoću poznatog <strong>open source</strong> paketa za čitanje teksta sa slika - <code>tesseract</code>:</p>
+<pre class="r"><code># ocr pictures
+engine &lt;- tesseract(language = &quot;eng&quot;,
+                    options = list(tessedit_char_whitelist = &quot;0123456789abcdefghijklmnopqrstuvwxyz&quot;))
+
+emailPath &lt;- list.files(&quot;C:/Users/Mislav/Documents&quot;, pattern = &quot;email&quot;, full.names = TRUE)
+emailOCR &lt;- vector(&quot;character&quot;, length(emailPath))
+for (i in 1:length(emailPath)) {
+  emailOCR[i] &lt;- ocr(emailPath[i], engine = engine)
+}
+emailOCR &lt;- trimws(emailOCR)
+emailOCR</code></pre>
+<pre><code>##  [1] &quot;into.toin@addiko.com&quot;                
+##  [2] &quot;info@rbfbih.ba&quot;                      
+##  [3] &quot;info@sberbank.ba&quot;                    
+##  [4] &quot;info@sparkasse.ba&quot;                   
+##  [5] &quot;info@unicreditgroup.ba&quot;              
+##  [6] &quot;info@unionbank.ba&quot;                   
+##  [7] &quot;vakufska@vakuba.ba&quot;                  
+##  [8] &quot;info@ziraatbosnia.com&quot;               
+##  [9] &quot;info.rs.ba@addiko.com&quot;               
+## [10] &quot;office@kombank-bl.com&quot;               
+## [11] &quot;office@mfbanka.com&quot;                  
+## [12] &quot;info@asabanka.ba&quot;                    
+## [13] &quot;office@novabanka.com&quot;                
+## [14] &quot;office@paviovic-banka.com&quot;           
+## [15] &quot;info@sberbankbl.ba&quot;                  
+## [16] &quot;info-bl@unicreditgroup.ba&quot;           
+## [17] &quot;info@bbi.ba&quot;                         
+## [18] &quot;info@intesasanpaolobanka.ba&quot;         
+## [19] &quot;kibbanka@bih.net.ba&quot;                 
+## [20] &quot;info@nlb.ba&quot;                         
+## [21] &quot;info@pbs.ba&quot;                         
+## [22] &quot;info@procreditbank.ba&quot;               
+## [23] &quot;info.rbbh@rbb-sarajevo.raiffeisen.at&quot;</code></pre>
+<p>To je sve! Pomoću nekoliko redova koda preuzeli smo e-mail adrese sa web stranice, koje su prvotno bile prikazane kao slike. Ako se e-mailovi nalaze u <code>&lt;p&gt;</code> <strong>tagovima</strong>, proces je znatno jednostavniji od prikaznog pa e-mail adrese možete preuzeti uz par linija koda.</p>

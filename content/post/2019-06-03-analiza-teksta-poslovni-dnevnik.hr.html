@@ -1,0 +1,572 @@
+---
+title: 'Analiza tekstova u Poslovnom dnevniku'
+author: Luka Šikić
+date: '2019-06-03'
+slug: analiza-teksta-poslovni-dnevnik
+categories:
+  - Tekst
+tags:
+  - analiza teksta
+  - sentiment
+type: ''
+subtitle: ''
+image: ''
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>Prije nekoliko tjedana, Mislav je započeo seriju eksplorativno-analitičkih postova koji se temelje na specifičnoj jezičnoj analizi teksta. <a href="http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/">Prvi post</a> je ukazao na eksplorativne potencijale koje takva analiza omogućava na temelju velikog broja tekstova Vecernjeg lista, objavljenih u nešto više od zadnjih godinu dana. <a href="http://croecon.contentio.biz/post/tko-vi-e-spominje-usta-e-i-fa-itzam-novosti-ili-ve-ernji/">Drugi post</a> analitički razmatra neke elemente radikalizma u domaćem političkom diskursu.</p>
+<p>Ovaj post nastavak je započete serije postova kojim želim ukazati na potencijal nekih analitičkih metoda koje se, na engleskim tekstovima već uobičajeno koriste.Jedna od najzanimljivijih, svakako, je analiza raspoloženja ili analiza sentimenta (<em>sentiment analysis</em> poznata još kao i <em>opinion mining</em> i <em>emotion AI</em>). Tekstovi za analizu preuzeti su s <a href="http://www.poslovni.hr/vremeplov">Poslovnog dnevnika</a> za razdoblje od
+01.01.2016. do 01.04.2019. i uključuju 29083 tekstova.</p>
+<p>Prije svega, želim istaknuti nekoliko tehničkih detalja vezanih uz <a href="https://en.wikipedia.org/wiki/Text_mining">analizu teksta</a> u R-u. Podrška za analizu teksta u R-u omogućena je u okviru dva glavna pristupa. Prvi se pristup odnosi na <code>tidytext</code> paket koji se temelji na <a href="http://vita.had.co.nz/papers/tidy-data.pdf"><em>tidy formatu</em></a> i koji zbog kompatibilnosti s <code>Tidyverse</code> alatima smatram vrlo intuitivnim. Takva kompatibilnost znatno olakšava i obogaćuje mogućnosti manipulacije podatcima. Izvrsna knjiga <a href="https://www.tidytextmining.com/">Text Mining with R</a> koja pokriva sve bitne tehničke aspekte <em>tidytext pristupa</em> analizi teksta, a koju sam koristio kao glavnu referencu u analizi, dodatna je prednost navedenog pristupa. Drugi pristup temelji se na paketima <code>tm</code> i <code>quanteda</code> koji ulazne podatke zatijevaju u <em>matričnom formatu</em> ( <a href="https://en.wikipedia.org/wiki/Document-term_matrix">document-term matrix</a> ), a funkcije za manipulaciju i analizu podataka ograničene su u okviru paketa. Tranzicija od <em>matričnog formata</em> prema <em>tidy data formatu</em> i obrnuto je omogućena u <code>tidytext</code> paketu što, po mome mišljenju, <em>tidytext pristup</em> čini općenito boljom polazišnom točkom u analizi teksta.</p>
+<p>Analiza raspoloženja (sentimenta) nije čvrsto definirana stvar pa smjer i priroda analize ovisi o kreativnosti. Polazište analize je pročišćeni tekst (<em>prvi pristup</em>) ili matrica dokumenta (<em>drugi pristup</em>) koji se potom spaja s leksikonom sentimenta da bi se riječima u spojenom tekstu pripisala vrijednost iz leksikona. Jasno je da kvaliteta analize ovisi kompatibilnosti leksikona i specifične prirode analize. Za R su implementirani različiti leksikoni sentimenta: prilagođeni specifičnim namjenama (npr. analiza sentimenta financijskih tekstova, analiza društvenih mreža, političkog sentimenta i dr.) i prirodi analize (npr. pozitivni vs. negativni sentiment, aspekti pozitivnog vs. negativnog sentimenta, sentiment kojem je pripisana numerička vrijednost). Nažalost ne postoji podrška za hrvatski jezik.</p>
+<p>Zbog toga sam, analizi u R-u, prilagodio <a href="http://meta-share.ffzg.hr/repository/browse/croatian-sentiment-lexicon/940fe19e6c6d11e28a985ef2e4e6c59eff8b12d75f284d58aacfa8d732467509/">Croatian Sentiment Lexicon</a> koji je nastao u sklopu FER-ovog projekta <em>Text Analysis and Knowledge Engineering Lab</em>. <em>Croatian Sentiment Lexicon</em> sadrži dva leksikona: prvi je izrađen ručno pri čemu je 1200 riječi razvrstano po kategorijama: neutralno, negativno i pozitivno, a drugi sadrži 37000 riječi kojima je algoritamski pripisana numerička vrijednost pozitivnosti i negativnosti. U analizi sam koristio oba riječnika i napravio <a href="http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/">standardnu pripremu teksta</a> koja uključuje tokenizaciju i brisanje “stop rijeci” pri čemu sam, u R-u inplementirani leksikon hrvatskih “stop riječi” proširio nekim <em>comon sense</em> pojačanjima. Lemizacija (grupiranje riječi istog korijena: npr. riječi “godina” i “godine” tretirane su kao dvije različite riječi umjesto kao jedna riječ “godin”) nije provedena pa rezultati sadrže nešto pristranosti. Problem s lemizacijom je u tome što u R-u nije implementirano rješenje za hrvatski jezik.</p>
+<p>Analizu je korisno započeti pregledom najfrekventnijih riječi jer to daje okvirni prikaz najzastupljenijih tema i ideja. Tablica 1 prikazuje 30 najčešćih riječi u tekstovima Poslovnog dnevnika. Najčešće korištene riječi su “posto”, “kuna”, “godine”, “hrvatska”, te niz poslovnih riječi poput “cijene” , “tržište”, “tvrtke” ali i poneki optimistični makroekonomski pojam kao “rast”. To je i očekivan rezultat jer je riječ o informativno-poslovnim novinama, primarno orjentiranima na Hrvatsku. Dodatno je prikazan i <code>worldCloud</code> koji može poslužiti kao intuitivna vizualizacija najčešćih riječi (50 riječi;najvažnije riječi su naglašene bojom i veličinom).</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px; overflow-x: scroll; width:500px; ">
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; position: sticky; top:0; background-color: #FFFFFF;" colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Tablica 2
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+rijec
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+broj
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+posto
+</td>
+<td style="text-align:right;">
+56,075
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kuna
+</td>
+<td style="text-align:right;">
+47,944
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godine
+</td>
+<td style="text-align:right;">
+35,753
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+milijuna
+</td>
+<td style="text-align:right;">
+29,754
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+više
+</td>
+<td style="text-align:right;">
+27,960
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatskoj
+</td>
+<td style="text-align:right;">
+17,227
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godina
+</td>
+<td style="text-align:right;">
+13,324
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatske
+</td>
+<td style="text-align:right;">
+13,150
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+eura
+</td>
+<td style="text-align:right;">
+12,431
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ima
+</td>
+<td style="text-align:right;">
+12,335
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kaže
+</td>
+<td style="text-align:right;">
+11,770
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dana
+</td>
+<td style="text-align:right;">
+11,406
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+može
+</td>
+<td style="text-align:right;">
+11,119
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rast
+</td>
+<td style="text-align:right;">
+11,079
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+eu
+</td>
+<td style="text-align:right;">
+11,077
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatska
+</td>
+<td style="text-align:right;">
+10,856
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tisuća
+</td>
+<td style="text-align:right;">
+9,982
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cijena
+</td>
+<td style="text-align:right;">
+9,884
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+odnosu
+</td>
+<td style="text-align:right;">
+9,447
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tvrtke
+</td>
+<td style="text-align:right;">
+9,361
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+mogu
+</td>
+<td style="text-align:right;">
+8,810
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cijene
+</td>
+<td style="text-align:right;">
+8,519
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tržištu
+</td>
+<td style="text-align:right;">
+8,464
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godinu
+</td>
+<td style="text-align:right;">
+8,367
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+milijardi
+</td>
+<td style="text-align:right;">
+8,091
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sada
+</td>
+<td style="text-align:right;">
+7,680
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+danas
+</td>
+<td style="text-align:right;">
+7,598
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+broj
+</td>
+<td style="text-align:right;">
+7,453
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+radi
+</td>
+<td style="text-align:right;">
+7,431
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+gotovo
+</td>
+<td style="text-align:right;">
+7,358
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="/post/2019-06-03-analiza-teksta-poslovni-dnevnik.hr_files/figure-html/analiza_rijeci%20-1.png" width="672" /></p>
+<p>Tablica 2 prikazuje najčešće korištene riječi u člancima prema <em>Crosentilex Gold</em> leksikonu, izrađenom ručno za 1200 riječi kategoriziranih u negativnu, pozitivnu i neutralnu kategoriju. Njačešće riječi slične su kao u svim tekstovima (Tablica 1;bez leksikona), no pregled riječi ipak malo preciznije ocrtava bussiness i analitički ton Poslovnog dnevnika.</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:200px; overflow-x: scroll; width:500px; ">
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; position: sticky; top:0; background-color: #FFFFFF;" colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Tablica 2
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+word
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+kuna
+</td>
+<td style="text-align:right;">
+47,944
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godina
+</td>
+<td style="text-align:right;">
+13,324
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rast
+</td>
+<td style="text-align:right;">
+11,079
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+cijena
+</td>
+<td style="text-align:right;">
+9,884
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+broj
+</td>
+<td style="text-align:right;">
+7,453
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dio
+</td>
+<td style="text-align:right;">
+7,345
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+promet
+</td>
+<td style="text-align:right;">
+6,671
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+razvoj
+</td>
+<td style="text-align:right;">
+6,231
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vrijeme
+</td>
+<td style="text-align:right;">
+6,185
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+projekt
+</td>
+<td style="text-align:right;">
+6,177
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dionica
+</td>
+<td style="text-align:right;">
+5,805
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tržište
+</td>
+<td style="text-align:right;">
+5,228
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+način
+</td>
+<td style="text-align:right;">
+5,215
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tvrtka
+</td>
+<td style="text-align:right;">
+5,114
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vlada
+</td>
+<td style="text-align:right;">
+4,901
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kompanija
+</td>
+<td style="text-align:right;">
+4,623
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+predsjednik
+</td>
+<td style="text-align:right;">
+4,605
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ministar
+</td>
+<td style="text-align:right;">
+4,570
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pad
+</td>
+<td style="text-align:right;">
+4,482
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sustav
+</td>
+<td style="text-align:right;">
+4,471
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Iz tablice 3, koja pokazuje proporciju riječi po kategorijama sentimenta, vidljivo je da je Poslovni dnevnik pretežito neutralnog (755 tisuća riječi) karaktera, što se uklapa u tržišni profil tipičnog business portala. Pozitivnih (130 tisuća) riječi znatno je više nego negativnih (41 tisuću) pa se može općenito zaključiti da su tekstovi u optimistično intonirani. Zanimljivo bi bilo vidjeti je li optimizam povezan s pozitivnim poslovnim ciklusom, no za to su potrebne nešto dulje serije podataka.</p>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Tablica 3
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+sentiment
+</th>
+<th style="text-align:right;">
+% udio
+</th>
+<th style="text-align:right;">
+broj riječi
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NEUTRALNO
+</td>
+<td style="text-align:right;">
+81.5
+</td>
+<td style="text-align:right;">
+754,391
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEGATIVNO
+</td>
+<td style="text-align:right;">
+4.5
+</td>
+<td style="text-align:right;">
+41,249
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+POZITIVNO
+</td>
+<td style="text-align:right;">
+14.0
+</td>
+<td style="text-align:right;">
+129,849
+</td>
+</tr>
+</tbody>
+</table>
+<p>U Tablici 4 su prikazani rezultati dobiveni na temelju <em>Crosentilex</em> leksikona, koji sadrži znatno veći broj riječi nego <em>Gold</em> varijanta, ali u kojem je sentiment definiran algoritamski. Vidljivo je da pozitivni sentiment ima viši score od negativnog u cijelom razdoblju, ali uz zanemarivo malu razliku. To je na tragu rezultata dobivenih na temelju <em>Gold</em> leksikona koji također ukazuje na pretežito neutralan sentiment Poslovnog dnevnika.</p>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Tablica 4
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+sentiment
+</th>
+<th style="text-align:right;">
+score
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NEGATIVNO
+</td>
+<td style="text-align:right;">
+392,871
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+POZITIVNO
+</td>
+<td style="text-align:right;">
+397,423
+</td>
+</tr>
+</tbody>
+</table>
+<p>Kretanje <em>Crosentilex Gold</em> sentimenta kroz vrijeme (mjesečne sume) prikazano je na grafikonu 1. Neutralni sentiment je najvolatilniji i ima blago opadajući trend dok pozitivni sentiment znatno manje oscilira i uglavnom zadržava trend. Negativni sentiment pretežito je konstantan na relativno najnižoj razini. Na grafikonu 2 prikazano je kretanje <em>Crosentilex Machine</em> sentimenta. Riječ je kategorizirana kao pozitivna ako je omjer pozitivnog i negativnog scora veći od 1 i obrnuto ako je omjer manji od 1. Vidljiv je blago negativan i volatilan trend broja pozitivnih i negativnih riječi, najsličniji kretanju neutralnog <em>Crosentilex Gold</em> sentmenta. Pri tome je broj pozitivnih riječi po <em>Crosentilex Machine</em> riječniku nešto viši od broja negativnih u cijelom razdoblju. Zanimljivo je obratiti pozornost na cikličku prirodu <em>Crosentilex Machine</em> sentimenta na razni godine. Primjetni su ciklusi rasta i pada sentimenta na (otprilike!) kvartalnoj razini: početkom godine dolazi do rasta sentimenta koji potom pada do ljeta, a ponovno počinje rasti do pred kraj godine. Najviše poslovnog optimizma, dakle, postoji početkom godine i pred kraj ljeta.</p>
+<p><img src="/post/2019-06-03-analiza-teksta-poslovni-dnevnik.hr_files/figure-html/grafike%20-1.png" width="672" /></p>
+<p>Ovaj post je dao prikaz analize sentimenta Poslovnog dnevnika na temelju FER-ovih <em>Crosentilex</em> leksikona. Rezultati pokazuju da su leksikoni vjerodostojni i primjenjivi u analizi, posebice stoga što su nalazi algoritamski i ručno napravljenih leksikona međusobno slični. Analiza pokazuje da je Poslovni dnevnik pretežito neutralan, analitički intoniran portal. Zanimljivo je također primjetiti da se cikličko kretanje sentimenta u tekstovima odvija na približno kvartalnoj razini pri čemu su početak godine i kasno ljeto razdoblja s najviše optimizma.</p>

@@ -1,0 +1,475 @@
+---
+title: Izravna strana ulaganja:pozitivni efekti koji mogu biti i veći!
+author: Luka Šikić
+date: '2019-03-19'
+slug: izravna-strana-ulaganja-pozitivni-efekti-koji-mogu-biti-i-ve-i
+categories:
+  - Ekonomika
+  - Firme
+tags:
+  - Izvoz
+  - zaposlenost
+  - nefinancijska poduzeća
+  - produktivnost
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r setup, message = FALSE, echo = FALSE, warning=FALSE, comment=FALSE}
+
+
+library(eurostat)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(cowplot)
+library(gridExtra)
+library(grid)
+library(gtable)
+library(RMySQL)
+library(RODBC)
+library(kableExtra)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(tidyr)
+library(data.table)
+library(scales)
+library(prodest)
+
+
+
+```
+
+```{r varijable, message = FALSE, echo = FALSE, warning=FALSE, comment=FALSE}
+
+db <- dbConnect(MySQL(), dbname = "odvjet12_gfi", host =  "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b372 AS Zaposleni,
+                     b084/1000000000 AS d_dug,
+                     b094/1000000000 AS k_dug,
+                     b010/1000000000 AS matimov, 
+                     b063/1000000000 AS kapital_rezerve,
+                     b064/1000000000 AS osnovni_kapital,
+                     b003/1000000000 AS nematimov,
+                     b110/1000000000 AS prihod,
+                     b120/1000000000 AS placa_net,
+                     b119/1000000000 AS placa_brutto,
+                     b123/1000000000 AS amortizacija,
+                     b136/1000000000 AS financijski_trosak,
+                     b159/1000000000 AS porez_dobit,
+                     b151/1000000000 AS nett,
+                     b115/1000000000 AS materijalni_trosak,
+                     b084/1000000000 AS d_obveze,
+                     b094/1000000000 AS k_obveze,
+                     b335/1000000000 AS Export,
+                     b370/1000000000 AS Import,
+                     b337/1000000000 AS energy,
+                     reportyear, subjectid, employeecounteop, foreigncontrol,
+             nacerev21, nacerev22, nacerev23, nacerev24
+             FROM gfi_all 
+             WHERE reportyear >= 2000;")  
+
+data <- dbGetQuery(db, q)
+#dbDisconnect(db)
+
+```
+
+```{r analiza, message = FALSE,  echo = FALSE , warning=FALSE, comment=FALSE}
+
+
+
+mtp <- function(x) x * 1000000000
+
+
+data %>%
+  group_by(reportyear) %>%
+  filter (foreigncontrol > 0) %>%
+  summarise(n = n_distinct(subjectid),
+            prihod = sum(prihod, na.rm = TRUE),
+            izvoz = sum(Export, na.rm = TRUE),
+            uvoz = sum(Import, na.rm = TRUE),
+            k_dug = sum(k_dug, na.rm = TRUE),
+            d_dug = sum(d_dug, na.rm = TRUE),
+             rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             plata =  (sum (placa_brutto, na.rm = TRUE)/(sum (employeecounteop, na.rm = TRUE)))*1000000000/12)%>%
+    mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+           imov = mim + nim, 
+           invest = (imov + amortizacija) - dplyr:: lag(imov)) -> strano
+
+
+
+
+data %>%
+  filter (foreigncontrol == 0) %>%
+  group_by(reportyear) %>%
+  summarise(n = n_distinct(subjectid),
+            prihod = sum(prihod, na.rm = TRUE),
+            k_dug = sum(k_dug, na.rm = TRUE),
+            d_dug = sum(d_dug, na.rm = TRUE),
+             rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+            izvoz = sum(Export, na.rm = TRUE),
+            uvoz = sum(Import, na.rm = TRUE),
+             nacerev21 = toString(nacerev21),
+            plata =  (sum (placa_brutto, na.rm = TRUE)/(sum (employeecounteop, na.rm = TRUE)))*1000000000/12)%>%
+    mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+           imov = mim + nim, 
+           invest = (imov + amortizacija) - dplyr:: lag(imov)) -> domace
+
+strano %>%
+  group_by(reportyear) %>%
+    summarise(n_empl = (nim / rad)*1000000000,
+            imo_empl = (imov / rad)*1000000000,
+            inv_empl = (invest / rad)*1000000000,
+            ntt_empl = (nett / rad)*1000000000,
+            d_empl = ((k_dug + d_dug)/ rad)*1000000000,
+            dv_empl = (dv / rad)*1000000000,
+            iz_empl = (izvoz / rad)*1000000000,
+            uv_empl = (uvoz / rad)*1000000000,
+            p_empl = (prihod / rad)*1000000000,
+            dug = (k_dug + d_dug)/(mim + nim),
+            roe = (nett/kapital)*100,
+            roa = (nett/(mim + nim)*100),
+            n,plata,rad 
+            ) -> stab 
+
+
+domace %>%
+  group_by(reportyear) %>%
+    summarise(n_empl = (nim / rad)*1000000000,
+            imo_empl = (imov / rad)*1000000000,
+            inv_empl = (invest / rad)*1000000000,
+            ntt_empl = (nett / rad)*1000000000,
+            d_empl = ((k_dug + d_dug)/ rad)*1000000000,
+            dv_empl = (dv / rad)*1000000000,
+            iz_empl = (izvoz / rad)*1000000000,
+            uv_empl = (uvoz / rad)*1000000000,
+            p_empl = (prihod / rad)*1000000000,
+            dug = (k_dug + d_dug)/(mim + nim),
+            roe = (nett/kapital)*100,
+            roa = (nett/(mim + nim)*100),
+            n,plata,rad
+            ) -> dtab
+
+#stab %>% kable(format = "markdown")
+#dtab %>% kable(format = "pandoc")
+
+```
+
+Izravna strana ulaganja (FDI) prije 10-ak godina bila su iznimno važna ekonomska tema. Razlog tome zasigurno je bio u intenzitetu globalizacije i internacionalizacije poslovanja koji su tada bili ključni ekonomski trendovi. Suvremena ekonomska teorija predviđa pozitivan efekt izravnih stranih ulaganja (FDI) na niz ekonomskih pokazatelja i razvoj općenito. Izravna strana ulaganja očekivano bi trebala donositi korist domaćim i stranim tvrtkama ali i cjelokupnom gospodarstvu. Teorija predviđa snažnije efekte u zemljama ispod  tehnološke granice kao i zemljama u procesu smanjenja razvojnog jaza. Iako je tema stranih ulaganja i u Hrvatskoj trenutačno izvan fokusa analitičara i javnosti, valja reći da odranije postoji poveći broj analiza o toj temi. Radovi su uglavnom pisani prije ekonomske krize, koja je zaustavila dobar dio međunarodnih financijskih tokova u Hrvatsku, a nedostaju istraživanja koja pokrivaju razdoblje nakon krize. Pretraga na internetu pokazuje da je tema motivirala znatan broj domaćih završnih, diplomskih, stručnih i doktorskih radova. Novinski portali u pravilu reduciraju izvještavanje o FDI na iznos ulaganja, porijeklo kapitala te pregled sektora u koji su ulaganja usmjerena, a tema naprosto više nije u središtu  zanimanja stručne i šire javnosti.
+
+Budući da domaće tvrtke u stranom vlasništvu u Hrvatskoj predstavljaju “najbolji” dio ekonomije, pokušao sam pronaći razloge gubitka interesa za ovu temu u Hrvatskoj, donijeti zaključke iz postojećih domaćih istraživanja, analizirati način poslovanja stranih tvrtki u Hrvatskoj te konačno sagledati kako se sve to uklapa u teoriju o FDI!? Osim kontrakcije globalnih financijskih kretanja nakon ekonomske krize i općeg smanjenja FDI, gubitak interesa za izravna strana ulaganja u Hrvatskoj povezan je i s prirodom raspoloživih podataka koji su osnova za analizu. Naime, za diskusiju o FDI (u objavljenim radovima, novinskim člancima i javnim raspravama) koriste se javno dostupni  podatci [HNBa](https://www.hnb.hr/statistika/statisticki-podaci/sektor-inozemstva/inozemna-izravna-ulaganja) o agregatnim priljevima, porijeklu i sektoru priljeva stranog kapitala. Takvi podatci dopuštaju analizu samo ograničenog opsega: prikaz trendova FDI prema navedenim kategorijama ili neku vrstu statističke analize utjecaja stranih ulaganja na odabrane makroekonomske pokazatelje. Oba spomenuta pristupa obilno su korištena pa je tema u tim okvirima sasvim dovoljno istražena, a gubitak interesa razumljiv. Ipak, novija ekonomska [literatura](https://www.bis.org/ifc/publ/ifcb45n.pdf) još je uvijek živo zainteresirana za FDI, a prije svega s aspekta poslovanja tvrtke, a upravo se tim pristupom vodila i ova analiza. No, pogledajmo što se prije svega može zaključiti iz postojećeg kolektivnog znanja.
+
+Analiza FDI ima podlogu u bogatoj ekonomskoj teoriji i znatnom broju empirijskih radova, a u najširem se smislu bavi: 1) motivima ponuđača i primatelja stranog ulaganja, 2) utjecajem stranih ulaganja na domaće gospodarstvo, 3) aspektima atraktivnosti tržišta primatelja te 4) poticajnim mjerama. Najčešći motivi ponuđača stranog ulaganja su optimizacija portfelja, iskorištavanje eksternalja, povećanje tržišta te racionalizacija troškova financiranja. Koristi od stranog ulaganja za primatelja odnose se na prihod od poreza, povećanje zaposlenosti i ljudskog kapitala te transfer tehnologije (upravljačke i organizacijske vještine). Očekivani utjecaj FDI na glavne makroekonomske pokazatelje je pozitivan, a prije svega u aspektima povećanja produktivnosti (TFP), rasta dohotka, investicija i vanjske trgovine. Veličina tržišta, geografija i institucionalni okvir pokazali su se kao važni  čimbenici u privlačenju stranog kapitala pa tako i mjere ekonomske politike idu u tom smjeru.
+
+Na temelju postojećih istraživanja za Hrvatsku moguće je izdvojiti 3 stilizirane činjenica o stranim ulaganjima. 1) Efekti FDI nisu pozitivni: pretežiti broj analiza ne pronalazi pozitivne efekte FDI na [rast dohotka](https://hrcak.srce.hr/36848) , [investicije](https://hrcak.srce.hr/155601) i povećanje [izvoza](https://bib.irb.hr/datoteka/374316.zef6_mjosic.pdf). Neki radovi donose blago različite zaključke, posebno kada se razmatra  [izvoz](https://hrcak.srce.hr/6009) i [investicijska aktivnost](https://hrcak.srce.hr/9973), no opći zaključak ostaje isti. 2) Većina stranih ulaganja je usmjerena u [velike tvrtke u domaćem uslužnom sektoru](https://hrcak.srce.hr/101271) (financije i telekomunikacije) i zbog toga nije u funkciji povećanja izvoza. 3) Valja [povećati prihvatni potencijal FDI](https://core.ac.uk/download/pdf/16488928.pdf) jer bi to očekivano imalo pozitivne efekte na ekonomiju. Iako na prvi dojam djeluje konfliktno, navedene činjenice imaju dosta smisla: pozitivni efekti FDI na makroekonomiju izostaju zbog strukture i vrste ulaganja, no kada bi se to promijenilo utjecaj bi bio pozitivan!
+
+
+```{r tablica, results="asis" ,  message = FALSE, echo = FALSE , warning=FALSE, comment=FALSE}
+
+
+setnames(stab, old=c( "n_empl", "ntt_empl","inv_empl","uv_empl", "iz_empl", "dv_empl", "d_empl", "rad" ),
+               new=c("Nematerijalna_imovina","Dobit", "Investicije", "Uvoz", "Izvoz","Dodana_vrijednost","Zaduzenost","Broj_zaposlenih"))
+
+setnames(dtab, old=c( "n_empl", "ntt_empl","inv_empl","uv_empl", "iz_empl", "dv_empl", "d_empl", "rad" ),
+               new=c("Nematerijalna_imovina","Dobit", "Investicije", "Uvoz", "Izvoz","Dodana_vrijednost","Zaduzenost","Broj_zaposlenih"))
+
+
+stab %>%
+  filter(reportyear > 2007) %>%
+  select(Nematerijalna_imovina, Dobit, Investicije, Uvoz, Izvoz, Dodana_vrijednost, Zaduzenost) %>%
+  summarise_all(list(mean)) -> stabm
+
+
+
+dtab %>%
+  filter(reportyear > 2007) %>%
+  select(Nematerijalna_imovina, Dobit, Investicije, Uvoz, Izvoz, Dodana_vrijednost, Zaduzenost) %>%
+  summarise_all(list(mean)) -> dtabm
+
+
+ztab <- rbind (stabm, dtabm) 
+
+ztab1 <- ztab[1,]
+ztab2 <- ztab[2,]
+
+ztab1 %>%
+  gather("Indikator", "vrijednost") -> ztab1
+
+ztab2 %>%
+  gather("Indikator", "vrijednost") -> ztab2
+
+tab <- left_join(ztab1, ztab2, by = "Indikator")
+
+tab %>%
+  rename("Strane" = vrijednost.x, "Domace" = vrijednost.y) -> tab
+
+#tab %>% 
+#  gather(vlasnistvo, vrijednosti, -Indikator) -> t
+#write.table(tab, file = "t.txt", sep = ",", quote = FALSE, row.names = FALSE)
+#getwd()  
+
+kable(tab,
+      format = "html",
+      format.args = list(decimal.mark = " ",
+                         big.mark = ","),
+      digits = 0,
+      caption = "\nUsporedba stranih i domaćih tvrtki") %>% 
+  add_header_above(c(" ", "Tvrtke" = 2)) %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      "hover",
+                                      "condensed",
+                                      "responsive"),
+                full_width = FALSE) %>%
+  add_footnote("Vrijednosti su prikazane po zaposlenom u tis kn i odnose se na prosječne vrijednosti u razdoblju 2008-2017.",notation = "symbol") %>%
+  row_spec(2, background = "gray")
+  
+  
+```
+
+Pregled u poslovanja hrvatskih poduzeća u stranom vlasništvu nakon ekonomske krize pokazuje strana ulaganja u drugom svjetlu. U tablici 1 prikazane su vrijednosti nekoliko indikatora koji dopuštaju donošenje okvirnih zaključka o FDI u Hrvatskoj. Vrijednosti su prikazane u tisućama kn po zaposlenom, a odnose se na prosječni iznos u razdoblju 2008-2017. Vidi se da domaće tvrtke u stranom vlasništvu imaju veće vrijednosti svih indikatora osim dobiti. Više nego tri puta veća nematerijalna imovina domaćih tvrtke u stranom vlasništvu u odnosu na ostale domaće tvrtke upućuje na to da su strana ulaganja visoko motivirana iskorištavanjem tehnološke prednosti koju imaju kod poslovanja na domaćem tržištu. Tehnološka se prednost domaćih tvrtki u stranom vlasništvu, osim visoke nematerijalne imovine, očituje i u znatno većoj dodanoj vrijednosti po zaposlenom kao pokazatelju produktivnosti radne snage. Zanimljivo je da su domaće tvrtke u stranom vlasništvu dvostruko zaduženije nego ostale, a to potencijalno otkriva preferencije ulaganja u Hrvatsku po osnovi racionalizacije troškova poslovanja. Matičnim poduzećima je očito isplativije financirati poslovanje zaduživanjem jer tako rasterećuju vlastitu bilancu i smanjuju financijski rizik. 
+
+```{r zaposlenost_gg, results="asis" , hide = TRUE, message = FALSE, echo = FALSE , warning=FALSE, comment=FALSE}
+
+stab %>%
+  filter(reportyear > 2007) %>%
+  select(reportyear, Broj_zaposlenih) %>%
+  mutate(timevar = seq(from = as.Date("2008-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year"))  %>%
+  ggplot(., aes(timevar)) + 
+  geom_line(aes(y = Broj_zaposlenih), size = 1.2) +
+  theme_bw() +
+  labs(title = "Grafikon 1:\nZaposlenost u stranim tvrtkama",
+       y = "Broj zaposlenih",
+       x = "Godina") +
+   scale_y_continuous(labels = scales::comma) +
+  theme(plot.title = element_text(size=10)) -> zap_s
+
+
+dtab %>%
+filter(reportyear > 2007) %>%
+  select(reportyear, Broj_zaposlenih) %>%
+  mutate(timevar = seq(from = as.Date("2008-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year"))  %>%
+  ggplot(., aes(timevar)) + 
+  geom_line(aes(y = Broj_zaposlenih), size = 1) +
+  theme_bw() +
+  labs(title = "Grafikon 2:\nZaposlenost u domaćim tvrtkama",
+       y = "",
+       x = "Godina") +
+   scale_y_continuous(labels = scales::comma)+
+  theme(plot.title = element_text(size=10)) -> zap_d
+
+grid.arrange(zap_s, zap_d, nrow = 1)
+
+
+```
+
+S druge strane, motivacija Hrvatske za prihvat FDI očito nije porezni prihod jer domaće tvrtke u stranom vlasništvu prijavljuju znatno manje dobiti po zaposlenome od domaćih (tablica 1). Uz dvostruko veće investicije, ovo potencijalno ukazuje i na veću orijentiranost stranih tvrtki prema širenju poslovanja. Domaće tvrtke u stranom vlasništvu zapošljavaju u prosjeku oko 15 % zaposlenih u svim nefinancijskim poduzećima što motivaciju za prihvat FDI čini opipljivijom nego u slučaju poreznih prihoda. Na grafikonima 1 i 2 je prikazano kretanje zaposlenosti u stranim i domaćim tvrtkama. Zanimljivo je da je rast zaposlenosti u poslovnom sektoru nakon krize pretežito generiran u domaćim tvrtkama u stranom vlasništvu. Zaposlenost u tim tvtkama počinje rasti 2011. godine, znatno prije izlaska Hrvatske iz krize, dok tvrtke u domaćem vlasnioštvu do 2014. godine otpuštaju radnike, a tek 2015. godine dolazi do formiranja pravog trenda rasta. Ovdje valja napomenuti da su podatci o zaposlenosti u domaćim tvrtkama u stranom vlasništvu potencijalno pod utjecajem restrukturiranja u Agrokoru što povećava zaposlenost, a ne odnosi se nužno na stvaranje novih radnih mjesta Domaće tvrtke u stranom vlasništvu bile su značajan faktor izlaska Hrvatske iz krize, a makroekonomski (i širi društveni!?) efekti stranih ulaganja su znatni.
+
+
+```{r tehnologija_izracun, message = FALSE, echo = FALSE , warning=FALSE, comment=FALSE}
+
+# STRANE TVRTKE
+
+data %>%
+  filter(foreigncontrol  > 0 ) %>%
+  group_by( reportyear, subjectid) %>%
+  summarise (rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE)) %>%
+  mutate_at(vars(mim, nim, placa, amortizacija, fin_rashod, tax_nett, nett, kapital, energy), funs(mtp)) %>%
+  mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+         kapital_ = mim + nim) %>%
+         #inv = ((mim + amortizacija) - dplyr::lag(mim)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0)  %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear),
+         subjectid = as.numeric(as.character(subjectid))) %>%
+  select(dv, kapital, rad, energy, subjectid, reportyear) %>%
+  rename(Y = dv  , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = subjectid,
+         timevar = reportyear) -> tfp_strane
+
+WRDG <- prodestWRDG(tfp_strane$Y, 
+                               tfp_strane$fX,
+                               tfp_strane$sX, 
+                               tfp_strane$pX,
+                               tfp_strane$idvar,
+                               tfp_strane$timevar)
+
+omega(WRDG) -> tfp.wrdg
+
+as.numeric(tfp.wrdg) -> tfp.wrdg
+
+tfp_strane[,"tfp_wrdg"] <- tfp.wrdg
+
+# pojedinačni_gg
+
+tfp_strane %>%
+  group_by(timevar) %>%
+  summarise(tfp = sum(tfp_wrdg, na.rm = TRUE)) %>% 
+  mutate(tfp_ind = 100*tfp/tfp[1]) %>%
+  ungroup() %>%
+  mutate(vrijeme = seq(from = as.Date("2008-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year") ) %>%
+ggplot(., aes(vrijeme,tfp_ind )) +
+  geom_line() +
+  theme_bw() -> s
+
+
+# skupni_gg
+
+tfp_strane %>%
+  group_by(timevar) %>%
+  summarise(tfp = sum(tfp_wrdg, na.rm = TRUE)) %>% 
+  mutate(tfp_ind = 100*tfp/tfp[1]) %>%
+  ungroup() %>%
+  mutate(vrijeme = seq(from = as.Date("2008-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year") ) -> ss
+
+
+
+
+
+# DOMAĆE TVRTKE
+
+data %>%
+  filter(foreigncontrol  == 0 ) %>%
+  group_by( reportyear, subjectid) %>%
+  summarise (rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE)) %>%
+  mutate_at(vars(mim, nim, placa, amortizacija, fin_rashod, tax_nett, nett, kapital, energy), funs(mtp)) %>%
+  mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+         kapital_ = mim + nim) %>%
+         #inv = ((mim + amortizacija) - dplyr::lag(mim)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0)  %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear),
+         subjectid = as.numeric(as.character(subjectid))) %>%
+  select(dv, kapital, rad, energy, subjectid, reportyear) %>%
+  rename(Y = dv  , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = subjectid,
+         timevar = reportyear) -> tfp_domace
+
+WRDG <- prodestWRDG(tfp_domace$Y, 
+                               tfp_domace$fX,
+                               tfp_domace$sX, 
+                               tfp_domace$pX,
+                               tfp_domace$idvar,
+                               tfp_domace$timevar)
+
+omega(WRDG) -> tfp.wrdg.d
+
+as.numeric(tfp.wrdg.d) -> tfp.wrdg.d
+
+tfp_domace[,"tfp_wrdg"] <- tfp.wrdg.d
+
+# pojedinačni_gg
+
+tfp_domace %>%
+  group_by(timevar) %>%
+  summarise(tfp = sum(tfp_wrdg, na.rm = TRUE)) %>% 
+  mutate(tfp_ind = 100*tfp/tfp[1]) %>%
+  ungroup() %>%
+  mutate(vrijeme = seq(from = as.Date("2008-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year") ) %>%
+ggplot(., aes(vrijeme, tfp_ind )) +
+  geom_line() +
+  theme_bw() -> d
+
+#grid.arrange(s,d, nrow = 1) 
+
+```
+
+```{r tehnologija_gg , message = FALSE, echo = FALSE}
+
+#skupni_gg
+
+tfp_domace %>%
+  group_by(timevar) %>%
+  summarise(tfp = sum(tfp_wrdg, na.rm = TRUE)) %>% 
+  mutate(tfp_ind = 100*tfp/tfp[1]) %>%
+  mutate(vrijeme = seq(from = as.Date("2008-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year") ) %>%
+  rename(tfp_ind_d = tfp_ind) %>%
+  select(-timevar) %>%
+  left_join(., ss, by = "vrijeme") %>%
+  ggplot(.,aes(vrijeme)) +
+  geom_line(aes(y = tfp_ind, linetype = "str"), size = 1.2) +
+  geom_line(aes(y = tfp_ind_d, linetype = "dom"), size = 1) +
+  theme_bw() +
+  scale_linetype_manual(values = c(str = "solid",
+                                   dom = "dotted"),
+                        labels = c ("Domace tvrtke",
+                                    "Strane tvrtke")) +
+   theme(legend.title = element_blank(),
+        legend.position = c(0.8, 0.9),
+        legend.background = element_rect(fill = alpha("white", 0.1))) +
+  labs(title = "Grafikon 3:\n Produktivnost u domaćim i stranim tvrtkama",
+       y = "TFP Index: 2008 = 100",
+       x = "Godina")
+
+
+```
+
+Osim na zaposlenost, strana ulaganja pozitivno utječu i na povećanje produktivnosti. Na grafikonu 3 prikazano je kretanje produktivnosti ^[Produktivnost (TFP) je izračunata pomoću R paketa [prodest](https://cran.r-project.org/web/packages/prodest/prodest.pdf) pri čemu je korištena specifikacija opisana u [Pogled na hrvatsku tehnološku granicu](http://croecon.contentio.biz/post/pogled-na-hrvatsku-tehnolo-ku-granicu/). ] tvrtki u domaćem i stranom vlasništvu nakon krize. Domaće tvrtke u stranom vlasništvu imaju manji pad nakon krize, brže se oporavljaju i intenzivnije rastu u usporedbi s domaćim tvrtkama. Produktivnost domaćih tvrtki u stranom vlasništvu počinje rasti godinu dana nakon krize dok ostalima treba 3 godine za pokretanje pozitivnog trenda. S obzirom na to da se produktivnost oporavlja i raste brže u domaćim tvrtkama u stranom vlasništvu, difuzija tehnologije u domaćem poslovnom sektoru na osnovi stranih ulaganja ograničenog je dometa. Ipak, porast tehnoloških kapaciteta domaćih tvrtki u stranom vlasništvu očito podiže opću razinu produktivnosti domaće ekonomije.
+
+Jednostavan pregled pokazatelja poslovanja domaćih tvrtki u stranom vlasništvu pokazuje da one čine važan dio domaće ekonomije. Svi pokazatelji poslovanja upućuju na tehnološku prednost i veću poslovnu dinamičnost stranog sektora. To ima pozitivne makroekonomske efekte uz ograde vezano uz efekte na vanjskotrgovnisku bilancu. Istraživanja su potvrdila ograničene efekte FDI na izvoz u Hrvatskoj, a takav rezultat djelomično se očituje (tablica 1) u tome što domaće tvrtke u stranom vlasništvu imaju skoro jednak uvoz i izvoz pa netto efekt na vanjsku trgovinu izostaje. Osim malog dobitka na netto izvozu i niskih poreznih dobitaka, strana ulaganja imaju visoko pozitivne efekte na gospodarstvo
+
+
+
+
+
+

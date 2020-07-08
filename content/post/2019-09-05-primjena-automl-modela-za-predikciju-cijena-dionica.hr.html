@@ -1,0 +1,722 @@
+---
+title: Primjena AutoML modela za predikciju cijena dionica
+author: Mislav Šagovac
+date: '2019-09-05'
+slug: primjena-automl-modela-za-predikciju-cijena-dionica
+categories:
+  - R
+  - Firme
+tags:
+  - dionice
+  - strojno učenje
+  - duboko učenje
+type: ''
+subtitle: ''
+image: ''
+bigimg: 
+  - {src: "/img/post_automl_stocks.jpg", desc: "AutoML"}
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>Prije pola godine sam napisao <a href="http://croecon.contentio.biz/post/predvi-anje-cijene-dionica-uz-pomo-u-modela-dubokog-u-enja/">post</a> o primjeni modela dubokog učenja na predikciju cijene dionice tehnike (THNK). U ovom postu ću primijeniti drugi, u posljednje vrijeme vrlo popularni pristup za predikciju općenito: automatsko strojno učenje (dalje AutoML). AutoML podrazumijeva primjenu skupa različitih vrsta modela strojnog učenja te izbor najboljeg modela ovisno o izabranoj <em>loss</em> funkciji. AumoML najčešće ne zahtijeva znanje o programiranju i razvoju modela. Potrebno je samo pripremiti podatke za analizu (učitavanje podatka, bavljenje sa nedostajućim vrijednostima i slično), te promijeniti AutoML funkciju na čistu matricu podatka.</p>
+<p>Postoji nekoliko poznatih AutoML alata. Primjerice, Googleov <strong><a href="https://cloud.google.com/automl/">CloudAutoML</a></strong>, <strong><a href="http://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html">H2O AutoML</a></strong>, <strong><a href="https://autokeras.com/">AutoKeras</a></strong> i drugi. Detaljniji popis AutoML modela možete pogledati na <a href="https://www.ml4aad.org/automl/">poveznici</a>. U ovom postu ćemo primijeniti manje poznati paket u razvoju - <strong><a href="https://github.com/AdrianAntico/RemixAutoML">RemixAutoML</a></strong>. Paket ima više korisnih funkcija ovisno o tipu predikcije (regresija/klasifikacija, <em>supervised/unsupervised learning</em> i dr.). U ovom postu ćemo primijeniti <code>AutoTS</code> funkciju iz navedenog paketa. Funkcija testira 7 različitih modela (popis svih modela možete pogledati na spomenutoj poveznici). Za svaki model algoritam testira različite vremenske pomake, transformacije podataka, pomične presjeke i druge specifikacije. Sve ove parametre možete sami izabrati kada zovete <code>AutoTS</code> funkciju. Važan korak je i izbor evaluacijske mjere (u ovom postu ćemo koristiti MAPE). Kao što piše u samom opisu paketa, algoritam se sastoji od tri koraka:</p>
+<ol style="list-style-type: decimal">
+<li>Izgradnja i evaluacija svih modela za <em>n</em> razdoblja u budućnosti.</li>
+<li>Izbor najboljeg modela i njegova primjena na cijelom skupu podataka.</li>
+<li>Generiranje predviđanja primjenom najboljeg modela za <em>n</em> razdoblja u budućnosti.</li>
+</ol>
+<p>Za početak je potrebno učitati podatke i pripremiti ih za analizu. Za unos podataka možete koristi korake opisane u već spomenutom <a href="http://croecon.contentio.biz/post/predvi-anje-cijene-dionica-uz-pomo-u-modela-dubokog-u-enja/">postu</a>. U nastavku pretpostavljam da ste učitali podatke. <code>AutoTS</code> funkcija omogućuje samo univarijantnu analizu. Drugim riječima, argument AutoTS funkcije zahtijeva samo dva argumenta: kolonu datuma i jednu vremensku seriju.</p>
+<p>Za predmetnu analizu ćemo ponovno koristiti dionicu Tehnike. Tablica se sastoji od 2408 opservacija (redova) i tri kolone: zadnja cijena za određeni dan, datum i simbol dionice. R korisnici će primijetiti jednu specifičnost: objekt sadrži klasu <code>tbl_ts</code>, odnosno objekt klase <a href="https://tsibble.tidyverts.org/articles/intro-tsibble.html">tsibble</a>.</p>
+<pre class="r"><code>library(tidyverse)
+library(kableExtra)
+library(ggforce)
+library(tsbox)
+library(TTR)
+library(PerformanceAnalytics)
+
+glimpse(THNK)</code></pre>
+<pre><code>## Observations: 2,409
+## Variables: 3
+## Key: simbol [1]
+## $ zadnja &lt;dbl&gt; 11160, 11650, 11505, 11260, 11300, 11005, 11100, 11225,...
+## $ datum  &lt;date&gt; 2008-01-02, 2008-01-03, 2008-01-04, 2008-01-07, 2008-0...
+## $ simbol &lt;chr&gt; &quot;THNK&quot;, &quot;THNK&quot;, &quot;THNK&quot;, &quot;THNK&quot;, &quot;THNK&quot;, &quot;THNK&quot;, &quot;THNK&quot;,...</code></pre>
+<pre class="r"><code>class(THNK)</code></pre>
+<pre><code>## [1] &quot;tbl_ts&quot;     &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
+<p>Budući da <code>AutoTS</code> funkcija iz <code>RemixAutoML</code> paketa procjenjuje univarijantni model, podaci su spremni za analizu. Potrebno je samo definirati argumente funkcije:</p>
+<pre class="r"><code>validation_index &lt;- as.integer(nrow(THNK) * 0.1)
+THNK_predvidjanja = RemixAutoML::AutoTS(
+  data = THNK[, c(&quot;datum&quot;, &quot;zadnja&quot;)],
+  TargetName = &quot;zadnja&quot;,
+  DateName = &quot;datum&quot;,
+  FCPeriods = 7,
+  HoldOutPeriods = validation_index,
+  TimeUnit = &quot;day&quot;,
+  Lags = 10,
+  NumCores = 8
+)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;quantmod&#39;:
+##   method            from
+##   as.zoo.data.frame zoo</code></pre>
+<pre><code>## Registered S3 methods overwritten by &#39;forecast&#39;:
+##   method             from    
+##   fitted.fracdiff    fracdiff
+##   residuals.fracdiff fracdiff</code></pre>
+<p>Funkcija zahtijeva definiranje tablice podataka, naziv kolone koja sadrži numeričke vrijednosti i naziv kolone koja sadrži datum. Nadalje, mogu se definirati: broj razdoblja predviđanja (u našem slučaju 7), dio uzorka koji će se koristiti za validaciju (u našem slučaju 10%), vremenska jedinica, broj vremenskih pomaka koji će se procjenjivati (u našem slučaju 10) te broj jezgri. Napominjem da je funkcija računski zahtjevna, a ukupno vrijeme ovisi o broju jezgri koju imate na računalu. Ukratko, algoritam automatski izabire najbolji model s jednom varijablom - zadnjom cijenom dionice testirajući različite transformacije vremenske serije, različiti broj vremenskih pomaka (engl. lagova) i različite pomične presjeke. Svi ovi parametri su izabrani na optimalan način, to jest izabran je model sa najmanjom srednjom apsolutnom postotnom pogreškom (MAE).</p>
+<p>Funkcija <code>AutoTS</code> vraća nekoliko zanimljivih objekata. Za početak pogledajmo uspješnost svakog testiranog modela. Najbolji model je <em>TBATS</em>, odnosno <em>“Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components”</em>. Više o modelima možete pronaći u sljedećoj <a href="https://otexts.com/fpp2/index.html">knjizi</a>.</p>
+<pre class="r"><code>THNK_predvidjanja$EvaluationMetrics %&gt;%
+  kable(format = &quot;html&quot;, caption = &quot;Tablica: Performanse svih prikazanih modela&quot;) %&gt;%
+  kable_styling(font_size = 12)</code></pre>
+<table class="table" style="font-size: 12px; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-4">Table 1: </span>Tablica: Performanse svih prikazanih modela
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+ModelName
+</th>
+<th style="text-align:right;">
+MeanResid
+</th>
+<th style="text-align:right;">
+MeanPercError
+</th>
+<th style="text-align:right;">
+MAPE
+</th>
+<th style="text-align:right;">
+MAE
+</th>
+<th style="text-align:right;">
+MSE
+</th>
+<th style="text-align:right;">
+ID
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+TBATS
+</td>
+<td style="text-align:right;">
+-8.52
+</td>
+<td style="text-align:right;">
+-0.07974
+</td>
+<td style="text-align:right;">
+0.27590
+</td>
+<td style="text-align:right;">
+38.4951
+</td>
+<td style="text-align:right;">
+2595.537
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TBATS_ModelFreq
+</td>
+<td style="text-align:right;">
+-8.52
+</td>
+<td style="text-align:right;">
+-0.07974
+</td>
+<td style="text-align:right;">
+0.27590
+</td>
+<td style="text-align:right;">
+38.4951
+</td>
+<td style="text-align:right;">
+2595.537
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TBATS_TSC
+</td>
+<td style="text-align:right;">
+-11.00
+</td>
+<td style="text-align:right;">
+-0.09575
+</td>
+<td style="text-align:right;">
+0.27743
+</td>
+<td style="text-align:right;">
+39.4035
+</td>
+<td style="text-align:right;">
+2596.944
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TBATS_ModelFreqTSC
+</td>
+<td style="text-align:right;">
+5.64
+</td>
+<td style="text-align:right;">
+0.02952
+</td>
+<td style="text-align:right;">
+0.27809
+</td>
+<td style="text-align:right;">
+34.7974
+</td>
+<td style="text-align:right;">
+2924.326
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NN_ModelFreq
+</td>
+<td style="text-align:right;">
+-1.55
+</td>
+<td style="text-align:right;">
+-0.01956
+</td>
+<td style="text-align:right;">
+0.27939
+</td>
+<td style="text-align:right;">
+35.9194
+</td>
+<td style="text-align:right;">
+3192.301
+</td>
+<td style="text-align:right;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NN_ModelFreqTSC
+</td>
+<td style="text-align:right;">
+-6.46
+</td>
+<td style="text-align:right;">
+-0.05502
+</td>
+<td style="text-align:right;">
+0.28842
+</td>
+<td style="text-align:right;">
+38.4218
+</td>
+<td style="text-align:right;">
+3236.530
+</td>
+<td style="text-align:right;">
+6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NN_TSC
+</td>
+<td style="text-align:right;">
+-51.67
+</td>
+<td style="text-align:right;">
+-0.22548
+</td>
+<td style="text-align:right;">
+0.40567
+</td>
+<td style="text-align:right;">
+78.4375
+</td>
+<td style="text-align:right;">
+8863.493
+</td>
+<td style="text-align:right;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NN
+</td>
+<td style="text-align:right;">
+-45.97
+</td>
+<td style="text-align:right;">
+-0.19934
+</td>
+<td style="text-align:right;">
+0.40624
+</td>
+<td style="text-align:right;">
+75.9578
+</td>
+<td style="text-align:right;">
+8336.874
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ETS
+</td>
+<td style="text-align:right;">
+35.11
+</td>
+<td style="text-align:right;">
+0.37679
+</td>
+<td style="text-align:right;">
+0.51392
+</td>
+<td style="text-align:right;">
+47.4776
+</td>
+<td style="text-align:right;">
+4561.571
+</td>
+<td style="text-align:right;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ETS_ModelFreq
+</td>
+<td style="text-align:right;">
+35.78
+</td>
+<td style="text-align:right;">
+0.38746
+</td>
+<td style="text-align:right;">
+0.52281
+</td>
+<td style="text-align:right;">
+47.8989
+</td>
+<td style="text-align:right;">
+4615.524
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ETS_ModelFreqTSC
+</td>
+<td style="text-align:right;">
+35.83
+</td>
+<td style="text-align:right;">
+0.38824
+</td>
+<td style="text-align:right;">
+0.52347
+</td>
+<td style="text-align:right;">
+47.9295
+</td>
+<td style="text-align:right;">
+4619.466
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARFIMA_TSC
+</td>
+<td style="text-align:right;">
+-383.36
+</td>
+<td style="text-align:right;">
+-0.73758
+</td>
+<td style="text-align:right;">
+0.73758
+</td>
+<td style="text-align:right;">
+383.3606
+</td>
+<td style="text-align:right;">
+159405.494
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TSLM_ModelFreqTSC
+</td>
+<td style="text-align:right;">
+966.19
+</td>
+<td style="text-align:right;">
+-1.15099
+</td>
+<td style="text-align:right;">
+1.15099
+</td>
+<td style="text-align:right;">
+966.1852
+</td>
+<td style="text-align:right;">
+960264.030
+</td>
+<td style="text-align:right;">
+13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARIMA
+</td>
+<td style="text-align:right;">
+634.09
+</td>
+<td style="text-align:right;">
+-1.50019
+</td>
+<td style="text-align:right;">
+2.21338
+</td>
+<td style="text-align:right;">
+634.0910
+</td>
+<td style="text-align:right;">
+552318.241
+</td>
+<td style="text-align:right;">
+14
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TSLM_TSC
+</td>
+<td style="text-align:right;">
+680.24
+</td>
+<td style="text-align:right;">
+-2.05732
+</td>
+<td style="text-align:right;">
+2.50652
+</td>
+<td style="text-align:right;">
+709.2551
+</td>
+<td style="text-align:right;">
+699197.568
+</td>
+<td style="text-align:right;">
+15
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARIMA_ModelFreqTSC
+</td>
+<td style="text-align:right;">
+219.46
+</td>
+<td style="text-align:right;">
+1.07221
+</td>
+<td style="text-align:right;">
+4.84723
+</td>
+<td style="text-align:right;">
+219.4586
+</td>
+<td style="text-align:right;">
+71782.139
+</td>
+<td style="text-align:right;">
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARIMA_TSC
+</td>
+<td style="text-align:right;">
+211.14
+</td>
+<td style="text-align:right;">
+1.71224
+</td>
+<td style="text-align:right;">
+5.11974
+</td>
+<td style="text-align:right;">
+211.1361
+</td>
+<td style="text-align:right;">
+67423.707
+</td>
+<td style="text-align:right;">
+17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARIMA_ModelFreq
+</td>
+<td style="text-align:right;">
+639.65
+</td>
+<td style="text-align:right;">
+-5.28628
+</td>
+<td style="text-align:right;">
+5.85379
+</td>
+<td style="text-align:right;">
+639.6531
+</td>
+<td style="text-align:right;">
+565656.781
+</td>
+<td style="text-align:right;">
+18
+</td>
+</tr>
+</tbody>
+</table>
+<p>Funkcija također vraća grafikon koji prikazuje predikcije za sljedećih <em>n</em> dana:</p>
+<pre class="r"><code>THNK_predvidjanja$TimeSeriesPlot + 
+  labs(x = NULL, y = &quot;Zadnja&quot;, title = &quot;Procjena za sljedećih 5 dana najboljeg modela&quot;,  caption = NULL) +
+  ggforce::facet_zoom(xlim = c(Sys.Date() - 7, Sys.Date() + length(THNK_predvidjanja$Forecast)), 
+                      ylim = c(min(gather(THNK_predvidjanja$Forecast, datum, vrijednosti, -Date)$vrijednosti), 
+                               max(gather(THNK_predvidjanja$Forecast, datum, vrijednosti, -Date)$vrijednosti)),
+                      horizontal = FALSE) + 
+  theme_light()</code></pre>
+<p><img src="/post/2019-09-05-primjena-automl-modela-za-predikciju-cijena-dionica.hr_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>pocetna_cijena &lt;- as.numeric(THNK[nrow(THNK), &quot;zadnja&quot;])
+predvidena_cijena &lt;- as.numeric(THNK_predvidjanja$Forecast[nrow(THNK_predvidjanja$Forecast), 2])
+promjena_cijene &lt;- round(((predvidena_cijena - pocetna_cijena) / pocetna_cijena) * 100, 2)</code></pre>
+<p>Najbolji model prikazan na grafikonu (TBATS) pokazuje rast cijene od 2.24%.</p>
+<p>Investitore često zanima kakva je uspješnost modela u prošlosti (<em>backtesting</em>). Kao pokazatelj uspješnosti, poželjno je izraditi korelacijsku matricu:</p>
+<pre class="r"><code>stock_test &lt;- THNK %&gt;%
+  dplyr::mutate(real_promjena = zadnja - dplyr::lag(zadnja)) %&gt;%
+  dplyr::mutate(real_class = ifelse(real_promjena &gt; 0, 1, 0)) %&gt;%
+  dplyr::bind_cols(., predvidanja = THNK_predvidjanja$TimeSeriesModel$fitted) %&gt;%
+  dplyr::mutate(predikcija = zadnja - predvidanja) %&gt;%
+  dplyr::mutate(predikcija_class = ifelse(predikcija &gt; 0, 1, 0)) %&gt;%
+  dplyr::filter(complete.cases(.)) %&gt;%
+  dplyr::slice((nrow(.) - validation_index):nrow(.)) # ostaviti samo test set
+xtab &lt;- table(factor(stock_test$real_class), factor(stock_test$predikcija_class))
+c_matrix &lt;- caret::confusionMatrix(xtab, positive = &quot;1&quot;)
+c_matrix_merge &lt;- t(cbind.data.frame(data.frame(as.list(c_matrix$overall)), data.frame(as.list(c_matrix$byClass))))
+c_matrix_merge &lt;- data.frame(Pokazatelj = rownames(c_matrix_merge), Vrijednost = c_matrix_merge)
+c_matrix_merge %&gt;%
+  kable(format = &quot;html&quot;, caption = &quot;Tablica: Matrica grešaka&quot;, row.names = FALSE) %&gt;%
+  kable_styling(font_size = 12, full_width = FALSE)</code></pre>
+<table class="table" style="font-size: 12px; width: auto !important; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+<span id="tab:unnamed-chunk-7">Table 2: </span>Tablica: Matrica grešaka
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Pokazatelj
+</th>
+<th style="text-align:right;">
+Vrijednost
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Accuracy
+</td>
+<td style="text-align:right;">
+0.9585062
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Kappa
+</td>
+<td style="text-align:right;">
+0.9167760
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AccuracyLower
+</td>
+<td style="text-align:right;">
+0.9250172
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AccuracyUpper
+</td>
+<td style="text-align:right;">
+0.9799256
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AccuracyNull
+</td>
+<td style="text-align:right;">
+0.5311203
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AccuracyPValue
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+McnemarPValue
+</td>
+<td style="text-align:right;">
+0.7518296
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sensitivity
+</td>
+<td style="text-align:right;">
+0.9646018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Specificity
+</td>
+<td style="text-align:right;">
+0.9531250
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pos.Pred.Value
+</td>
+<td style="text-align:right;">
+0.9478261
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neg.Pred.Value
+</td>
+<td style="text-align:right;">
+0.9682540
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Precision
+</td>
+<td style="text-align:right;">
+0.9478261
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Recall
+</td>
+<td style="text-align:right;">
+0.9646018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+F1
+</td>
+<td style="text-align:right;">
+0.9561404
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Prevalence
+</td>
+<td style="text-align:right;">
+0.4688797
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Detection.Rate
+</td>
+<td style="text-align:right;">
+0.4522822
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Detection.Prevalence
+</td>
+<td style="text-align:right;">
+0.4771784
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Balanced.Accuracy
+</td>
+<td style="text-align:right;">
+0.9588634
+</td>
+</tr>
+</tbody>
+</table>
+<p>Tablica pokazuje različite mjere koje sadrži matrica grešaka. Za kreiranje matrice promatrane su samo predikcije iz testnog skupa. Objašnjenje pojedinih mjera mogu se pronaći na sljedećoj <a href="https://en.wikipedia.org/wiki/Confusion_matrix">poveznici</a>. Komentirat ću dvije vrlo često korištene mjera. Prva mjera je mjera točnosti (<em>accuracy</em>), koja pokazuje udio točnih klasifikacija u ukupnim klasifikacijama. Druga je osjetljivost (<em>Sensitivity</em>), koja pokazuje udio točnih pozitivnih klasifikacija od ukupno točnih klasifikacija.</p>
+<p>Uspješnost na test skupu možemo i vizualno pokazati pomoću paketa <code>PerformanceAnalytics</code>, odnsno funkcije <code>charts.PerformanceSummary</code>. Funkcija ima minimalno jedan argument - matricu prinosa. Koristit ću dva vektora prinosa. Jedan je vektor prinosa pod pretpostavkom držanja dionice THNK cijelo promatrano razbolje, a drugi vektor podrazumijeva kupnju i prodaju ovisno o predikcijama modela koje smo koristili.</p>
+<pre class="r"><code>prinosi &lt;- THNK %&gt;% 
+  dplyr::bind_cols(., predvidanja = THNK_predvidjanja$TimeSeriesModel$fitted) %&gt;%
+  dplyr::mutate(signal = ifelse((predvidanja - dplyr::lag(zadnja)) &gt; 0, 1, 0)) %&gt;% 
+  dplyr::mutate(prinos = ROC(zadnja), 
+                prinos_strategija = ROC(zadnja) * signal) %&gt;% 
+  dplyr::filter(!is.na(prinos_strategija)) %&gt;% 
+  dplyr::slice((nrow(.) - validation_index):nrow(.)) %&gt;% # ostaviti samo test set
+  dplyr::select(prinos, prinos_strategija, datum, simbol)
+charts.PerformanceSummary(tsbox::ts_xts(prinosi))</code></pre>
+<pre><code>## [time]: &#39;datum&#39;</code></pre>
+<p><img src="/post/2019-09-05-primjena-automl-modela-za-predikciju-cijena-dionica.hr_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Slika pokazuje znatno bolje performanse aktivne strategije (trgovanje na temelju modela) nego pasivne strategije. Kumulativni prinosi ne uzimaju u obzir provizije koje se plaćaju brokerima za trgovanje. Međutim, teško je vjerovati da bi prinos <em>pojeo</em> <em>ekstra</em> prinos.</p>
+<p>Zaključno, investitori koji vjeruju da je tržište neefikasno u tolikoj mjeri da se cijene mogu predvidjeti na temelju prošlih zaključnih cijena (što ne vjerujem), imaju vrlo snažan alat za ostvarivanje prinosa većih od tržišnih - AutoML modele. Ubuduće ću pokušati koristiti veći broj nezavisnih varijabli i vidjeti mogu li se dodatno poboljšati performanse modela.</p>

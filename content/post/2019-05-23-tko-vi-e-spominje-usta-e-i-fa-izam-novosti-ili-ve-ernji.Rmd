@@ -1,0 +1,267 @@
+---
+title: Tko više spominje ustaše i fašizam, Novosti ili Večernji?
+author: Mislav Šagovac
+date: '2019-05-23'
+slug: tko-vi-e-spominje-usta-e-i-fa-itzam-novosti-ili-ve-ernji
+categories:
+  - Tekst
+tags:
+  - analiza teksta
+type: ''
+subtitle: ''
+image: ''
+---
+
+Portal [Novosti](https://www.portalnovosti.com/) često je na meti pojedinih novinara. Primjer je nedavni [tekst Nine Raspudića](https://www.vecernji.hr/premium/zasto-sam-ja-glup-a-v-ivancic-pametan-1065260) u kojem se autor kritički osvrće na ovaj portal. Navodim neke citate iz teksta:
+
+> Nominalno i proračunski tjednik srpske manjine, a koji je postao udomilište za Feralovu siročad, gdje su de facto ti etnički Hrvati zauzeli glasilo srpske manjine, suzili ga na ekstremno-lijevo poziciju i vezali uz partikularne političke opcije pa srpsku manjinu, u čije ime tobože govore i kojoj namijenjena sredstva sisaju, perfidno konfrontiraju s hrvatskom većinom.
+...
+Mi moramo plaćati njih da nas podsjećaju i nabijaju nam na nos sve kolektivne krivnje, od kojih sebe, naravno, izuzimaju. Svaki tekst im već gotovo četvrt stoljeća leži na istim ključnim riječima: fašizam (frekvencija korištenja približava se onoj sastavnog veznika), ustaše, Aleksandra Zec, Ahmići, Stari most, privatizacija.
+
+Jedna od ključnih kritika autora odnosi se na sadržaj tekstova u novostima. fokus je na ustašama, fašistima, obitelji Zec, Ahmićima i drugim hrvatskim mrljama iz prošlosti, a premalo o posebnostima, specifičnostima i problemima srpske manjine. Raspudić tako ističe da se pojam fašizam koristi češće od veznika. Jasno je da je ova primjedba ironija, ali komentar o učestalosti pojave riječi me odmah asocirala na analizu teksta koju sam nedavno proveo i [prikazao](http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/) na ovom blogu. Koliko često se spomenuti termini zaista pojavljuju u Novostima? Je li frekvencija veća u odnosu na druge portale? Koji autor najviše upotrebljavaju predmetne pojmove? Na ova pitanja možemo odgovoriti pomoću jednostavne analize teksta.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(tidytext)
+library(kableExtra)
+library(spacyr)
+library(knitr)
+
+novosti <- read.csv2("E:/data/R/web_scraping/novosti/srpske_novosti/noovsti_bezduplih.csv", stringsAsFactors = FALSE)
+novosti$datumShort <- gsub(" \\d+:\\d+", "", novosti$datum)
+# tail(novosti$datumShort)
+novosti$datumShort <- str_replace(novosti$datumShort, "siječnja", "01\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "veljače", "02\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "ožujka", "03\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "travnja", "04\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "svibnja", "05\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "lipnja", "06\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "srpnja", "07\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "kolovoza", "08\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "rujna", "09\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "listopada", "10\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "studenoga", "11\\.")
+novosti$datumShort <- str_replace(novosti$datumShort, "prosinca", "12\\.")
+novosti$datumShort <- str_replace_all(novosti$datumShort, "[[:space:]]+", "")
+novosti$datumShort <- as.Date(novosti$datumShort, "%d.%m.%Y.")
+novosti <- novosti[!is.na(novosti$datumShort), ]
+novosti$datum <- NULL
+novosti$autor <- gsub("Pišu ", "", novosti$autor)
+novosti$autor <- trimws(novosti$autor)
+
+# vecernji
+files <- list.files("E:/data/R/web_scraping/novosti/vecernji", 
+                    pattern = "clanci.*.csv",
+                    full.names = TRUE)
+vecernjifiles <- lapply(files, read.csv2, stringsAsFactors = FALSE)
+vecernji <- do.call(rbind, vecernjifiles)
+vecernji <- unique(vecernji)
+vecernji$datumShort <- gsub(" \\d+:\\d+", "", vecernji$datum)
+vecernji$datumShort <- str_replace(vecernji$datumShort, "siječnja", "01\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "veljače", "02\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "ožujka", "03\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "travnja", "04\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "svibnja", "05\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "lipnja", "06\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "srpnja", "07\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "kolovoza", "08\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "rujna", "09\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "listopada", "10\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "studenoga", "11\\.")
+vecernji$datumShort <- str_replace(vecernji$datumShort, "prosinca", "12\\.")
+vecernji$datumShort <- str_replace_all(vecernji$datumShort, "[[:space:]]+", "")
+vecernji$datumShort <- as.Date(vecernji$datumShort, "%d.%m.%Y.")
+vecernji <- vecernji[!is.na(vecernji$datumShort), ]
+```
+
+Za potrebe ove analize preuzeo sam tekstove dostupne na web stranicama portala "Novosti". Podaci se sastoje od 4 varijable: autor, datum, naslov i tekst. Baza ima ukupno 10944 tekstova u razdoblju od 6.9.2009 do 12.5.2019. Broj autora je teško utvrditi jer je nekada korišteno cijelo ime i prezime autora, a nekada samo inicijali. Ako se zanemari ovo ograničenje, top 3 autora po broju članaka u Novostima su Nenad Jovanović, Novosti i Bojan Munjin. Top listu 20 autora po broju članaka možete pogledati u tablici 1. Ovih 20 autora je napisalo 52% svih članaka u Novostima (možda i više, ako su u potpisima tekstova koristili inicijale).
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results=FALSE}
+## udio tekstova 20 najvecih autora
+# novosti %>% 
+#   dplyr::count(autor, sort = TRUE) %>% 
+#   dplyr::slice(1:20) %>% 
+#   dplyr::summarise(sum(n) / nrow(novosti)) %>% 
+#   kable(format = "html") %>% 
+#   kableExtra::kable_styling(bootstrap_options = "striped", full_width = F) %>% 
+#   kableExtra::scroll_box(height = "500px")
+
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# 20 najvecih autora po broju tekstova
+novosti %>% 
+  dplyr::count(autor, sort = TRUE) %>% 
+  dplyr::slice(1:20) %>% 
+  kableExtra::kable(caption = "Autori s najviše napisanih tekstova") %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>% 
+  kableExtra::scroll_box(height = "500px")
+```
+
+Pojedini tekstovi u Novostima su pisani na ćirilici. Ovi tekstovi su izostavljeni u daljnjoj analizi. Nakon prilagodbe podataka, možemo pogledati nekoliko zanimljivih stvari. Za početak je korisno pogledati najkorištenije riječi u svim tekstovima. Nakon tokenizacije teksta, tokeni su poredani po učestalosti pojavljivanja te je filtrirano 100 najkorištenijih riječi. Najkorištenije riječi su prikazane u tablici 2. Na žalost nije provedena lematizacija teksta, pa se pojavljuje više riječi sa istim korijenom (npr. “godine” i “godina”).
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# maknuti tekstove sa ćiriicom
+novosti_bez_cirilice <- novosti[-grep("aa|oo", novosti$txt),]
+
+# croatian stop words
+stopwords_cro <- get_stopwords(language = "hr", source = "stopwords-iso")
+
+# word frequencies
+text_df <- as_tibble(novosti_bez_cirilice) %>% 
+  unnest_tokens(word, txt) %>%
+  anti_join(stopwords_cro, by = "word")
+text_df_vecernji <- as_tibble(vecernji) %>% 
+  tidytext::unnest_tokens(word, tekst) %>%
+  anti_join(stopwords_cro, by = "word")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+tokeni <- text_df %>% 
+  dplyr::count(word, sort = TRUE) 
+tokeni_vecernji <- text_df_vecernji %>% 
+  dplyr::count(word, sort = TRUE) 
+tokeni %>% 
+  slice(1:100) %>% 
+  dplyr::rename(rijec = "word", broj = "n") %>% 
+  kable(caption = "Tokeni s najvećom frekvencijom") %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F) %>% 
+  kableExtra::scroll_box(height = "500px")
+```
+
+Zanimljivo je da su prve tri riječi iste kao i najfrekventnije riječi na portalu vecernji.hr (za analizu večernjeg pogledati [ovdje](http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/)). Vrlo često se koristi korijen riječi Hrvatska (hrvatskoj, hrvatske). Čini se mnogo češće nego korijeni riječi Srbija. Vrlo često korištena riječ je i "hdz", koja se čak češće koristila od uobičajenih riječi poput "gdje" i "treba".
+
+Nakon prikaza najfrekventnijih riječi, vraćam se na pojmove koje je spominjao Nino Raspudić u svojoj kolumni. U tablicama od 3 do 5 pokazujem frekventnost sljedećih riječi: "faši", "ustaš", "zec", "ahmić" i "privatiz".
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+pojam_frenkvencija <- function(pojam) {
+  tokeni %>% 
+    dplyr::filter(grepl(pojam, word)) %>% 
+    dplyr::rename(rijec = "word", broj = "n") %>% 
+    kableExtra::kable(., format = "html", caption = paste0("Frekventnost pojma ", pojam)) %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = F) %>% 
+    kableExtra::scroll_box(height = "250px")
+}
+pojam_frenkvencija("faši")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+pojam_frenkvencija("ustaš")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+pojam_frenkvencija("^zec")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+pojam_frenkvencija("ahmić")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+pojam_frenkvencija("privatiz")
+```
+
+Tablice pokazuju sve izvedenice spomenutih riječi. Postoji mnogo riječi koje se pojavljuju samo jednom u tekstovima novosti. Primjerice riječi "fašizmi", "fašistu", "faštisovizije" ili "ustašje", "ustašovati", "ustašovanju". Može se primijetiti i rijetko korištenje pojmova "ahmić" i "zec" (koji dodatno može poprimit značenje životinje umjesto obitelji Zec), što opovrgava tvrdnju da se pojmovi Zec i Ahmići često pojavljuju u tekstovima novina Novosti, barem na temelju ove jednostavne analize. Međutim izvedenice pojmova "faši" i "ustaš" se pojavljuju relativno često. Kako bi dobili bolji dojam učestalosti ovih pojmova, usporedio sam učestalost pojmova sa učestalosti istih pojmova na večernjem.hr. Za obje tiskovine (web stranice) ću usporediti učestalost pojmova u odnosu na (1) ukupan broj tokena i (2) broj članaka u kojima se pojavljuju.
+
+Krenimo s posljednjim pristupom. Prvo sam izračunao da se pojam "ustaš" pojavljuje u 7.48% svih napisanih članaka u Novostima. U Večernjem se pojam "ustaš" pojavljuje u 1.3% svih tekstova. Dakle, pojam "ustaš" se 5.7 puta češće pojalvjuje u Novostima nego u večernjem.hr. Isti postupak sam ponovio za sljedeće pojmove: "^faši", "^ahmić", "^privatiz" i "srb|srps" (posljednji pojam podrazumijeva da tekst može sadržavati "srb" ili "srps"). Rezultati se mogu vidjeti na slici 1. Nakon toga sam izračunao učestalost istih riječi u ukupnom broju riječi, na način da sam ukupan broj riječi podijelio sa brojem tokena (umjesto sa brojem članaka). Rezultati su prikazani na slici 2.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+clanci_pojam <- function(pojam) {
+  clanci_pojam_1 <- novosti_bez_cirilice %>%
+    filter(grepl(pojam, txt)) %>%
+    nrow(.) / nrow(novosti_bez_cirilice)
+  clanci_pojam_2 <- vecernji %>%
+    filter(grepl(pojam, tekst)) %>%
+    nrow(.) / nrow(vecernji)
+  c(clanci_pojam_1, clanci_pojam_2)
+}
+fasi <- clanci_pojam("faši")
+ustas <- clanci_pojam("ustaš")
+ahmic <- clanci_pojam("ahmić")
+privat <- clanci_pojam("privatiz")
+srb <- clanci_pojam("srb|srps")
+
+clanci_pojam_df <- tibble(fasi = fasi, ustas = ustas, ahmic = ahmic, privat = privat, srb = srb)
+clanci_pojam_df <- as_tibble(t(clanci_pojam_df))
+colnames(clanci_pojam_df) <- c("Novosti", "Vecernji.hr")
+clanci_pojam_df$pojam <- c("fasi", "ustas", "ahmic", "privat", "srb")
+clanci_pojam_df <- gather(clanci_pojam_df, key = portal, value = "vrijednosti", -pojam)
+
+ggplot(clanci_pojam_df, aes(pojam, vrijednosti, fill = portal)) + 
+  geom_col(position = "dodge") +
+  theme_bw() +
+  labs(title = "Slika 1. Učestalost pojmova u člancima, u postocima")
+
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+tokeni_udio <- function(pojam) {
+  tokeni_udio_1 <- tokeni %>% 
+    dplyr::filter(grepl(pojam, word)) %>% 
+    dplyr::summarise((sum(n) / sum(tokeni$n)) * 1000) 
+  tokeni_udio_2 <- tokeni_vecernji %>% 
+    dplyr::filter(grepl(pojam, word)) %>% 
+    dplyr::summarise((sum(n) / sum(tokeni_vecernji$n)) * 1000)
+  return(c(as.numeric(tokeni_udio_1), as.numeric(tokeni_udio_2)))
+}
+fasi <- tokeni_udio("faši")
+ustas <- tokeni_udio("ustaš")
+ahmic <- tokeni_udio("ahmić")
+privat <- tokeni_udio("privatiz")
+srb <- tokeni_udio("srb|srps")
+
+tokeni_udio_df <- tibble(fasi = fasi, ustas = ustas, ahmic = ahmic, privat = privat, srb = srb, 
+                         portal = c("Novosti", "Vecernji.hr"))
+tokeni_udio_df <- gather(tokeni_udio_df, key = pojam, value = "vrijednosti", -portal)
+
+ggplot(tokeni_udio_df, aes(pojam, vrijednosti, fill = portal)) + 
+  geom_col(position = "dodge") +
+  theme_bw() +
+  labs(title = "Slika 2. Učestalost pojmova prema ukuonom broju tokena, u promilima")
+
+```
+
+Za kraj, radi zabave, možemo usporediti iste pojmove samo za autore Ninu Raspudića i Viktora Ivančića. Koristimo 76 tekstova Raspudića i 273 tekstova Ivančića:
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+tokeni_raspudic <- vecernji %>% 
+  filter(autor == "Nino Raspudić") %>% 
+  unnest_tokens(word, tekst) %>%
+  anti_join(stopwords_cro, by = "word") %>% 
+  dplyr::count(word, sort = TRUE) 
+  
+tokeni_ivancic <- novosti_bez_cirilice %>% 
+  filter(autor == "Viktor Ivančić") %>% 
+  unnest_tokens(word, txt) %>%
+  anti_join(stopwords_cro, by = "word") %>% 
+  dplyr::count(word, sort = TRUE) 
+
+tokeni_udio <- function(pojam) {
+  tokeni_udio_1 <- tokeni_raspudic %>% 
+    dplyr::filter(grepl(pojam, word)) %>% 
+    dplyr::summarise((sum(n) / sum(tokeni_raspudic$n)) * 100) 
+  tokeni_udio_2 <- tokeni_ivancic %>% 
+    dplyr::filter(grepl(pojam, word)) %>% 
+    dplyr::summarise((sum(n) / sum(tokeni_ivancic$n)) * 100)
+  return(c(as.numeric(tokeni_udio_1), as.numeric(tokeni_udio_2)))
+}
+fasi <- tokeni_udio("faši")
+ustas <- tokeni_udio("ustaš")
+ahmic <- tokeni_udio("ahmić")
+privat <- tokeni_udio("privatiz")
+srb <- tokeni_udio("srb|srps")
+
+tokeni_udio_df <- tibble(fasi = fasi, ustas = ustas, ahmic = ahmic, privat = privat, srb = srb, 
+                         portal = c("Raspudić", "Ivančić"))
+tokeni_udio_df <- gather(tokeni_udio_df, key = pojam, value = "vrijednosti", -portal)
+
+ggplot(tokeni_udio_df, aes(pojam, vrijednosti, fill = portal)) + 
+  geom_col(position = "dodge") +
+  theme_bw() +
+  labs(title = "Slika 1. Učestalost pojmova u člancima")
+
+```
+
+Iz svega se može zaključiti da Novosti znatno češće pišu o fašizmu, ustašama i privatizaciji od portala večernji.hr. Nijedan portal ne piše često o obitelji Zec. Ovo je daleko od potpune analize teksta ovih dviju novina, ali omogućava određene uvide o sadržaju koji se u njima pojavljuje. Detaljnija analiza bi trebala uključivati spomenutu lematizaciju i analizu sentimenta. Primjerice, poželjno bi bilo analizirati kakav je sentiment članaka koji koriste određene pojmove. To ostavljamo a neke od budućih postova.

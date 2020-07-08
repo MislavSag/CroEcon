@@ -1,0 +1,480 @@
+---
+title: 'Analiza tekstova u Poslovnom dnevniku'
+author: Luka Šikić
+date: '2019-06-03'
+slug: analiza-teksta-poslovni-dnevnik
+categories:
+  - Tekst
+tags:
+  - analiza teksta
+  - sentiment
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+```{r paketi, message = FALSE, warning = FALSE, echo = FALSE}
+
+library(tidyverse)
+library(tufte)
+library(scales)
+library(grid)
+library(ggthemes)
+library(extrafont)
+library(gridExtra)
+library(tidyr)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(gridExtra)
+library(ggpubr)
+library(knitr)
+library(stringr)
+library(rvest)
+library(chron)
+library(lubridate)
+library(tidytext)
+library(SnowballC)
+library(tm)
+library(readr)
+library(tidytext)
+library(wordcloud)
+library(scales)
+library(kableExtra)
+library(httr)
+
+```
+
+
+```{r message = FALSE, warning = FALSE, echo = FALSE }
+
+# function to parse JSON from http conenctiion
+parseJSON <- function(x) {
+  xCon <- httr::content(x, as = "text", type = "aplication/json", encoding = "UTF-8")
+  xCon <- jsonlite::fromJSON(xCon, flatten = TRUE)
+  xCon
+}
+
+# GET REST API function M-Files
+mfiles_get <- function(token, resource){
+  req <- GET(url = paste0('http://server.contentio.biz/REST', resource),
+             add_headers('X-Authentication' = token, 'content-type' = "application/json"))
+  result <- parseJSON(req)
+  return(result)
+}
+
+# GET token M-Files
+req <- POST(url = 'http://server.contentio.biz/REST/server/authenticationtokens.aspx', 
+            config = add_headers('content-type' = "application/json"),
+            body = list(Username = "msagovac", Password = "Wc8O10TaHz40",
+                        VaultGuid = "{7145BCEB-8FE2-4278-AD3B-7AE70374FF8A}",
+                        ComputerName  = "CT-VM-01"),
+            encode = "json", verbose())
+token <- parseJSON(req)[[1]]
+
+
+# M-FILES DOWNLOAD FILES
+mfiles_downlaod <- function(objType, objId, fileId, ext = ".csv") {
+  req <- GET(url = paste0('http://server.contentio.biz/REST/objects/', objType, '/', 
+                          objId, '/latest/files/',fileId , '/content'),
+             add_headers('X-Authentication' = token))
+  reqCon <- httr::content(req)
+  tempFileSave <- paste0(tempfile(), ext)
+  writeBin(reqCon, tempFileSave)
+  return(tempFileSave)
+}
+
+# GET classess, props and others
+prop <- mfiles_get(token, "/structure/properties")
+prop <- prop %>% 
+  select(DataType, ID, Name, ObjectType) %>% 
+  dplyr::arrange(Name)
+objs <- mfiles_get(token, "/structure/objecttypes")
+mfilesClass <- mfiles_get(token, "/structure/classes")
+
+# read csv
+csvS <- list()
+for (i in 135514:135544) {
+  k <- i - 135513
+  csvS[[k]] <- read.csv2(mfiles_downlaod("0", 135514, i), stringsAsFactors = FALSE)
+}
+
+vremeplov <- do.call(rbind, csvS)
+
+```
+
+Prije nekoliko tjedana, Mislav je započeo seriju eksplorativno-analitičkih postova koji se temelje na specifičnoj jezičnoj analizi teksta. [Prvi post](http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/) je ukazao na eksplorativne potencijale koje takva analiza omogućava na temelju velikog broja tekstova Vecernjeg lista, objavljenih u nešto više od zadnjih godinu dana. [Drugi post](http://croecon.contentio.biz/post/tko-vi-e-spominje-usta-e-i-fa-itzam-novosti-ili-ve-ernji/) analitički razmatra neke elemente radikalizma u domaćem političkom diskursu. 
+
+Ovaj post nastavak je započete serije postova kojim želim ukazati na potencijal nekih analitičkih metoda koje se, na engleskim tekstovima već uobičajeno koriste.Jedna od najzanimljivijih, svakako, je analiza raspoloženja ili  analiza sentimenta (*sentiment analysis* poznata još kao i *opinion mining* i *emotion AI*). Tekstovi za analizu preuzeti su s [Poslovnog dnevnika](http://www.poslovni.hr/vremeplov) za razdoblje od
+01.01.2016. do 01.04.2019. i uključuju `r n_distinct(vremeplov$idClanka)` tekstova.
+
+Prije svega, želim istaknuti nekoliko tehničkih detalja vezanih uz [analizu teksta](https://en.wikipedia.org/wiki/Text_mining) u R-u. Podrška za analizu teksta u R-u omogućena je u okviru dva glavna pristupa. Prvi se pristup odnosi na `tidytext` paket koji se temelji na [*tidy formatu*](http://vita.had.co.nz/papers/tidy-data.pdf) i koji zbog kompatibilnosti s `Tidyverse` alatima smatram vrlo intuitivnim. Takva kompatibilnost znatno olakšava i obogaćuje mogućnosti manipulacije podatcima. Izvrsna knjiga [Text Mining with R](https://www.tidytextmining.com/) koja pokriva sve bitne tehničke aspekte *tidytext pristupa* analizi teksta, a koju sam koristio kao glavnu referencu u analizi, dodatna je prednost navedenog pristupa. Drugi pristup temelji se na paketima `tm` i `quanteda` koji ulazne podatke zatijevaju u *matričnom formatu* ( [document-term matrix](https://en.wikipedia.org/wiki/Document-term_matrix) ), a funkcije za manipulaciju i analizu podataka ograničene su u okviru paketa. Tranzicija od *matričnog formata* prema *tidy data formatu* i obrnuto je omogućena u `tidytext` paketu što, po mome mišljenju,  *tidytext pristup* čini općenito boljom polazišnom točkom u analizi teksta.
+
+Analiza raspoloženja (sentimenta) nije čvrsto definirana stvar pa smjer i priroda analize ovisi o kreativnosti. Polazište analize je pročišćeni tekst (*prvi pristup*) ili matrica dokumenta (*drugi pristup*) koji se potom spaja s leksikonom sentimenta da bi se riječima u spojenom tekstu pripisala vrijednost iz leksikona. Jasno je da kvaliteta analize ovisi kompatibilnosti leksikona i specifične prirode analize. Za R su implementirani različiti leksikoni sentimenta: prilagođeni specifičnim namjenama (npr. analiza  sentimenta financijskih tekstova, analiza društvenih mreža, političkog sentimenta i dr.) i prirodi analize (npr. pozitivni vs. negativni sentiment, aspekti pozitivnog vs. negativnog sentimenta, sentiment kojem je pripisana numerička vrijednost). Nažalost ne postoji podrška za hrvatski jezik.
+
+Zbog toga sam, analizi u R-u, prilagodio [Croatian Sentiment Lexicon](http://meta-share.ffzg.hr/repository/browse/croatian-sentiment-lexicon/940fe19e6c6d11e28a985ef2e4e6c59eff8b12d75f284d58aacfa8d732467509/) koji je nastao u sklopu FER-ovog projekta *Text Analysis and Knowledge Engineering Lab*. *Croatian Sentiment Lexicon* sadrži dva leksikona: prvi je izrađen ručno pri čemu je 1200 riječi razvrstano po kategorijama: neutralno, negativno i pozitivno, a drugi sadrži 37000 riječi kojima je algoritamski pripisana numerička vrijednost pozitivnosti i negativnosti. U analizi sam koristio oba riječnika i napravio [standardnu pripremu teksta](http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/) koja uključuje tokenizaciju i brisanje "stop rijeci" pri čemu sam, u R-u inplementirani leksikon hrvatskih "stop riječi" proširio nekim *comon sense* pojačanjima. Lemizacija (grupiranje riječi istog korijena: npr. riječi "godina" i "godine" tretirane su kao dvije različite riječi umjesto kao jedna riječ "godin") nije provedena pa rezultati sadrže nešto pristranosti. Problem s lemizacijom je u tome što u R-u nije implementirano rješenje za hrvatski jezik. 
+
+```{r sređivanje , message = FALSE, warning = FALSE,  echo = FALSE}
+
+
+clean_vremeplov <- vremeplov %>%
+  unique() %>%
+  mutate(dejt = dmy(datum),
+         tajm = paste0(vrijeme,":00", separate = ""),
+         kron = chron(times = tajm ),
+         timestamp = paste(dejt,kron) %>%
+           as.POSIXct(., format = "%Y-%m-%d %H:%M:%S")) %>%
+  arrange(timestamp) %>%
+  select(-c(datum,vrijeme, dejt:kron)) %>%
+  select(timestamp, everything())
+
+
+clean_vremeplov <- separate(clean_vremeplov,timestamp, into = c("text_date", "text_time"), sep = " ")
+clean_vremeplov$text_date <- as.Date(clean_vremeplov$text_date , "%Y-%m-%d")
+
+# rijeci 
+
+stopwords_cro <- get_stopwords(language = "hr", source = "stopwords-iso")
+
+my_stop_words <- tibble(
+  word = c(
+    "jedan",
+    "e",
+    "prvi",
+    "dva",
+    "dvije",
+    "drugi",
+    "tri",
+    "treći",
+    "pet",
+    "kod",
+    "ove",
+    "ova",
+    "ovo",
+    "bez",
+    "evo",
+    "oko", 
+    "om",
+    "ek",
+    "mil",
+    "tko",
+    "šest",
+    "sedam",
+    "osam", 
+    "čim", "zbog",
+    "prema", "dok",
+    "zato", "koji", 
+    "im", "čak",
+    "među", "tek",
+    "koliko", "tko",
+    "kod","poput", 
+    "baš", "dakle",
+    "osim", "svih", 
+    "svoju", "odnosno", "gdje",
+    "kojoj", "ovi", "toga"
+    
+    
+  ),
+  lexicon = "lux"
+)
+
+
+stop_corpus <- my_stop_words %>%
+  bind_rows(stopwords_cro)
+
+# sentiment
+
+dfFiles <- mfiles_get(token, paste0("/objects.aspx?p100=", 0))[[1]]
+CroSentilex_n <- read.delim(mfiles_downlaod("0", 136679, 136711, ext = ".txt"),
+                            header = FALSE,
+                            sep = " ",
+                            stringsAsFactors = FALSE,
+                            encoding = "UTF-8") %>% 
+  rename(word = "V1", sentiment = "V2" ) %>%
+  mutate(brija = "NEG")
+CroSentilex_p <- read.delim(mfiles_downlaod("0", 136681, 136713, ext = ".txt"),
+                            header = FALSE,
+                            sep = " ",
+                            stringsAsFactors = FALSE,
+                            encoding = "UTF-8") %>% 
+  rename(word = "V1", sentiment = "V2" ) %>%
+  mutate(brija = "POZ")
+
+Crosentilex_sve <- rbind(setDT(CroSentilex_n), setDT(CroSentilex_p))
+ 
+CroSentilex_Gold  <- read.delim2(mfiles_downlaod("0", 136680, 136712, ext = ".txt"),
+                                 header = FALSE,
+                                 sep = " ",
+                                 stringsAsFactors = FALSE) %>%
+                    rename(word = "V1", sentiment = "V2" ) 
+
+# Encoding(CroSentilex_Gold$word) <- "UTF-8"
+CroSentilex_Gold[1,1] <- "dati"
+CroSentilex_Gold$sentiment <- str_replace(CroSentilex_Gold$sentiment , "-", "1")
+CroSentilex_Gold$sentiment <- str_replace(CroSentilex_Gold$sentiment , "\\+", "2")
+CroSentilex_Gold$sentiment <- as.numeric(unlist(CroSentilex_Gold$sentiment))
+
+```
+
+Analizu je korisno započeti pregledom najfrekventnijih riječi jer to daje okvirni prikaz najzastupljenijih tema i ideja. Tablica 1 prikazuje 30 najčešćih riječi u tekstovima Poslovnog dnevnika. Najčešće korištene riječi su "posto", "kuna", "godine", "hrvatska", te niz poslovnih riječi poput "cijene" , "tržište", "tvrtke" ali i poneki optimistični makroekonomski pojam kao "rast". To je i očekivan rezultat jer je riječ o informativno-poslovnim novinama, primarno orjentiranima na Hrvatsku. Dodatno je prikazan i  `worldCloud` koji može poslužiti kao intuitivna vizualizacija najčešćih riječi (50 riječi;najvažnije riječi su naglašene bojom i veličinom).
+
+
+```{r analiza_rijeci , message = FALSE,  warning = FALSE, echo = FALSE }
+
+krijeci <- as_tibble(clean_vremeplov) %>% 
+  unnest_tokens(word,tekst) %>%
+  anti_join(stop_corpus, by = "word") %>%
+  mutate(word = gsub("\\d+", NA, word)) %>%
+  mutate(word = gsub("^[a-zA-Z ]$", NA, word)) %>%
+  filter(!is.na(word))
+
+glavne_rijeci <- krijeci %>%
+   group_by(word) %>%
+   tally %>%
+   filter(!n == 1) %>%
+   arrange(desc(n))
+
+glavne_rijeci  %>%
+   rename(rijec = "word", broj = "n") %>%
+   head(.,30) %>%
+   kable(.,format.args = list(decimal.mark = '.', big.mark = ",")) %>%
+   kable_styling(bootstrap_options = "striped") %>%
+   add_header_above(c("Tablica 2" = 2)) %>%
+   scroll_box(width = "500px", height = "200px")
+#%>% 
+ #  kable_styling(bootstrap_options = "striped") %>%
+  # add_header_above(c("Tablica 1" = 2)) %>%
+   #scroll_box(width = "500px", height = "200px")
+  
+
+
+glavne_rijeci %>% 
+     group_by(word) %>%
+     tally %>% 
+     with(wordcloud(word, n, max.words = 50, colors =  c("#56B4E9", "#E69F00")))
+
+```
+
+
+
+
+Tablica 2 prikazuje najčešće korištene riječi u člancima prema *Crosentilex Gold* leksikonu, izrađenom ručno za 1200 riječi kategoriziranih u negativnu, pozitivnu i neutralnu kategoriju. Njačešće riječi slične su kao u svim tekstovima (Tablica 1;bez leksikona), no pregled riječi ipak malo preciznije ocrtava bussiness i analitički ton Poslovnog dnevnika. 
+
+```{r sentiment , warning = FALSE, message = FALSE, echo = FALSE }
+
+## GOLD
+
+sentiment_gold <- krijeci %>%
+    inner_join(CroSentilex_Gold, by = "word")
+
+sentiment_gold %>%
+    group_by(word) %>%
+    tally %>%
+    arrange(desc(n)) %>%
+    head(20) %>%
+    kable(.,format.args = list(decimal.mark = '.', big.mark = ",")) %>%
+    kable_styling(bootstrap_options = "striped") %>%
+    add_header_above(c("Tablica 2" = 2)) %>%
+    scroll_box(width = "500px", height = "200px")
+
+sentiment_gold %>%
+  mutate(sent = case_when(sentiment == 0 ~ "NEUTRALNO",
+                          sentiment == 1 ~ "NEGATIVNO",
+                          sentiment == 2 ~ "POZITIVNO")) -> sentiment_gold
+
+#tablica
+
+options(digits = 2)
+sentiment_gold %>% 
+  mutate(nr = nrow(sentiment_gold)) %>%
+  group_by(sentiment) %>%
+  count(sent)  %>% 
+  mutate(nr = nrow(sentiment_gold),
+         udio = (n / nr)*100) %>%
+  ungroup() %>%
+  select(c(sent, udio, n)) %>%
+  rename(sentiment = "sent",
+         "broj riječi" = "n",
+         "% udio" = udio) %>%
+  kable(.,format.args = list(decimal.mark = '.', big.mark = ",")) %>%
+    kable_styling(bootstrap_options = "striped") %>%
+    add_header_above(c("Tablica 3" = 3)) -> gold_tabelica
+    
+  
+
+## MACHINE
+
+sentiment_machina <- krijeci %>%
+    inner_join(Crosentilex_sve, by = "word")
+
+
+#tablica 
+
+sentiment_machina %>% 
+   group_by(brija) %>%
+    summarise(n = sum(sentiment)) %>%
+    rename( sentiment = "brija", score = "n") %>%
+    mutate(sentiment = case_when(sentiment == "NEG" ~ "NEGATIVNO",
+                                 sentiment == "POZ" ~ "POZITIVNO")) %>%
+    kable ( ., format.args = list(decimal.mark = '.', big.mark = ",")) %>%
+    kable_styling(bootstrap_options = "striped") %>%
+    add_header_above(c("Tablica 4" = 2 )) -> machina_tabelica
+
+
+```
+
+Iz tablice 3, koja pokazuje proporciju riječi po kategorijama sentimenta, vidljivo je da je Poslovni dnevnik pretežito neutralnog (755 tisuća riječi) karaktera, što se uklapa u tržišni profil tipičnog business portala. Pozitivnih (130 tisuća) riječi znatno je više nego negativnih (41 tisuću) pa se može općenito zaključiti da su tekstovi u optimistično intonirani. Zanimljivo bi bilo vidjeti je li optimizam povezan s pozitivnim poslovnim ciklusom, no za to su potrebne nešto dulje serije podataka.
+
+
+```{r tablica_3 , message = FALSE, warning = FALSE, echo = FALSE }
+
+gold_tabelica
+
+```
+
+
+U Tablici 4 su prikazani rezultati dobiveni na temelju *Crosentilex* leksikona, koji sadrži znatno veći broj riječi nego *Gold* varijanta, ali u kojem je sentiment definiran algoritamski. Vidljivo je da pozitivni sentiment ima viši score od negativnog u cijelom razdoblju, ali uz zanemarivo malu razliku. To je na tragu rezultata dobivenih na temelju *Gold* leksikona koji također ukazuje na pretežito neutralan sentiment Poslovnog dnevnika.
+
+```{r tablica_4 , message = FALSE, warning = FALSE, echo = FALSE }
+
+machina_tabelica
+
+```
+
+Kretanje *Crosentilex Gold* sentimenta kroz vrijeme (mjesečne sume) prikazano je na grafikonu 1. Neutralni sentiment je najvolatilniji i ima blago opadajući trend dok pozitivni sentiment znatno manje oscilira i uglavnom zadržava trend. Negativni sentiment pretežito je konstantan na relativno najnižoj razini. Na grafikonu 2 prikazano je kretanje *Crosentilex Machine* sentimenta. Riječ je kategorizirana kao pozitivna ako je omjer pozitivnog i negativnog scora veći od 1 i obrnuto ako je omjer manji od 1. Vidljiv je blago negativan i volatilan trend broja pozitivnih i negativnih riječi, najsličniji kretanju neutralnog *Crosentilex Gold* sentmenta. Pri tome je broj pozitivnih riječi po *Crosentilex Machine* riječniku nešto viši od broja negativnih u cijelom razdoblju. Zanimljivo je obratiti pozornost na cikličku prirodu *Crosentilex Machine* sentimenta na razni godine. Primjetni su ciklusi rasta i pada sentimenta na (otprilike!) kvartalnoj razini: početkom godine dolazi do rasta sentimenta koji potom pada do ljeta, a ponovno počinje rasti do pred kraj godine. Najviše poslovnog optimizma, dakle, postoji početkom godine i pred kraj ljeta.
+
+
+```{r grafike , message = FALSE, warning = FALSE, echo = FALSE }
+
+# GOLD
+
+sentiment_gold %>%
+  group_by(month = floor_date(text_date, "month"), sent) %>%
+  count("sent") %>%
+  spread(., sent, n) %>%
+  ungroup()%>%
+  slice(1:40) %>% 
+  select(month, NEGATIVNO:POZITIVNO) -> gg
+
+
+ggplot(gg, aes(month)) +
+  geom_line(aes(y = NEGATIVNO, colour = "NEGATIVNO"), size = 1.3) +
+  geom_line(aes(y = NEUTRALNO, colour = "NEUTRALNO"), size = 1.3) +
+  geom_line(aes(y = POZITIVNO, colour = "POZITIVNO"), size = 1.3) + 
+  theme_bw() +
+  ylab("Broj rijeci") +
+  xlab("Godina") +
+  labs( color =  "Sentiment:") +
+  ggtitle("G1: Sentiment u Poslovnom dnevniku - Crosentilex Gold leksikon") +
+  scale_y_continuous(labels = scales::number_format( decimal.mark = '.',
+                                                     big.mark = ",")) -> ggplot_gold
+
+
+#MACHINA
+
+
+sentiment_machina %>%
+  dplyr::slice(1: 1000000) %>%
+  dplyr::mutate (time = as.Date(floor_date(text_date, "month"))) %>%
+  dplyr::select(time, brija, sentiment, idClanka, word ) %>%
+  base:: unique() %>%
+  tidyr::spread(.,brija,sentiment) -> gg_machina1
+
+sentiment_machina %>%
+  dplyr::slice(1000001: 2000000) %>%
+  dplyr::mutate (time = as.Date(floor_date(text_date, "month"))) %>%
+  dplyr::select(time, brija, sentiment, idClanka, word ) %>%
+  base::unique() %>%
+  tidyr::spread(.,brija,sentiment) -> gg_machina2
+
+sentiment_machina %>%
+  dplyr::slice(2000001:  2876188 ) %>%
+  dplyr::mutate (time = as.Date(floor_date(text_date, "month"))) %>%
+  dplyr::select(time, brija, sentiment, idClanka, word ) %>%
+  base::unique() %>%
+  tidyr::spread(.,brija,sentiment) -> gg_machina3
+
+merdzo <- as.data.frame(rbind(gg_machina1, gg_machina2, gg_machina3 ))
+
+
+
+#merdzo %>% 
+#  group_by(word) %>%
+#  count %>%
+#  arrange(desc(n)) %>%
+#  head(10)
+
+#merdzo %>% 
+#  group_by(word) %>%
+#  mutate(ratio = POZ / NEG) %>%
+#  ggplot(., aes(ratio)) + geom_density()
+
+merdzo %>% 
+  group_by(word) %>%
+  mutate(ratio = POZ / NEG) %>%
+  mutate(sent = case_when(ratio >= 1 ~ "POZ",
+                          ratio < 1 ~ "NEG")) %>%
+  ungroup() %>%
+  filter(!is.na(sent)) %>%
+  gather(.,brija, vrijednosti, -c(time, idClanka, word, ratio, sent)) -> aa
+
+#  aa %>% 
+#    ungroup() %>%
+#    group_by(brija) %>%
+#    summarise_each (funs(mean, min, max, sd, var), vrijednosti)
+    
+  aa %>%
+    group_by(month = as.Date(floor_date(time, "month")), sent) %>%
+    count() %>%
+    ungroup() %>%
+    slice(1:80) %>%
+    ggplot(., aes(month, n, colour = sent)) + 
+    geom_line(size = 1.2) + 
+    theme_bw() +
+  ylab("Broj riječi") +
+  xlab("Godina") +
+  labs( color =  "Sentiment:") +
+  ggtitle("G2: Sentiment u Poslovnom dnevniku - Crosentilex Machine leksikon") +
+  scale_y_continuous(labels = scales::number_format( decimal.mark = '.',
+                                                     big.mark = ",")) -> ggplot_machina
+  
+  
+#  aa %>%
+#    group_by(month = as.Date(floor_date(time, "month"))) %>%
+#    summarise(ratio = sum(ratio, na.rm = TRUE)) %>%
+#    slice(1:40) %>%
+#    ggplot(., aes(month, ratio)) +
+#    geom_line()
+    
+   
+
+#  table(aa$sent)
+  
+  
+
+#merdzo %>%  
+# group_by(month = as.Date(floor_date(time, "month"))) %>%
+# summarise(NEGATIVNO = sum(NEG, rm.na = TRUE),
+#           POZITIVNO = sum(POZ, rm.na = TRUE)) %>% 
+# slice(1:40) %>%
+# ggplot(.,aes(month))+
+# geom_line(aes(y = NEGATIVNO, colour = "NEGATIVNO"), size = 1.3) +
+# geom_line(aes(y = POZITIVNO, colour = "POZITIVNO"), size = 1.3) + 
+#  theme_bw() +
+#  ylab("Score") +
+#  xlab("Godina") +
+#  labs( color =  "Sentiment:") +
+#  ggtitle("G2: Sentiment u Poslovnom dnevniku - Crosentilex Machine leksikon") +
+#  scale_y_continuous(labels = scales::number_format( decimal.mark = '.',
+#                                                     big.mark = ",")) -> ggplot_machina
+  
+grid.arrange(ggplot_gold, ggplot_machina, nrow = 2)           
+
+```
+
+Ovaj post je dao prikaz analize sentimenta Poslovnog dnevnika na temelju FER-ovih *Crosentilex* leksikona. Rezultati pokazuju da su leksikoni vjerodostojni i primjenjivi u analizi, posebice stoga što  su nalazi algoritamski i ručno napravljenih leksikona međusobno slični. Analiza pokazuje da je Poslovni dnevnik pretežito neutralan, analitički intoniran portal. Zanimljivo je također primjetiti da se cikličko kretanje sentimenta u tekstovima odvija na približno kvartalnoj razini pri čemu su početak godine i kasno ljeto razdoblja s najviše optimizma.
+
+

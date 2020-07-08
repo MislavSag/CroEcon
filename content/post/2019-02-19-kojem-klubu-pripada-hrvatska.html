@@ -1,0 +1,283 @@
+---
+title: Kojem klubu pripada Hrvatska?
+author: Luka Šikić
+date: '2019-02-19'
+slug: kojem-klubu-pripada-hrvatska
+categories:
+  - Ekonomika
+  - R
+tags:
+  - Konvergencija
+  - R
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+
+<p>Imajući na umu manjak interesa za analizu konvergencije dohotka u Hrvatskoj, analizirao sam nekoliko jednostavnih grafikona koji opisuju proces smanjenja dohodovnih razlika Hrvatske i nekoliko (potencijalnih) konvergencijskih klubova. Također, nastojao sam utvrditi na koji se način ti rezultati uklapaju u literaturu o konvergenciji (post)tranzicijskih EU zemalja. Tema je dodatno aktualna u kontekstu očekivanog usporavanja domaće ekonomije jer ukazuje na mogući razvoj ekonomske krize. Rezultati analize ukazuju na to da u razdobljima ekonomskog rasta Hrvatska prati dinamiku rasta novih zemalja članica EU(NMS) dok obrazac kretanja dohotka u periodu krize ima više sličnosti s južnim EU zemljama (SEU). Nadalje, uz sličnosti s dugoročnim rastom(!?) južnih EU zemalja, razlog za zabrinutost su i razlike u trendovima domaćeg ekonomskog rasta naspram trendova rasta starih zemalja članica EU(EU15).</p>
+<p>Konvergencija je tema koja u ekonomskoj literaturi postoji već dulje od pola stoljeća i analizirana je unutar mnogih teorijskih i empirijskih pristupa. U modernijoj literaturi fokus se pomakao s teorijskih aspekata, a debata je postala dominantno metodološka. Početne (prostorne) konvergencijske regresije zamijenili su standardni panel testovi, a njih su, zatim, zamijenili stohastički modeli u svim mogućim varijantama. Moderna konvergencijska debata se tako svodi na testiranje konvergencije naprednijim statističkim modelima. Osim veoma egzotičnih procjenitelja, metodološka priroda konvergencijske debate proizvela je i ozbiljan problem robusnosti rezultata pa stoga nije jednostavno izvući globalne implikacije na temelju objavljenih radova. Štoviše, regionalne ili lokalne implikacije konvergencijske debate još je teže identificirati. Literatura o konvergenciji za uzorak istočnih, južnih i općenito (post)tranzicijskih europskih zemalja ipak omogućava nekoliko općih zaključka:</p>
+<ul>
+<li><p>Konvergencija među tim zemljama postoji i one su dio istog konvergencijskog kluba. Taj zaključak se najviše odnosi na skupinu novih zemalja članica EU (NMS).</p></li>
+<li><p>Konvergencija skupine, ali i nekih zemalja iz grupe novih članica EU pojedinačno, potvrđena je prema europskom dohodovnom prosjeku.</p></li>
+<li><p>Smanjenje dohodovnog jaza novih članica EU i europskog dohodovnog prosjeka kreće se različitom brzinom u različitim fazama konvergencijskog procesa.</p></li>
+<li><p>Rezultati koji potvrđuju konvergenciju nisu metodološki robusni i puno češće su potvrđeni na metodologiji prostornih i standardnih panel regresija (sigma i beta) nego na modelima vremenskih serija. To daje naslutiti postojanje više stacionarnih stanja u konvergencijskom procesu novih zemalja članica EU i zapravo implicira heterogenost NMS skupine u procesu smanjenja dohodovnog jaza prema prosjeku EU.</p></li>
+</ul>
+<pre class="r"><code>library(eurostat)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(grid)
+library(ggthemes)
+library(extrafont)
+library(purrr)
+library(gridExtra)
+library(tidyr)
+library(lubridate)
+library(rowr)
+
+gdppc &lt;- eurostat::get_eurostat(&quot;nama_10_pc&quot;, 
+                                time_format = &quot;date&quot;,
+                                type = &quot;label&quot;,
+                                select_time = &quot;Y&quot;)
+
+gdpcro &lt;- gdppc %&gt;%
+  dplyr::filter(geo == &quot;Croatia&quot; &amp;
+                  unit == &quot;Current prices, euro per capita&quot; &amp;
+                  na_item == &quot;Gross domestic product at market prices&quot;) %&gt;%
+  dplyr::select(time, values) %&gt;%
+  dplyr::rename(cro = values)
+  
+gdpnms &lt;- gdppc %&gt;%
+  dplyr::filter(geo %in% c(&quot;Bulgaria&quot;,
+                           &quot;Czechia&quot;, 
+                           &quot;Romania&quot;, 
+                           &quot;Estonia&quot;, 
+                           &quot;Lithuania&quot;,
+                           &quot;Latvia&quot;, 
+                           &quot;Hungary&quot;,
+                           &quot;Poland&quot;, 
+                           &quot;Slovenia&quot;, 
+                           &quot;Slovakia&quot;) &amp; 
+           unit == &quot;Current prices, euro per capita&quot; &amp; 
+           na_item == &quot;Gross domestic product at market prices&quot;) %&gt;%
+  dplyr::select(geo, time, values) %&gt;%
+  dplyr::group_by(time) %&gt;%
+  dplyr::summarise(nms = mean(values, na.rm = TRUE)) %&gt;%
+  dplyr::arrange(desc(time)) %&gt;%
+  dplyr::ungroup()%&gt;%
+  dplyr::select(nms)
+
+gdpnms8 &lt;- gdppc %&gt;%
+  dplyr::filter(geo %in% c(&quot;Czechia&quot;,
+                           &quot;Estonia&quot;,
+                           &quot;Lithuania&quot;,
+                           &quot;Latvia&quot;, 
+                           &quot;Hungary&quot;,
+                           &quot;Poland&quot;,
+                           &quot;Slovenia&quot;, 
+                           &quot;Slovakia&quot;) &amp; 
+           unit == &quot;Current prices, euro per capita&quot; &amp; 
+           na_item == &quot;Gross domestic product at market prices&quot;) %&gt;%
+  dplyr::select(geo, time, values) %&gt;%
+  dplyr::group_by(time) %&gt;%
+  dplyr::summarise(nms8 = mean(values, na.rm = TRUE)) %&gt;%
+  dplyr::arrange(desc(time)) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(nms8)
+
+gdpeu15 &lt;- gdppc %&gt;%
+  dplyr::filter(geo == &quot;European Union - 15 countries (1995-2004)&quot; &amp; 
+           unit == &quot;Current prices, euro per capita&quot; &amp; 
+           na_item == &quot;Gross domestic product at market prices&quot;) %&gt;%
+  dplyr::select(time, values) %&gt;%
+  dplyr::rename(eu15 = values) %&gt;%
+  dplyr::select(eu15)
+
+gdpseu &lt;- gdppc %&gt;%
+  dplyr::filter(geo %in% c(&quot;Greece&quot;,
+                           &quot;Italy&quot;, 
+                           &quot;Spain&quot;, 
+                           &quot;Portugal&quot;) &amp; 
+           unit == &quot;Current prices, euro per capita&quot; &amp; 
+           na_item == &quot;Gross domestic product at market prices&quot;) %&gt;%
+  dplyr::filter(time &gt;= &quot;1995-01-01&quot; &amp; time &lt;= &quot;2017-01-01&quot;) %&gt;%
+  dplyr::select(geo, time, values) %&gt;%
+  dplyr::group_by(time) %&gt;%
+  dplyr::summarise(seu = mean(values, na.rm = TRUE)) %&gt;%
+  dplyr::arrange(desc(time)) %&gt;%
+  dplyr::select(seu)
+
+conver &lt;- cbind.fill(gdpcro,
+                gdpnms,
+                gdpnms8,
+                gdpeu15,
+                gdpseu)</code></pre>
+<p>Na grafikonu 1 prikazano je kretanje dohotka u Hrvatskoj i u novim članicama EU (skupina NMS8 isključuje Rumunjsku i Bugarsku koje su se pridružile EU kasnije i gotovo uvijek narušavaju robusnost konvergencijskih testova u uzorku NMS10 zemalja) u razdoblju 1995-2017 na godišnjim podatcima Eurostat-a. Vidljivo je da GDP per capita u Hrvatskoj raste u dvije faze (plavo): 1999-2008 i 2014:2017, dok razdoblje 2008-2014 karakterizira ekonomska kriza. U prvoj fazi ekonomskog rasta Hrvatska raste po sličnoj putanji kao NMS skupina zemalja. Potom izbija ekonomska kriza i u Hrvatskoj dolazi do dugoročnog pada i stagnacije dohotka, dok se NMS skupina brzo oporavlja i nastavlja putanju rasta kao prije krize. Nakon povratka ekonomskog rasta u Hrvatskoj, 2014. godine, ona ponovno raste sličnom putanjom kao skupina NMS. Glavna razlika između kretanja dohotka Hrvatske i NMS skupine u cjelokupnom promatranom razdoblju je u tome što su NMS zemlje brzo izašle iz krize, a u Hrvatskoj je kriza prouzročila ekonomski pad u trajanju od 6 godina.</p>
+<pre class="r"><code>ggplot2::ggplot(conver, aes(time))+
+  geom_line(aes(y = cro, colour = &quot;RH&quot;), size = 1.2) +
+  geom_line(aes(y = nms, colour = &quot;NMS&quot;), size = 1.2) +
+  geom_line(aes(y = nms8, colour = &quot;NMS8&quot;), size = 1.2)+
+  theme_bw() +
+  labs(title = &quot;Grafikon 1:\nDugoročno kretanje dohotka u Hrvatskoj i novim zemljama članicama EU&quot;)+
+  ylab(&quot;GDP per capita; eur&quot;)+
+  xlab(&quot;Vrijeme&quot;) +
+  scale_x_date(breaks = seq(as.Date(&quot;1995-01-01&quot;), as.Date(&quot;2017-01-01&quot;), by =&quot;2 year&quot;), labels = date_format(&quot;%Y&quot;)) +
+  scale_y_continuous(labels = scales::comma) +
+  theme(legend.title = element_blank(), 
+        legend.text = element_text(size = 9),
+        legend.justification = c(1,0), legend.position=c(1,0),
+        plot.title = element_text(size = 9),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9)) +
+  scale_colour_manual(values = c(RH = &quot;red&quot;, NMS = &quot;blue&quot;, NMS8 = &quot;black&quot;), 
+                      guide = guide_legend(reverse = TRUE)) +
+  geom_vline(xintercept = as.numeric(as.Date(c(&quot;1999-01-01&quot;, &quot;2008-01-01&quot;,
+                                               &quot;2014-01-01&quot;, &quot;2017-01-01&quot;))),
+             linetype = &quot;dashed&quot;) + 
+  annotate(&quot;rect&quot;, fill = &quot;blue&quot;, alpha = 0.2,
+        xmin = as.Date(c(&quot;1999-01-01&quot;,&quot;2014-01-01&quot; )),
+        xmax = as.Date(c(&quot;2008-01-01&quot;,&quot;2017-01-01&quot;)),
+        ymin = -Inf, ymax = Inf)</code></pre>
+<p><img src="/post/2019-02-19-kojem-klubu-pripada-hrvatska_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>conver %&gt;%
+  dplyr::filter(time &gt;= &quot;2000-01-01&quot; &amp; time &lt;= &quot;2008-01-01&quot;) %&gt;%
+  dplyr::mutate(rast = cro - dplyr::lag(cro)) %&gt;%
+  dplyr::summarise(abs_rast = sum(rast, na.rm = TRUE),
+            RH = (head(cro,1) - tail(cro, 1))/ head(cro,1)*100,
+            NMS = (head(nms,1) - tail(nms, 1))/ head(nms,1)*100,
+            NMS8 = (head(nms8,1) - tail(nms8, 1))/ head(nms8,1)*100,
+            EU15 = (head(eu15,1) - tail(eu15, 1))/ head(eu15,1)*100,
+            SEU = (head(seu,1) - tail(seu, 1))/ head(seu,1)*100) %&gt;%
+  dplyr::select(- abs_rast) %&gt;%
+  tidyr::gather(skupine, vrijednosti) %&gt;%
+  ggplot2::ggplot(.,aes(reorder(skupine, - vrijednosti), vrijednosti,
+               fill = ifelse(skupine == &quot;RH&quot;, &quot;high&quot;, &quot;low&quot;))) + 
+  geom_bar(stat = &quot;identity&quot;) +
+  theme_bw() +
+  ggtitle(&quot;Grafikon 2:\nPromjena dohotka u razdoblju ekonomskog rasta 2000:2008&quot;) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;&quot;) +
+  scale_y_continuous(&quot;&quot;, 
+                     labels = function(vrijednosti) paste0(vrijednosti, &quot;%&quot;)) +
+  theme(legend.position = &quot;none&quot;) +
+  scale_fill_manual(values = c(&quot;red&quot;,
+                               &quot;blue&quot;)) +
+  theme(plot.title = element_text(size = 8)) -&gt; gr1
+
+
+st.promjene &lt;- function(x) {(head(x,1) - tail(x, 1)) / head(x,1)*100}
+
+conver %&gt;%
+  dplyr::filter(time &gt;= &quot;2014-01-01&quot; &amp; time &lt;= &quot;2017-01-01&quot;) %&gt;%
+  dplyr::summarise_at(vars(cro, nms, nms8, eu15, seu), funs(st.promjene)) %&gt;%
+  plyr::rename(.,c(&quot;nms&quot; = &quot;NMS&quot;,
+                    &quot;nms8&quot; = &quot;NMS8&quot;,
+                    &quot;cro&quot; = &quot;RH&quot;,
+                    &quot;eu15&quot; = &quot;EU15&quot;,
+                    &quot;seu&quot; = &quot;SEU&quot;)) -&gt; fur_gather</code></pre>
+<pre><code>## Warning: funs() is soft deprecated as of dplyr 0.8.0
+## please use list() instead
+## 
+##   # Before:
+##   funs(name = f(.))
+## 
+##   # After: 
+##   list(name = ~ f(.))
+## This warning is displayed once per session.</code></pre>
+<pre class="r"><code>fur_gather %&gt;%
+  tidyr::gather(skupine, vrijednosti) %&gt;%
+  ggplot2::ggplot(.,aes(reorder(skupine, - vrijednosti), vrijednosti,
+               fill = ifelse(skupine == &quot;RH&quot;, &quot;high&quot;, &quot;low&quot;))) + 
+  geom_bar(stat = &quot;identity&quot;) +
+  theme_bw() +
+  ggtitle(&quot;Grafikon 3:\nPromjena dohotka u razdoblju ekonomskog rasta 2014:2017&quot;) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;&quot;) +
+  scale_y_continuous(&quot;&quot;, 
+                     labels = function(vrijednosti) paste0(vrijednosti, &quot;%&quot;)) +
+  theme(legend.position = &quot;none&quot;,
+        plot.title = element_text(size = 9),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9)) +
+  scale_fill_manual(values = c(&quot;red&quot;,
+                               &quot;blue&quot;)) +
+  theme(plot.title = element_text(size = 8)) -&gt; gr2
+
+grid.arrange(gr1, gr2, nrow = 1)</code></pre>
+<p><img src="/post/2019-02-19-kojem-klubu-pripada-hrvatska_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<p>Sličnost ekonomskog rasta Hrvatske s NMS skupinom zemalja vidi se na grafikonu 2, koji prikazuje postotnu promjenu GDP per capita Hrvatske i konvergencijskih klubova kojima ona (potencijalno) pripada u prvom razdoblju ekonomskog rasta. Vidljivo je da je intenzitet rasta Hrvatske sličnji NMS skupini nego južnim europskim zemljama (SEU) ili starim zemljama članicama EU (EU15). Grafikon 3 prikazuje drugo razdoblje domaćeg ekonomskog rasta odnosno od završetka krize do danas. Ponovno je vidljivo da Hrvatska u prosjeku raste po sličnim stopama kao NMS skupina i znatno brže nego SEU i EU15.
+Grafikon 4 prikazuje usporedno kretanje dohotka Hrvatske i dohodovnog prosjeka EU15. Osim značajne razlike u razinama dohotka, vidljivo je da se putanje rasta Hrvatske i EU15 razlikuju. Na temelju promatranja grafikona 4 opravdano je dovesti u pitanje postojanje konvergencije Hrvatske prema EU15 za cjelokupno promatrano razdoblje iako bi za snažniji zaključak bilo potrebno provesti statistički test.</p>
+<pre class="r"><code> ggplot2::ggplot(conver, aes(time)) +
+  geom_line(aes(y = cro, colour = &quot;RH&quot;), size = 1.2) +
+  geom_line(aes(y = eu15, colour = &quot;EU15&quot;), size = 1.2) +
+  theme_bw() +
+  labs(title =&quot;Grafikon 4:\nDugoročno kretanje dohotka u Hrvatskoj i starim zemljama članicama EU&quot;) +
+  ylab(&quot;GDP per capita; eur&quot;) +
+  xlab(&quot;Vrijeme&quot;) +
+  scale_x_date(breaks = seq(as.Date(&quot;1995-01-01&quot;), as.Date(&quot;2017-01-01&quot;), by =&quot;2 year&quot;),
+               labels = date_format(&quot;%Y&quot;)) +
+  scale_y_continuous(labels = scales::comma) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.justification=c(1,0), legend.position=c(1,0),
+        plot.title = element_text(size = 9),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9)) +
+  scale_colour_manual(values = c(RH = &quot;red&quot;, EU15 = &quot;blue&quot;), 
+                      guide = guide_legend(reverse = TRUE))</code></pre>
+<p><img src="/post/2019-02-19-kojem-klubu-pripada-hrvatska_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Na grafikonu 5 prikazane su usporedne putanje rasta dohotka Hrvatske i skupine južnih europskih zemalja (SEU). Vizualna analiza ukazuje na sličnosti kretanja dohotka u ovim zemljama u cjelokupnom promatranom razdoblju, a posebno je zanimljiva sličnost reakcije na krizu u razdoblju 2008-2014. Razlike su u detaljima: kriza u SEU skupini je bila nešto dublja, ali godinu dana kraća nego u Hrvatskoj, s tim da razina dohotka prije krize u SEU skupini nije premašena za razliku od Hrvatske u kojoj je premašena. Iz prikaza se jasno vidi da je kriza u SEU zemljama i Hrvatskoj bila općenito dugotrajna i to znatno duža nego u skupinama zemalja EU15 i NMS.</p>
+<pre class="r"><code>ggplot2::ggplot(conver,aes(time)) +
+  geom_line(aes(y = cro, colour = &quot;RH&quot;), size = 1.2) +
+  geom_line(aes(y = seu, colour = &quot;SEU&quot;), size = 1.2) +
+  theme_bw() +
+  ggtitle(&quot;Grafikon 5:\nDugoročno kretanje dohotka u Hrvatskoj i južnim EU zemljama&quot;) +
+  ylab(&quot;GDP per capita;eur&quot;) +
+  xlab(&quot;Vrijeme&quot;) +
+  scale_x_date(breaks = seq(as.Date(&quot;1995-01-01&quot;),
+                            as.Date(&quot;2017-01-01&quot;), by =&quot;2 year&quot;),
+               labels = date_format(&quot;%Y&quot;)) +
+  scale_y_continuous(labels = scales::comma) +
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.justification=c(1,0), legend.position=c(1,0),
+        plot.title = element_text(size = 9),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9)) +
+  scale_colour_manual(values = c(RH = &quot;red&quot;, SEU = &quot;blue&quot;)) +
+  geom_vline(xintercept = as.numeric(as.Date(c(&quot;2008-01-01&quot;, &quot;2014-01-01&quot;))),
+             linetype = &quot;dashed&quot;) +
+  annotate(&quot;rect&quot;, fill = &quot;red&quot;, alpha = .2,
+           xmin = as.Date(&quot;2008-01-01&quot;),
+           xmax = as.Date(&quot;2014-01-01&quot;),
+           ymin = -Inf,
+           ymax = Inf)</code></pre>
+<p><img src="/post/2019-02-19-kojem-klubu-pripada-hrvatska_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Grafikon 6 prikazuje relativnu promjenu GDP per capita u razdoblju recesije u Hrvatskoj i drugim konvergencijskim klubovima. Vidljiva je sličnost Hrvatske sa SEU skupinom zemalja u intenzitetu pada GDP per capita pri čemu kumulativni gubitak dohotka iznosi oko 10 %. U razdoblju krize došlo je do ispadanje Hrvatske iz NMS kluba brzorastućih zemalja i pada na niže stacionarno stanje rasta. Taj se trend okrenuo u 2014. godini u kojoj Hrvatska ponovno počinje rasti po sličnim stopama kao NMS skupina (vidi grafikon 3).</p>
+<pre class="r"><code>conver %&gt;%
+  dplyr::filter(time &gt;= &quot;2008-01-01&quot; &amp; time &lt;= &quot;2014-01-01&quot;) %&gt;%
+  dplyr::mutate(rast = cro - dplyr::lag(cro)) %&gt;%
+  dplyr::summarise(abs_rast = sum(rast, na.rm = TRUE),
+            RH = (head(cro,1) - tail(cro, 1))/ head(cro,1)*100,
+            NMS = (head(nms,1) - tail(nms, 1))/ head(nms,1)*100,
+            NMS8 = (head(nms8,1) - tail(nms8, 1))/ head(nms8,1)*100,
+            EU15 = (head(eu15,1) - tail(eu15, 1))/ head(eu15,1)*100,
+            SEU = (head(seu,1) - tail(seu, 1))/ head(seu,1)*100) %&gt;%
+  dplyr::select(- abs_rast) %&gt;%
+  tidyr::gather(skupine, vrijednosti) %&gt;%
+  ggplot2::ggplot(.,aes(reorder(skupine, - vrijednosti), vrijednosti,
+               fill = ifelse(skupine == &quot;RH&quot;, &quot;high&quot;, &quot;low&quot;))) + 
+  geom_bar(stat = &quot;identity&quot;) +
+  theme_bw() +
+  ggtitle(&quot;Grafikon 6:\nPromjena dohotka u razdoblju recesije 2008:2014&quot;) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;&quot;) +
+  scale_y_continuous(&quot;&quot;, 
+                     labels = function(vrijednosti) paste0(vrijednosti, &quot;%&quot;)) +
+  theme(legend.position = &quot;none&quot;) +
+  scale_fill_manual(values = c(&quot;red&quot;,
+                               &quot;blue&quot;)) </code></pre>
+<p><img src="/post/2019-02-19-kojem-klubu-pripada-hrvatska_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Moguće je izdvojiti nekoliko zaključaka na osnovi prethodne analize. Vizualnom usporedbom dinamike rasta Hrvatske i konvergencijskih klubova kojima ona potencijalno pripada nameće se zaključak da u dugoročnom razdoblju, 1995-2017, Hrvatska ima putanju rasta najsličniju skupini južnih EU zemalja. Sličnosti Hrvatske i novih zemalja članica EU najviše dolaze do izražaja u razdobljima ekonomskog rasta, no kriza se na Hrvatsku odrazila intenzivnije pa je ona završila na znatno nižem stacionarnom stanju odnosno - osiromašila je. S druge strane, reakcija Hrvatske na krizu ima dosta sličnosti sa SEU skupinom pa se zaključno može ustvrditi da ona raste kao NMS skupina, a pada kao SEU. Najmanje sličnosti pokazuje usporedba Hrvatske i EU15 zemalja što je i opravdani razlog za zabrinutost jer upravo je to područje u koje se Hrvatska integrira. Integracijsko strukturne reforme su, dakle, ograničenog opsega. U kontekstu konvergencijske literature za uzorak (post)tranzicijskih EU zemalja (koji u objavljenim radovima u pravilu ne uključuje Hrvatsku), može se reći da se Hrvatska donekle uklapa u matricu rezultata te analize: djelomična pripadnost NMS konvergencijskom klubu, ponajviše u razdoblju rasta ekonomije; konvergencija prema EU15, za promatrano razdoblje je upitna i eventualno postoji u duljem razdoblju ekonomskog rasta; konvergencijski proces Hrvatske događa se u epizodama s različitim intenzitetima; iako nije korištena statistička analiza, može se naslutiti postojanje više stacionarnih stanja u hrvatskom konvergencijskom procesu što bi očekivano dovelo do manjka robusnosti u testiranju dohodovnog ujednačavanja prostornim i stohastičkim modelima.</p>

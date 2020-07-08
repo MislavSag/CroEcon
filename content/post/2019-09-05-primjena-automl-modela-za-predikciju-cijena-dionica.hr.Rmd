@@ -1,0 +1,194 @@
+---
+title: Primjena AutoML modela za predikciju cijena dionica
+author: Mislav Šagovac
+date: '2019-09-05'
+slug: primjena-automl-modela-za-predikciju-cijena-dionica
+categories:
+  - R
+  - Firme
+tags:
+  - dionice
+  - strojno učenje
+  - duboko učenje
+type: ''
+subtitle: ''
+image: ''
+bigimg: 
+  - {src: "/img/post_automl_stocks.jpg", desc: "AutoML"}
+---
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results='hide'}
+
+library(DBI)
+library(RMySQL)
+library(tsibble)
+library(tidyverse)
+
+# connection
+connection <- function(table = "odvjet12_monitoring") {
+  db <- DBI::dbConnect(MySQL(), 
+                       user = "odvjet12_mislav", 
+                       password = "Theanswer0207",
+                       host = "91.234.46.219",
+                       port = 3306L,
+                       dbname = table)
+  db
+}
+
+
+# loader function
+zse_loader <- function(ticker, cols = c("zadnja"), na_rm = TRUE, start_date = as.Date("2008-01-01"), quantmod_like = FALSE) {
+
+    # change cols argument
+  cols <- c(cols, "datum", "simbol")
+  if (quantmod_like) {cols <- c("zadnja", "datum", "simbol", "prva", "najniza", "najvisa", "promet")} 
+  
+  # get data from MySQL database
+  getStocks <- function(tickers) {
+    ch <- connection("odvjet12_stocks")
+    tickerList <- paste0("'", tickers, "'", collapse = ", ")
+    tradedf <- DBI::dbGetQuery(ch, paste0("SELECT * FROM trade_data WHERE simbol IN(", tickerList, ")"))
+    DBI::dbDisconnect(ch)
+    return(tradedf)
+  }
+  stock <- getStocks(ticker)
+  stock$datum <- as.Date(stock$datum, "%d.%m.%Y")
+  stock <- stock[stock$datum > start_date, ]
+  stock <- stock[, cols, drop = FALSE]
+  # remove missing values for variable "zadnja"
+  if (na_rm == TRUE) {
+    stock <- stock[complete.cases(stock[, 1:ncol(stock)]), , drop = FALSE]
+  }
+  # convert to tsibble object
+  stock <- as_tsibble(stock, key = simbol, index = datum)
+  
+  if (quantmod_like) {
+    stock <- stock %>% 
+      filter(simbol == unlist(stock[1, "simbol"])) %>% 
+      tsibble::update_tsibble(key = simbol, index  = datum)
+    stock[, paste0(stock[1, "simbol"], ".Adjusted")] <- stock$zadnja
+    colnames(stock)[which(colnames(stock) == "zadnja")] <- c(paste0(stock[1, "simbol"], ".Close"))
+    colnames(stock)[which(colnames(stock) == "prva")] <- c(paste0(stock[1, "simbol"], ".Open"))
+    colnames(stock)[which(colnames(stock) == "najniza")] <- c(paste0(stock[1, "simbol"], ".Low"))
+    colnames(stock)[which(colnames(stock) == "najvisa")] <- c(paste0(stock[1, "simbol"], ".High"))
+    colnames(stock)[which(colnames(stock) == "promet")] <- c(paste0(stock[1, "simbol"], ".Volume"))
+    stock <- tsbox::ts_xts(stock %>%  tsibble::update_tsibble(key = NULL))
+  }
+  return(stock)
+}
+
+THNK <- zse_loader("THNK")
+
+```
+
+Prije pola godine sam napisao [post](http://croecon.contentio.biz/post/predvi-anje-cijene-dionica-uz-pomo-u-modela-dubokog-u-enja/) o primjeni modela dubokog učenja na predikciju cijene dionice tehnike (THNK). U ovom postu ću primijeniti drugi, u posljednje vrijeme vrlo popularni pristup za predikciju općenito: automatsko strojno učenje (dalje AutoML). AutoML podrazumijeva primjenu skupa različitih vrsta modela strojnog učenja te izbor najboljeg modela ovisno o izabranoj *loss* funkciji. AumoML najčešće ne zahtijeva znanje o programiranju i razvoju modela. Potrebno je samo pripremiti podatke za analizu (učitavanje podatka, bavljenje sa nedostajućim vrijednostima i slično), te promijeniti AutoML funkciju na čistu matricu podatka. 
+
+Postoji nekoliko poznatih AutoML alata. Primjerice, Googleov **[CloudAutoML](https://cloud.google.com/automl/)**, **[H2O AutoML](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html)**, **[AutoKeras](https://autokeras.com/)** i drugi. Detaljniji popis AutoML modela možete pogledati na [poveznici](https://www.ml4aad.org/automl/). U ovom postu ćemo primijeniti manje poznati paket u razvoju - **[RemixAutoML](https://github.com/AdrianAntico/RemixAutoML)**. Paket ima više korisnih funkcija ovisno o tipu predikcije (regresija/klasifikacija, *supervised/unsupervised learning* i dr.). U ovom postu ćemo primijeniti `AutoTS` funkciju iz navedenog paketa. Funkcija testira 7 različitih modela (popis svih modela možete pogledati na spomenutoj poveznici). Za svaki model algoritam testira različite vremenske pomake, transformacije podataka, pomične presjeke i druge specifikacije. Sve ove parametre možete sami izabrati kada zovete `AutoTS` funkciju. Važan korak je i izbor evaluacijske mjere (u ovom postu ćemo koristiti MAPE). Kao što piše u samom opisu paketa, algoritam se sastoji od tri koraka:
+
+1. Izgradnja i evaluacija svih modela za *n* razdoblja u budućnosti.
+2. Izbor najboljeg modela i njegova primjena na cijelom skupu podataka.
+3. Generiranje predviđanja primjenom najboljeg modela za *n* razdoblja u budućnosti.
+
+Za početak je potrebno učitati podatke i pripremiti ih za analizu. Za unos podataka možete koristi korake opisane u već spomenutom [postu](http://croecon.contentio.biz/post/predvi-anje-cijene-dionica-uz-pomo-u-modela-dubokog-u-enja/). U nastavku pretpostavljam da ste učitali podatke. `AutoTS` funkcija omogućuje samo univarijantnu analizu. Drugim riječima, argument AutoTS funkcije zahtijeva samo dva argumenta: kolonu datuma i jednu vremensku seriju.
+
+Za predmetnu analizu ćemo ponovno koristiti dionicu Tehnike. Tablica se sastoji od 2408 opservacija (redova) i tri kolone: zadnja cijena za određeni dan, datum i simbol dionice. R korisnici će primijetiti jednu specifičnost: objekt sadrži klasu `tbl_ts`, odnosno objekt klase [tsibble](https://tsibble.tidyverts.org/articles/intro-tsibble.html).
+
+```{r warning=FALSE,message=FALSE}
+
+library(tidyverse)
+library(kableExtra)
+library(ggforce)
+library(tsbox)
+library(TTR)
+library(PerformanceAnalytics)
+
+glimpse(THNK)
+class(THNK)
+
+```
+
+Budući da `AutoTS` funkcija iz `RemixAutoML` paketa procjenjuje univarijantni model, podaci su spremni za analizu. Potrebno je samo definirati argumente funkcije:
+
+```{r}
+validation_index <- as.integer(nrow(THNK) * 0.1)
+THNK_predvidjanja = RemixAutoML::AutoTS(
+  data = THNK[, c("datum", "zadnja")],
+  TargetName = "zadnja",
+  DateName = "datum",
+  FCPeriods = 7,
+  HoldOutPeriods = validation_index,
+  TimeUnit = "day",
+  Lags = 10,
+  NumCores = 8
+)
+```
+
+Funkcija zahtijeva definiranje tablice podataka, naziv kolone koja sadrži numeričke vrijednosti i naziv kolone koja sadrži datum. Nadalje, mogu se definirati: broj razdoblja predviđanja (u našem slučaju 7), dio uzorka koji će se koristiti za validaciju (u našem slučaju 10%), vremenska jedinica, broj vremenskih pomaka koji će se procjenjivati (u našem slučaju 10) te broj jezgri. Napominjem da je funkcija računski zahtjevna, a ukupno vrijeme ovisi o broju jezgri koju imate na računalu. Ukratko, algoritam automatski izabire najbolji model s jednom varijablom - zadnjom cijenom dionice testirajući različite transformacije vremenske serije, različiti broj vremenskih pomaka (engl. lagova) i različite pomične presjeke. Svi ovi parametri su izabrani na optimalan način, to jest izabran je model sa najmanjom srednjom apsolutnom postotnom pogreškom (MAE).
+
+Funkcija `AutoTS` vraća nekoliko zanimljivih objekata. Za početak pogledajmo uspješnost svakog testiranog modela. Najbolji model je *TBATS*, odnosno *"Exponential smoothing state space model with Box-Cox transformation, ARMA errors, Trend and Seasonal components"*. Više o modelima možete pronaći u sljedećoj [knjizi](https://otexts.com/fpp2/index.html).
+
+```{r}
+THNK_predvidjanja$EvaluationMetrics %>%
+  kable(format = "html", caption = "Tablica: Performanse svih prikazanih modela") %>%
+  kable_styling(font_size = 12)
+```
+
+Funkcija također vraća grafikon koji prikazuje predikcije za sljedećih *n* dana:
+
+```{r warning=FALSE,message=FALSE}
+THNK_predvidjanja$TimeSeriesPlot + 
+  labs(x = NULL, y = "Zadnja", title = "Procjena za sljedećih 5 dana najboljeg modela",  caption = NULL) +
+  ggforce::facet_zoom(xlim = c(Sys.Date() - 7, Sys.Date() + length(THNK_predvidjanja$Forecast)), 
+                      ylim = c(min(gather(THNK_predvidjanja$Forecast, datum, vrijednosti, -Date)$vrijednosti), 
+                               max(gather(THNK_predvidjanja$Forecast, datum, vrijednosti, -Date)$vrijednosti)),
+                      horizontal = FALSE) + 
+  theme_light()
+```
+
+```{r}
+pocetna_cijena <- as.numeric(THNK[nrow(THNK), "zadnja"])
+predvidena_cijena <- as.numeric(THNK_predvidjanja$Forecast[nrow(THNK_predvidjanja$Forecast), 2])
+promjena_cijene <- round(((predvidena_cijena - pocetna_cijena) / pocetna_cijena) * 100, 2)
+```
+
+Najbolji model prikazan na grafikonu (`r THNK_predvidjanja$ChampionModel`) pokazuje rast cijene od `r promjena_cijene`%.
+
+Investitore često zanima kakva je uspješnost modela u prošlosti (*backtesting*). Kao pokazatelj uspješnosti, poželjno je izraditi korelacijsku matricu:
+
+```{r}
+stock_test <- THNK %>%
+  dplyr::mutate(real_promjena = zadnja - dplyr::lag(zadnja)) %>%
+  dplyr::mutate(real_class = ifelse(real_promjena > 0, 1, 0)) %>%
+  dplyr::bind_cols(., predvidanja = THNK_predvidjanja$TimeSeriesModel$fitted) %>%
+  dplyr::mutate(predikcija = zadnja - predvidanja) %>%
+  dplyr::mutate(predikcija_class = ifelse(predikcija > 0, 1, 0)) %>%
+  dplyr::filter(complete.cases(.)) %>%
+  dplyr::slice((nrow(.) - validation_index):nrow(.)) # ostaviti samo test set
+xtab <- table(factor(stock_test$real_class), factor(stock_test$predikcija_class))
+c_matrix <- caret::confusionMatrix(xtab, positive = "1")
+c_matrix_merge <- t(cbind.data.frame(data.frame(as.list(c_matrix$overall)), data.frame(as.list(c_matrix$byClass))))
+c_matrix_merge <- data.frame(Pokazatelj = rownames(c_matrix_merge), Vrijednost = c_matrix_merge)
+c_matrix_merge %>%
+  kable(format = "html", caption = "Tablica: Matrica grešaka", row.names = FALSE) %>%
+  kable_styling(font_size = 12, full_width = FALSE)
+```
+
+Tablica pokazuje različite mjere koje sadrži matrica grešaka. Za kreiranje matrice promatrane su samo predikcije iz testnog skupa. Objašnjenje pojedinih mjera mogu se pronaći na sljedećoj [poveznici](https://en.wikipedia.org/wiki/Confusion_matrix). Komentirat ću dvije vrlo često korištene mjera. Prva mjera je mjera točnosti (*accuracy*), koja pokazuje udio točnih klasifikacija u ukupnim klasifikacijama. Druga je osjetljivost (*Sensitivity*), koja pokazuje udio točnih pozitivnih klasifikacija od ukupno točnih klasifikacija.
+
+Uspješnost na test skupu možemo i vizualno pokazati pomoću paketa `PerformanceAnalytics`, odnsno funkcije `charts.PerformanceSummary`. Funkcija ima minimalno jedan argument - matricu prinosa. Koristit ću dva vektora prinosa. Jedan je vektor prinosa pod pretpostavkom držanja dionice THNK cijelo promatrano razbolje, a drugi vektor podrazumijeva kupnju i prodaju ovisno o predikcijama modela koje smo koristili.
+
+```{r}
+prinosi <- THNK %>% 
+  dplyr::bind_cols(., predvidanja = THNK_predvidjanja$TimeSeriesModel$fitted) %>%
+  dplyr::mutate(signal = ifelse((predvidanja - dplyr::lag(zadnja)) > 0, 1, 0)) %>% 
+  dplyr::mutate(prinos = ROC(zadnja), 
+                prinos_strategija = ROC(zadnja) * signal) %>% 
+  dplyr::filter(!is.na(prinos_strategija)) %>% 
+  dplyr::slice((nrow(.) - validation_index):nrow(.)) %>% # ostaviti samo test set
+  dplyr::select(prinos, prinos_strategija, datum, simbol)
+charts.PerformanceSummary(tsbox::ts_xts(prinosi))
+```
+
+Slika pokazuje znatno bolje performanse aktivne strategije (trgovanje na temelju modela) nego pasivne strategije. Kumulativni prinosi ne uzimaju u obzir provizije koje se plaćaju brokerima za trgovanje. Međutim, teško je vjerovati da bi prinos *pojeo* *ekstra* prinos.
+
+Zaključno, investitori koji vjeruju da je tržište neefikasno u tolikoj mjeri da se cijene mogu predvidjeti na temelju prošlih zaključnih cijena (što ne vjerujem), imaju vrlo snažan alat za ostvarivanje prinosa većih od tržišnih - AutoML modele. Ubuduće ću pokušati koristiti veći broj nezavisnih varijabli i vidjeti mogu li se dodatno poboljšati performanse modela.

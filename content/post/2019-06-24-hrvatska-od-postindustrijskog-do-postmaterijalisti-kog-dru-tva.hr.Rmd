@@ -1,0 +1,447 @@
+---
+title: Hrvatska - od postindustrijskog do postmaterijalističkog društva!?
+author: Luka Šikić
+date: '2019-06-24'
+slug: hrvatska-od-postindustrijskog-do-postmaterijalisti-kog-dru-tva
+categories:
+  - Ekonomika
+tags:
+  - Dodana nova vrijednost
+  - GDP
+  - nefinancijska poduzeća
+  - sektori
+  - produktivnost
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r setup, message = FALSE , include = FALSE, warning = FALSE, results='hide'}
+rm(list = ls()) 
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(eurostat)
+library(tufte)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(grid)
+library(ggthemes)
+library(extrafont)
+library(purrr)
+library(gridExtra)
+library(tidyr)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(gridExtra)
+library(scales)
+library(ggpubr)
+library(prodest)
+library(ggplot2)
+library(knitr)
+library(huxtable)
+library(gganimate)
+library(prodest)
+library(png)
+```
+
+```{r database_connection, echo = FALSE, message = FALSE, warning = FALSE, results='hide'}
+
+db <- dbConnect(MySQL(),
+                dbname = "odvjet12_gfi", 
+                host =  "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b372 AS Zaposleni,
+                     b084/1000000000 AS d_dug,
+                     b094/1000000000 AS k_dug,
+                     b010/1000000000 AS m_imov, 
+                     b063/1000000000 AS kapital_rezerve,
+                     b064/1000000000 AS osnovni_kapital,
+                     b003/1000000000 AS n_imov,
+                     b110/1000000000 AS prihod,
+                     b120/1000000000 AS placa_net,
+                     b119/1000000000 AS placa_brutto,
+                     b123/1000000000 AS amortizacija,
+                     b136/1000000000 AS financijski_trosak,
+                     b159/1000000000 AS porez_dobit,
+                     b151/1000000000 AS nett,
+                     b115/1000000000 AS materijalni_trosak,
+                     b084/1000000000 AS d_obveze,
+                     b094/1000000000 AS k_obveze,
+                     b335/1000000000 AS Export,
+                     b370/1000000000 AS Import,
+                     b337/1000000000 AS energy,
+                     reportyear,
+subjectid, 
+employeecounteop,
+foreigncontrol,
+nacerev21,
+subjecttaxnoid,
+nacerev22,
+nacerev23,
+nacerev24,
+countyid
+             FROM gfi_all 
+             WHERE reportyear >= 1998;")  
+
+
+data <- dbGetQuery(db, q)
+dbDisconnect(db)
+
+```
+
+U ekonomsko-političkom diskursu se često čuje kako Hrvatska ima nepovoljnu proizvodnu strukturu gospodarstva, prije svega zbog smanjenja relativne veličine proizvodnog sektora i porasta važnosti uslužnih djelatnosti. Na osnovi takvog shvaćanja, političari, a i jedan dio domaćih ekonomista, predlažu zaokret u ekonomskoj politici koja bi trebala ići u smjeru poticanja proizvodnje ili barem zaustavljanja procesa deindustrijalizacije. Deindustrijalizacijski proces u Hrvatskoj tako postaje dnevno-politička tema u kojoj se zanemaruju gotovo svi njegovi važni elementi. 
+
+Prije svega valja istaknuti da je smanjenje apsolutne i relativne veličine proizvodnog sektora dugoročan strukturni proces i kao takav ovisi o stadiju razvoja zemlje, povijesnim i institucionalnim okolnostima, strukturi ekonomije i dr. U Hrvatskoj se taj proces intenzivira već od sredine 1970ih kada završava faza socijalističke industrijalizacije i počinje relativno jačanje sektora uslužnih djelatnosti. Mjereno udjelom zaposlenosti, proizvodni sektor pada sa 31% u 1971. godini na 27% ukupne zaposlenosti u 2001. godini, dok sektor usluga raste sa 25% na skoro 60% u istom razdoblju [vidi](https://hrcak.srce.hr/65353).
+
+Također je bitno spomenuti da je o procesu deindustrijalizacije napisano mnogo, a temu prati i znatna empirijska literatura, no istraživanja nisu dovoljno obuhvatila zemlje u razvoju i tranziciji [vidi](https://www.gpidnetwork.org/wp-content/uploads/2019/02/WP_16.pdf). Upravo to je i slučaj u Hrvatskoj, naime, mi o procesu deindustrijalizacije i porasta uslužnog sektora ne znamo mnogo. Radovi na tu temu skoro i ne postoje. Ipak, ohrabruje projekt [*Mogućnosti reindustrijalizacije hrvatskoga gospodarstva*](https://www.eizg.hr/projekti/ostale-projektne-suradnje/hrzz-ip-06-2016-mogucnosti-reindustrijalizacije-hrvatskoga-gospodarstva-reinduce/2627) Sveučilišta u Dubrovniku koji istražuje razloge deindustrijalizacije i potencijale reindustrijalizacije u Hrvatskoj.
+
+Ekonomisti su ponudili dva glavna objašnjenja za proces deindustrijalizacije. Prvo objašnjenje ( [Baumol, 1967](http://piketty.pse.ens.fr/files/Baumol1967.pdf)) kaže da uslijed porasta produktivnosti, proizvođački sektor smanjuje potrebe za radnom snagom koja zbog toga prelazi u uslužni sektor, a to onda povećava zaposlenost i druge pokazatelje veličine u tercijarnom sektoru pa on preuzima dominantnu ulogu u gospodarstvu. Ovo objašnjenje implicira da je strukturna promjena povezana sa proizvođačkim sektorom, odnosno nastaje na *strani ponude*. Drugo objašnjenje (Fisher, 1939 (nedostupno); [Clark, 1940](https://archive.org/details/in.ernet.dli.2015.223779); [Fuchs, 1968](https://www.nber.org/books/fuch68-1)) kaže da se zbog porasta agregatnog dohotka, preferencije potrošača pomiču u smjeru (proizvoda) uslužnog sektora što povećava potražnju za uslugama i relativnu važnost tercijarnog sektora u strukturi gospodarstva. To objašnjenje pretpostavlja da strukturna promjena nastaje na *strani potražnje*.
+
+Noviji radovi su predložili i nekoliko drugih objašnjenja. [Castells, 1996](http://socium.ge/downloads/komunikaciisteoria/eng/Castells%20Manuel%20The%20Network%20Society.pdf) analizira promjene u proizvodnim, distributivnim, javnim, informacijskim i drugim uslužnim podsektorima ističući da tehnologija, nove prilike i potrebe u društvu dovode do rasta tih podsektora što povećava pokazatelje relativne veličine u uslužnom sektoru. Zanimljivo objašnjenje ( [Francois and Reinert, 1996](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.495.1761&rep=rep1&type=pdf); [Pilat and Wolff, 2005](http://static.gest.unipd.it/~birolo/didattica11/Materiale_2012/Letture/Materiale_per_studenti_2012/Pilat_Olsen-Changing%20nature%20of%20manufacturing.pdf)) rast uslužnog sektora tumači povećanim potrebama proizvodnog sektora za intermedijarnim uslužnim djelatnostima, odnosno poslovnim uslugama (npr. financijska intermedijacija, digitalni marketing) tercijarnog sektora.
+
+Pošto za Hrvatsku ne postoji ekonomski pregled (postoji demografski) strukture gospodarskih djelatnosti prema osnovnim proizvodnim sektorima, odlučio sam prikazati glavne promjene u zadnjih 15ak godina i usporediti hrvatske podatke sa dva uvriježena objašnjenja deindustrijalizacijskog procesa: objašnjenje na strani ponude vs. objašnjenje na strani potražnje.
+
+
+```{r uredjivanje podataka, echo=FALSE, message = FALSE, warning = FALSE}
+
+podatci <- data %>%
+  dplyr:: mutate (djelatnosti = case_when( nacerev21 == "A" ~ "primarni",
+                                   nacerev21 %in% c("B","C","D", "E", "F") ~ "sekundarni",
+                                   nacerev21 %in% c("G", "H", "I", "J", "K",
+                                                  "L", "M", "N", "O", "P",
+                                                  "R", "Q", "S", "T", "U") ~ "tercijarni")) %>%
+   dplyr::filter(!is.na(djelatnosti)) %>%
+   dplyr::group_by(reportyear,djelatnosti) %>%
+   dplyr::summarise(n = n_distinct(subjectid),
+            prihod = sum(prihod, na.rm = TRUE),
+            izvoz = sum(Export, na.rm = TRUE),
+            uvoz = sum(Import, na.rm = TRUE),
+            k_dug = sum(k_dug, na.rm = TRUE),
+            d_dug = sum(d_dug, na.rm = TRUE),
+             rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(m_imov, na.rm = TRUE),
+             nim = sum (n_imov, na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             plata =  (sum (placa_brutto, na.rm = TRUE)/(sum (employeecounteop, na.rm = TRUE)))*1000000000/12)%>%
+   dplyr:: mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+           imov = mim + nim,
+           dug = k_dug + d_dug)
+
+
+#izraÄŤun tfp
+
+ podatci %>%  
+ dplyr:: filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+ dplyr:: mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+ dplyr:: filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0)  %>%
+ dplyr:: mutate (djelatnosti = case_when( djelatnosti == "primarni" ~ 1,
+                                   djelatnosti == "sekundarni" ~ 2,
+                                   djelatnosti == "tercijarni" ~ 3)) %>%
+ dplyr:: select(dv, kapital, rad, energy, djelatnosti, reportyear) %>%
+ dplyr:: rename(Y = dv  , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = djelatnosti,
+         timevar = reportyear) -> tfp  
+ 
+  
+
+ 
+  WRDG <- prodestWRDG(tfp$Y, 
+                      tfp$fX,
+                      tfp$sX, 
+                      tfp$pX,
+                      tfp$idvar,
+                      tfp$timevar)         
+
+omega(WRDG) -> tfp.wrdg
+
+tfp_estimated <- tfp 
+  
+tfp_estimated[,"tfp_wrdg"] <- tfp.wrdg
+  
+```
+
+``` {r generalni_prikaz , eval = FALSE,  echo = FALSE, message = FALSE , include = FALSE, , warning = FALSE}
+
+
+options(scipen=10000)
+probni %>% 
+#  gather(., varijable, vrijednosti, -c(reportyear, djelatnosti)) %>%
+#  filter(varijable %in% c("dv") & djelatnosti %in% c("sekundarni", "tercijarni")) %>%
+#  select(reportyear, varijable, djelatnosti, vrijednosti) %>%
+#  spread(.,djelatnosti, vrijednosti) %>% 
+  ggplot(.,aes(reportyear, vrijednosti)) +
+  geom_line(aes(y = "primarni", linetype = "high"), size = 1.2) +
+  geom_line(aes(y = "sekundarni", linetype = "low"), size = 1) +
+  geom_line(aes(y = "tercijarni", linetype = "low"), size = 1)
+  theme_bw()
+
+  
+## velicine
+  
+ probni %>%
+  group_by(reportyear, djelatnosti) %>%
+  mutate (pokazatelj = sum(nett, na.rm = TRUE)) %>%
+  select(djelatnosti, pokazatelj) %>%
+  ungroup() %>%
+  spread(., djelatnosti, pokazatelj) %>%
+  ggplot(.,aes(reportyear)) +
+    geom_line(aes(y = primarni, linetype = "primarni"), colour = "red", size = 1.1) +
+    geom_line(aes(y = sekundarni, linetype = "sekundarni"), colour = "blue", size = 1.4) +
+    geom_line(aes(y = tercijarni, linetype = "tercijarni"), colour = "black", size = 1.6) 
+  
+  
+## udjeli
+
+
+probni %>%
+  group_by(reportyear) %>%
+  mutate (udio = (dv/sum(dv))*100) %>%
+  select(djelatnosti, udio) %>%
+  ungroup() %>%
+  spread(., djelatnosti, udio) %>%
+  ggplot(.,aes(reportyear)) +
+    geom_line(aes(y = primarni, linetype = "primarni"), colour = "red", size = 1.1) +
+    geom_line(aes(y = sekundarni, linetype = "sekundarni"), colour = "blue", size = 1.1) +
+    geom_line(aes(y = tercijarni, linetype = "tercijarni"),  colour = "black", size = 1)
+    
+
+
+```
+
+Animacija pokazuje kretanje *dodane vrijednosti* (u mlrd. kn), *broja zaposlenih*    i procijenjenog *tehnološkog kapaciteta* (faktorska produktivnost - TFP; izraženo u logaritmima) *primarnog*, *sekundarnog* (proizvodnog) i *tercijarnog* (uslužnog) sektora u razdoblju od 1998. do 2016. godine. Sektori su definirani prema statističkoj klasifikaciji ekonomskih aktivnosti europske zajednice ( [NACE](https://ec.europa.eu/agriculture/sites/agriculture/files/statistics/rural-development/2012/annex-a_en.pdf)) i izvedeni na temelju nacionalne klasifikacije djelatnosti u Hrvatskoj (NKD2007) za cjelokupni domaći poslovni sektor. Varijable su definirane kao u prethodnim tekstovima o [dodanoj vrijednosti](http://croecon.contentio.biz/post/dodana-nova-vrijednost-hrvatskih-poslovnih-subjekata/) i [produktivnosti](http://croecon.contentio.biz/post/pogled-na-hrvatsku-tehnolo-ku-granicu/).  
+
+``` {r animacija ,  echo = FALSE, message = FALSE , warning = FALSE }
+
+#DV
+
+podatci %>%
+  dplyr:: group_by(reportyear) %>%
+  dplyr:: mutate(rank = rank(-dv)) %>%
+  dplyr:: group_by(djelatnosti) %>%
+  dplyr:: ungroup() %>%
+  dplyr:: select(reportyear, djelatnosti, rank, dv) -> anima 
+
+
+  ggplot2:: ggplot(anima,aes(djelatnosti,dv, fill = djelatnosti)) +
+  geom_bar(stat = "identity") +
+    labs(title = "Godina: {closest_state}") +
+    transition_states(states = reportyear, transition_length = 2, state_length = 1) + 
+    enter_fade() + 
+    exit_shrink() +
+    ease_aes('sine-in-out') +
+    ggthemes:: theme_economist() -> dv
+  
+# RAD  
+  
+podatci %>%
+  dplyr:: group_by(reportyear) %>%
+  dplyr:: mutate(rank = rank(-rad)) %>%
+  dplyr:: group_by(djelatnosti) %>%
+  dplyr:: ungroup() %>%
+  dplyr:: select(reportyear, djelatnosti, rank, rad) -> anima2 
+
+
+  ggplot2:: ggplot(anima2,aes(djelatnosti,rad, fill = djelatnosti)) +
+  geom_bar(stat = "identity") +
+    labs(title = "Godina: {closest_state}") +
+    transition_states(states = reportyear, transition_length = 2, state_length = 1) + 
+    enter_fade() + 
+    exit_shrink() +
+    ease_aes('sine-in-out') +
+    ggthemes:: theme_economist() -> rad
+  
+
+
+##TFP
+  
+  
+pozitivac <- function(x) { x* (-1)}
+  
+  tfp_estimated %>%
+   dplyr:: mutate( tfp = as.numeric(tfp_wrdg)) %>%
+   dplyr:: group_by(timevar, idvar) %>%
+   dplyr:: summarise(tfp = sum(tfp, na.rm = TRUE)) %>%
+   dplyr:: mutate (djelatnosti = case_when( idvar == 1 ~"primarni" ,
+                                    idvar == 2 ~"sekundarni",
+                                    idvar == 3 ~"tercijarni" )) %>%
+   dplyr:: mutate_at(vars(tfp), funs(pozitivac)) %>% 
+   ggplot2:: ggplot(.,aes(djelatnosti, tfp, fill = djelatnosti)) +
+    geom_bar(stat = "identity")+
+    labs(title = "Godina: {closest_state}") +
+    theme_classic() +
+    transition_states(states = timevar, transition_length = 2, state_length = 1) + 
+    enter_fade() + 
+    exit_shrink() +
+    ease_aes('sine-in-out') + 
+    ggthemes:: theme_economist() -> produktivnost
+  
+
+## facet_animation
+
+podatci %>%
+  dplyr:: select(reportyear, djelatnosti, rad, dv) -> vars_facc
+  
+
+
+
+tfp_estimated %>%
+ dplyr:: mutate( tfp = as.numeric(tfp_wrdg)) %>%
+ dplyr:: group_by(timevar, idvar) %>%
+ dplyr:: summarise(tfp = sum(tfp, na.rm = TRUE)) %>%
+ dplyr:: mutate (djelatnosti = dplyr:: case_when( idvar == 1 ~ "primarni" ,
+                                    idvar == 2 ~ "sekundarni",
+                                    idvar == 3 ~ "tercijarni" )) %>%
+ dplyr:: mutate_at(vars(tfp), funs(pozitivac)) %>%
+ dplyr:: select(-idvar) %>%
+ dplyr:: ungroup() %>%
+ dplyr:: rename( reportyear = timevar )-> tfp_facc
+
+merge(vars_facc, tfp_facc, by = c("reportyear", "djelatnosti"), all = TRUE) -> facc
+options(scipen=10000)
+
+nazivi <- c("Dodana vrijednost", "Broj zaposlenih", "TFP")
+names(nazivi) <- c("dv", "rad", "tfp")
+
+facc %>% 
+  tidyr:: gather(.,varijable, vrijednosti, -c(reportyear, djelatnosti)) -> facc_gath
+
+  ggplot2:: ggplot(facc_gath, aes( djelatnosti, vrijednosti, fill = djelatnosti)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Godina: {closest_state}") +
+  theme_classic() +
+   transition_states(states = reportyear, transition_length = 2, state_length = 1) + 
+    enter_fade() + 
+    exit_shrink() +
+    ease_aes('sine-in-out') + 
+    ggthemes:: theme_economist() + 
+  facet_wrap(~ varijable, scales = "free_y", labeller = labeller(varijable = nazivi)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.line.x = element_blank()) +
+   scale_fill_discrete(name = "Sektori djelatnosti", labels = c("Primarni",
+                                                                "Sekundarni",
+                                                                "Tercijarni")) + ylab("Vrijednosti")
+
+```
+
+Iz prikaza je vidljiv proces tercijarizacije u hrvatskom gospodarstvu, dodana vrijednost i zaposlenost tercijarnog sektora rastu više nego kod sekundarnog. Intenziviranje tih trendova počinje 2001. godine kada tercijarni sektor postaje i apsolutno veći od sekundarnog i nastavlja sa bržim rastom kroz ukupno naredno razdoblje. Zanimljivo je i primijetiti da tercijarni sektor bolje reagira na ekonomsku krizu 2008. godine, pad je manji, a oporavak brži. Zadnji panel prikazuje faktorsku produktivnost sektora. Vidljivo je da proizvodni sektor ima nešto veći rast produktivnosti u promatranom razdoblju no rast usporava u zadnjim godinama. Trendovi u primarnom sektoru nisu posebno informativni, sektor polako raste ali zadržava vrlo mali relativni udio u sektorskoj strukturi. 
+
+Sljedeći grafikon prikazuje odnos produktivnosti i zaposlenosti u sekundarnom i tercijarnom sektoru. Na prvom panelu je vidljiva pozitivna veza između produktivnosti i broja zaposlenih u proizvođačkom sektoru, a na drugom panelu negativan odnos između produktivnosti u proizvođačkom sektoru i zaposlenosti u uslužnom sektoru. Na temelju tog prikaza se vidi da prvo  objašnjenje (*ekonomska ponuda*) tercijarizacijskog procesa ne odgovara podatcima. Naime, rast produktivnosti (npr. automatizacija, robotizacija) u proizvodnom sektoru ne istišće radnike prema uslužnom sektoru, već, u hrvatskom slučaju, povećava broj zaposlenih u proizvodnji.
+
+```{r hipoteze1, echo = FALSE, message = FALSE, warning = FALSE}
+
+
+merge(vars_facc, tfp_facc, by = c("reportyear", "djelatnosti"), all.y = TRUE) -> tfp_zap
+
+tfp_zap %>%
+  dplyr:: select(-dv) %>%
+  dplyr:: filter(djelatnosti == "sekundarni") %>%
+  ggplot2:: ggplot(., aes(rad, tfp)) +
+   geom_point(show.legend = FALSE, alpha = 0.7) +
+   geom_smooth(method = lm) + 
+  ggthemes:: theme_economist() +
+  ylab("TFP") +
+  xlab("Broj zaposlenih u sekundarnom sektoru") + 
+  scale_x_continuous(labels = scales::number_format(big.mark = ","))-> gg1
+
+
+ options(scipen=10000) 
+  
+  tfp_zap %>%
+  dplyr:: select(-dv) %>%
+  tidyr:: gather(., varijable, vrijednosti, -c("reportyear", "djelatnosti")) %>%
+  tidyr:: spread(., djelatnosti, vrijednosti) %>%
+  dplyr:: select(-c(primarni, tercijarni)) %>%
+  tidyr:: spread(., varijable, sekundarni) %>%
+  dplyr:: select(-rad) %>%
+  dplyr:: rename (tfp_sekundarni = tfp) -> tfp_sekundarni
+  
+  
+  tfp_zap %>%
+  dplyr:: select(-dv) %>%
+  tidyr:: gather(., varijable, vrijednosti, -c("reportyear", "djelatnosti")) %>%
+  tidyr:: spread(., djelatnosti, vrijednosti) %>%
+  dplyr:: select(-c(primarni, sekundarni)) %>%
+  tidyr:: spread(., varijable, tercijarni) %>%
+  dplyr:: select(-tfp)  -> zap_tercijarni
+  
+  merge(tfp_sekundarni, zap_tercijarni, by = "reportyear") -> tfp_zap_2
+  
+  tfp_zap_2 %>% 
+  dplyr::   rename(tfp = tfp_sekundarni) %>%
+  ggplot2:: ggplot(., aes(rad, tfp )) +
+   geom_point(show.legend = FALSE, alpha = 0.7) +
+   geom_smooth(method = lm) + 
+  ggthemes:: theme_economist() +
+    ylab("") +
+     xlab("Broj zaposlenih tercijarnom sektoru") +
+    scale_x_continuous(labels = scales:: number_format(big.mark = ","))-> gg2
+  
+grid.arrange(gg1, gg2, nrow = 1)  
+  
+
+```
+
+ 
+Zadnji grafikon prikazuje odnos BDP-a per capita i omjera dodane vrijednosti tercijarnog i sekundarnog sektora.  Podatci o BDP-u su preuzeti sa EUROSTAT-a i uključuju period od 2006. godine do 2016. godine. Vidljiv je pozitivan i rastući odnos između ovih varijabli na temelju kojeg se može zaključiti da je porast dohotka koreliran sa relativnom većim porastom proizvodnje tercijarnog sektora. Takav nalaz dobro odgovara drugom objašnjenju procesa deindustrijalizacije koje, pojednostavljeno rečeno, kaže da rast dohotka dovodi do većeg rasta potražnje za uslugama nego za stvarima.
+
+
+```{r hipoteze2, echo = FALSE, message = FALSE}
+
+gdp <- eurostat::get_eurostat("tec00001", type = "label", select_time = "Y", stringsAsFactors = FALSE,
+                              filters = list(geo = "HR"))
+
+gdp %>%
+  dplyr:: slice(1:11) %>%
+  dplyr:: select(time, values) %>% 
+  dplyr:: mutate(time = lubridate:: ymd(time)) %>%
+  dplyr:: mutate(year = lubridate:: year(time)) %>%
+  dplyr:: mutate(reportyear = as.integer(year)) %>%
+  dplyr:: select(-time, -year) %>%
+  dplyr:: rename( gdp = values) -> gdp_rh
+
+
+tfp_zap  %>%
+  dplyr:: select(-rad, -tfp) %>%
+  tidyr:: spread(., djelatnosti, dv) %>%
+  dplyr:: select(-primarni) -> dv_st
+
+
+merge(gdp_rh,dv_st, by = "reportyear", all = TRUE) -> gdp_dv
+
+
+gdp_dv %>% 
+  dplyr:: mutate(terc_sek = tercijarni / sekundarni ) %>% # porast varijable znaÄŤi relativno veÄ‡i rast tecijarnog sektora
+  dplyr:: filter(!is.na(gdp)) %>%
+  dplyr:: filter(!is.na(sekundarni)) %>%
+  ggplot2:: ggplot(., aes(terc_sek, gdp )) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  geom_smooth(method = lm) + 
+  ggthemes:: theme_economist() +
+  ylab("GDP")+
+  xlab("Omjer dodane vrijednosti: tercijarni / sekundarni sektor")+
+  scale_y_continuous(labels = scales::number_format(big.mark = ","))
+
+
+
+```
+
+
+Ova je analiza dala kratki pregled strukture i kretanja u osnovnim sektorima privrednih djelatnosti u Hrvatskoj. Vidljivo je da se proces deindustrijalizacije u hrvatskoj, započet 70ih, nastavio i do danas. Obilježja su tog procesa da uslužne djelatnosti preuzimaju dominantnu ulogu u strukturi gospodarstva ne samo u terminima zaposlenosti, nego i dodane vrijednosti. Špekulacije o uzrocima tog procesa u zadnjih 15ak godina idu u smjeru dinamike na potražnoj strani ekonomije. Porast dohotka povećava konzumaciju usluga više nego proizvoda pa se čini da Hrvatska prelazi iz postindustrijskog u postmaterijalističko društvo!?

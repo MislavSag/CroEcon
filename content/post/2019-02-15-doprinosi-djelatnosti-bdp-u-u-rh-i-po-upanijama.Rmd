@@ -1,0 +1,243 @@
+---
+title: Doprinosi djelatnosti BDP-u u RH i po županijama
+author: Mislav Šagovac
+date: '2019-02-15'
+slug: doprinosi-djelatnosti-bdp-u-u-rh-i-po-upanijama
+categories:
+  - Ekonomika
+tags:
+  - Dodana nova vrijednost
+  - sektori
+  - nefinancijska poduzeća
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r echo = FALSE, results = "hide", message=FALSE}
+library(DBI)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyr)
+library(jsonlite)
+library(httr)
+library(lubridate)
+library(gganimate)
+library(gifski)
+library(plotly)
+library(gridExtra)
+
+# coonect to database
+connection <- function() {
+  con <- DBI::dbConnect(RMySQL::MySQL(), 
+                      host = "91.234.46.219", 
+                      port = 3306L,
+                      dbname = "odvjet12_gfi",
+                      username = "odvjet12_jtica",
+                      password = "jtica112018",
+                      Trusted_Connection = "True")
+}
+
+
+```
+
+
+U javnosti se često iznosi teza o propasti hrvatske proizvodnje, pretjeranoj važnosti turizma za Hrvatsku ekonomiju, slomu građevinskog sektora nakon krize i druge tvrdnje koje ističu ekspanziju ili kontrakciju pojedinog sektora hrvatskog gospodarstva. U ovom postu ću prezentirati novi modul u [CroEcon aplikaciji](https://forensis.shinyapps.io/CroEcon/) koja omogućuje brzu analizu ovih tvrdnji. Fokusirat ću se na razdoblje 2002-2018 , jer za to razdoblje postoje službeni podaci. Naziv novog modula je: Statistika poslovnih subjekata. Ovaj modul omogućuje analizu poslovnih subjekata prema djelatnosti i (NKD-1 i NKD-2) i porijeklu kapitala (domaće ili strano). Kriterij raščlambe mogu biti 4 varijable: ukupni prihodi, ukupna imovina, boj zaposlenih i dodana nova vrijednost. Dodatno, podaci se mogu promatrati na razini cijele RH, te na razini županija i općina. U ovom postu ćemo se fokusirati na cijelu RH, te se analizirati doprinos pojedinih djelanosti novo dodanoj vrijednosti u županijama.
+
+Za početak na grafikonu 1 analiziram strukturu ukupnih prihoda prema djelatnosti za cijelu RH. Važno je istaknuti da uzorak ne uključuje banke i osiguravajuća društva. Ako se prihvati tvrdnja da je proizvodnja u RH odražena oznakom C u NKD-u, onda je proizvodnja u Hrvatskoj relativno konstantna. Na početku razdoblja je udio proizvodnih djelatnosti 24%, a na kraju razdoblja isto 24%. Najveći udio ima trgovina, ali je njezin udio također relativno stabilan kroz cijelo razdoblje. Najvolatilniji je sektor građevinarstva čiji je udio u ukupnim prihodima rastao s 6% na 10% ukupno ostvarenih prihoda, da bi nakon krize opet pao na 6%. Zanimljivo je primijetiti da sektor smještaja i pripreme hrane ostvaruje tek 3% ukupnih prihoda. Iako u uzorku nisu uključeni mali iznajmljivači jer nemaju obvezu predavanja financijskih izvještaja, udio turizma u ukupnim prihodima je manji od razina koje bi se percipirale iz javnih natpisa.
+
+
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+db <- connection()
+query <- paste0("SELECT reportyear, nacerev21, (SUM(b145)/1000000000) AS b145, 
+                (SUM(b147)/1000000000) AS b147, (SUM(dnv)/1000000000) AS dnv ",
+                "FROM nacerev21 ", 
+                "WHERE  reportyear > 2001 ",
+                "GROUP BY nacerev21, reportyear;"
+  )
+nacrh <- dbGetQuery(db, query)
+invisible(dbDisconnect(db))
+
+nacrevrhClean <- function(df, x) {
+  nacrhClean <- df %>% 
+  dplyr::select(!!enquo(x), reportyear, nacerev21) %>% 
+  dplyr::group_by(reportyear) %>% 
+  dplyr::mutate(postotak = (!!enquo(x) / sum(!!enquo(x), na.rm = TRUE) * 100)) %>% 
+  dplyr::mutate(postotak = sprintf('%d %%', as.integer(postotak))) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(nacerev21 = recode(nacerev21,
+                            A = "Poljoprivreda",
+                            B = "Rudarstvo i vađenje",
+                            C = "Prerađivačka industrija",
+                            G = "Trgovina",
+                            D = "Opskrba energijom",
+                            M = "Stručne, znanstvene i tehničke djel.",
+                            J = "Informacije i komunikacije",
+                            H = "Prijevoz i skladištenje",
+                            L = "Nekretnine",
+                            I = "Usluge smještaja i pripreme hrane",
+                            `F` = "Građevinarstvo",
+                            N = "Administrativne i pomoćne uslužne djel.",
+                            P = "Obrazovanje",
+                            Q = "Djelatnosti zdrastvene zaštite",
+                            R = "Umjetnost, zabava i rekreacija",
+                            E = "Opskrba vodom",
+                            S = "Ostale uslužne djelatnosti",
+                            `T` = "Djelatnosti kućanstva",
+                            O = "Javna uprava i obrana",
+                            K = "Financije i osiguranje (bez fin. inst.)"))
+  nacrhClean
+}
+nacrevrhPlot <- function(df, x, naslov = "Grafikon 1: Struktura prihoda po djelatnostima", yl= "Ukupni prihodi (mlrd. KN)") {
+  p <- ggplot(df,  aes(reorder(nacerev21, !!enquo(x)), !!enquo(x), label = postotak)) + 
+    geom_col() + 
+    geom_text(size = 4, position = "dodge",  hjust = -0.25) +
+    coord_flip() +
+  # facet_wrap(. ~ varijabla, scales = "free", nrow = 2) +
+    xlab("") +
+    ylab(yl) +
+    theme(legend.position = "none") +
+  # theme_bw() + 
+    transition_time(reportyear) +
+    ggtitle(label = naslov, 
+            subtitle = 'Godina: {frame_time}')
+  return(p)
+}
+nacrevrhCleanPrihodi <- nacrevrhClean(nacrh, b145)
+nacrevrhCleanDnv <- nacrevrhClean(nacrh, dnv)
+nacrevrhCleanDobit <- nacrevrhClean(nacrh, b147)
+p1 <- nacrevrhPlot(nacrevrhCleanPrihodi, x = b145)
+p2 <- nacrevrhPlot(nacrevrhCleanDnv, x = dnv, naslov = "Grafikon 2: Struktura DNV-a po djelatnostima", yl= "Novo dodana vrijednost (mlrd. KN)")
+p3 <- nacrevrhPlot(nacrevrhCleanDobit, b147, naslov = "Grafikon 3: Struktura dobiti po djelatnostima", yl= "Ukupna dobit (mlrd. KN)")
+gganimate::animate(p1, fps = 8)
+```
+
+Na sljedećem grafikonu je također prikazana distribucija po djelatnostima, ali se umjesto prihoda koristi novo dodana vrijednost kao kriterij strukturiranja podataka po industrijama. S obzirom da zbroj [novo dodanih vrijednosti poduzeća čini BDP države](http://croecon.contentio.biz/post/dodana-nova-vrijednost-hrvatskih-poslovnih-subjekata/), na ovom se grafikonu može vidjeti koliko svaki sektor u gospodarstvu doprinosi BDP-u. Prema kriteriju DNV-a, proizvođački sektor najviše doprinosi BDP-u: cca četvrtinu BDP-a čini proizvodnja i relativno je stabilna kroz cijelo razdoblje. 
+Na grafikonu 3. je prikazan doprinos svake industrije ukupnoj dobiti svih nefinancijskih poduzeća. Očekivano, volatilnost je znatno veća nego kod prva dva grafikona. Primjerice, prerađivačka industrija u nekim periodima doprinosi s preko 50%, a u drugima sa manje od 5%. Međutim, ponovno je u prosjeku prerađivačka industrija, uz trgovinu, najznačajniji sektor za hrvatsku ekonomiju.
+
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+
+animate(p2, fps = 8)
+```
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+
+animate(p3, fps = 8)
+```
+
+Iz potonje analize može se zaključiti da proizvodni sektor, uz trgovinu, najviše doprinosi prihodima, DNV-u i dobiti nefinancijskih poduzeća. Kako bi vidjeli koji podsektori doprinose DNV-u, na 4. grafikonu su prikazani doprinosi podsetkora (NKD-2) DNV-u. Prikazani su samo podsektori koji su barem u jednom razdoblju imali udio 3% u ukupnom DNV-u. Iz grafikona je vidljivo da trgovina na veliko i malo čine najveći udio u DNV-u. Na trećem mjestu je proizvodnja ostalih prijevoznih sredstava, koja se pojavljuje u 2012 i 2013. godini. slijedi smještaj (turizam), opskrba el. energijom i gradnja zgrada. Izuzev trgovine, mnogi podsektori ostvaruju vrlo slične vrijednosti udjela DNV-a. Valja primijetiti da se ponovno pojavljuju proizvodni sektori poput proizvođačkog sektora i proizvodnja naftnih proizvoda (INA d.d.). Potpuna slika bi zahtijevala analizu usporedbu sa usporedivim zemljama EU, ali to ostavljamo za neku drugu analizu. Čitatelji mogu u aplikaciji ponoviti istu analizu za bilo koji grad/općinu/županiju u RH.
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+sifrarnik <- read.csv2("E:/data/R/ShinyApps/CroEcon/data/nkd2007.csv",
+                       stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+sifrarnik <- unique(sifrarnik[nchar(sifrarnik$SIFRA) == 2, c("SIFRA", "OPIS")])
+sifrarnik$SIFRA <- as.character(sifrarnik$SIFRA)
+db <- connection()
+query <- paste0("SELECT reportyear, nacerev22, (SUM(b145)/1000000000) AS b145, 
+                (SUM(b147)/1000000000) AS b147, (SUM(dnv)/1000000000) AS dnv ",
+                "FROM nacerev22 ", 
+                "WHERE  reportyear > 2001 ",
+                "GROUP BY nacerev22, reportyear;"
+  )
+nacrh2 <- dbGetQuery(db, query)
+invisible(dbDisconnect(db))
+
+nacrev2rhClean <- function(df, x) {
+  nacrhClean <- df %>% 
+  dplyr::select(!!enquo(x), reportyear, nacerev22) %>% 
+  dplyr::group_by(reportyear) %>% 
+  dplyr::mutate(postotak = (!!enquo(x) / sum(!!enquo(x), na.rm = TRUE) * 100)) %>% 
+  dplyr::mutate(nacerev22 = ifelse(postotak < 4, "ostali", nacerev22)) %>% 
+  dplyr::mutate(postotak = sprintf('%d %%', as.integer(postotak))) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::left_join(sifrarnik, by = c("nacerev22" = "SIFRA")) %>%
+  dplyr::filter(nacerev22 != "ostali")
+  nacrhClean
+}
+nacrev2rhPlot <- function(df, x, naslov = "Grafikon 4: Struktura DNV-a po NKD 2", yl= "DNV (mlrd. KN)") {
+  p <- ggplot(df,  aes(reorder(OPIS, !!enquo(x)), !!enquo(x), label = postotak)) + 
+  geom_col() + 
+  geom_text(size = 4, position = "dodge",  hjust = -0.25) +
+  coord_flip() +
+  # facet_wrap(. ~ varijabla, scales = "free", nrow = 2) +
+  xlab("") +
+  ylab(yl) +
+  theme(legend.position = "none") +
+  # theme_bw() + 
+  transition_time(reportyear) +
+  ggtitle(label = naslov, 
+          subtitle = 'Godina: {frame_time}')
+  p
+}
+nacrev2rhCleanPrihodi <- nacrev2rhClean(nacrh2, dnv)
+p1 <- nacrev2rhPlot(nacrev2rhCleanPrihodi, dnv)
+animate(p1, fps = 8)
+```
+
+Za kraj su prikazane županije u RH prema udjelu proizvodnih djelatnosti u ukupnom DNV-u. Na grafikonu se vidi doprinos svake županije BDP-u i posebno doprinos svake djelatnosti. Iako su trgovina i proizvodnja zastupljene u svakoj županiji, postoje i određene specifičnosti. Primjerice u Istri najveći udio ima turizam (usluge smještaja i pripreme hrane). Istra sama čini gotovo polovicu DNV-a za cijelu RH. U zagrebačkoj županiji su najzastupljeniji trgovina i proizvodnja, dok Split ima relativno uravnoteženu strukturu kroz djelatnosti. Čitatatelj može samostalno vidjeti doprinos svake djelatnosti za pojeidni grad na CroEcon aplikaciji.
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+sifrarnik <- read.csv2("E:/data/R/ShinyApps/CroEcon/data/nkd2007.csv",
+                       stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+sifrarnik <- unique(sifrarnik[nchar(sifrarnik$SIFRA) == 2, c("SIFRA", "OPIS")])
+sifrarnik$SIFRA <- as.character(sifrarnik$SIFRA)
+zups <- read.csv2("E:/data/R/ShinyApps/CroEcon/data/municipals_population.csv",
+                       stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+zups <- unique(zups[, c("ZUPANIJA", "NAZIV_ZUP")])
+db <- connection()
+query <- paste0("SELECT reportyear, nacerev21, (SUM(dnv)/1000000) AS dnv, countyid ",
+                "FROM nacerev21 ", 
+                "WHERE  reportyear = 2017 ",
+                "GROUP BY countyid, nacerev21, reportyear;"
+  )
+nacZup <- dbGetQuery(db, query)
+invisible(dbDisconnect(db))
+
+
+nacrevZup <- function(df, x) {
+  nacrhClean <- df %>% 
+  dplyr::filter(countyid != 21) %>% 
+  dplyr::select(!!enquo(x), reportyear, nacerev21, countyid) %>% 
+  dplyr::group_by(countyid, reportyear) %>% 
+  dplyr::mutate(postotak = (!!enquo(x) / sum(!!enquo(x), na.rm = TRUE) * 100)) %>% 
+  dplyr::mutate(nacerev21 = ifelse(postotak < 10, "ostali", nacerev21)) %>% 
+  dplyr::mutate(postotak = sprintf('%d %%', as.integer(postotak))) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(nacerev21 = recode(nacerev21,
+                            A = "Poljoprivreda",
+                            B = "Rudarstvo i vađenje",
+                            C = "Prerađivačka industrija",
+                            G = "Trgovina",
+                            D = "Opskrba energijom",
+                            M = "Stručne, znanstvene i tehničke djel.",
+                            J = "Informacije i komunikacije",
+                            H = "Prijevoz i skladištenje",
+                            L = "Nekretnine",
+                            I = "Usluge smještaja i pripreme hrane",
+                            `F` = "Građevinarstvo",
+                            N = "Administrativne i pomoćne uslužne djel.",
+                            P = "Obrazovanje",
+                            Q = "Djelatnosti zdrastvene zaštite",
+                            R = "Umjetnost, zabava i rekreacija",
+                            E = "Opskrba vodom",
+                            S = "Ostale uslužne djelatnosti",
+                            `T` = "Djelatnosti kućanstva",
+                            O = "Javna uprava i obrana",
+                            K = "Financije i osiguranje (bez fin. inst.)")) %>% 
+  dplyr::left_join(zups, by = c("countyid" = "ZUPANIJA"))
+  nacrhClean
+}
+nacrevZupDnv <- nacrevZup(nacZup, dnv)
+ggplot(nacrevZupDnv, aes(x = reorder(NAZIV_ZUP, dnv), y = dnv, fill = nacerev21)) + 
+  geom_bar(stat = "identity") +
+  ggtitle("Grafikon 5: Doprinos djelatnosti DNV-u po županijama (2017)") +
+  xlab("Županije") +
+  coord_flip() + 
+  theme(legend.title = element_blank())
+
+```
+
+

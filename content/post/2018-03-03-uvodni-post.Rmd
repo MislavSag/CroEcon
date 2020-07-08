@@ -1,0 +1,22 @@
+---
+title: Uvodni post
+author: Mislav Šagovac
+date: '2018-03-03'
+slug: uvodni-post
+categories: []
+tags: []
+---
+
+Dobrodošli na CroEcon, web stranicu o ekonomskim kretanjima u RH. U prvom postu će se odgovoriti na neka opća pitanja o blogu i temama koje će se analizirati.
+
+**Što je CroEcon?**
+CroEcon je skraćenica of Croatian Economy. U blogu će se primarno analizirati stanje i trendovi u domaćem gospodarstvu. Pri tome će se iznesena razmatranja  nastojati potkrijepiti realnim podatcima i empirijskom analizom te omogućiti čitatelju dinamičnu interakciju sa tekstom gdje god je to moguće.
+
+**Tko piše blog?**
+Blog piše Mislav Šagovac, doktorski student EFZG-a i vlasnik tvrtke Contentio.
+
+**O čemu će se pisati?**
+Fokus bloga su zanimljivosti iz domaće ekonomije koje imaju uporište u konkretnim podatcima ili empirijskoj analizi. Osim makroekonomskih tema, pisati će se i o tržištu kapitala, političkoj ekonomiji i *data science*-u. U postovima će se često koristiti programski kod pisan u programskom jeziku R. Cilj je da podaci govore sami za sebe, kada god je to moguće.
+
+**Zašto pišem blog?**
+di stjecanja novih spoznaja, poticanja opće rasprave o domaćoj ekonomiji i pratećim ekonomskim fenomenima te kako bi se popularizirala (kvalitetnija) analiza ekonomskih trendova utemeljena na konkretnim podatcima.

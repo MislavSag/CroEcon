@@ -1,0 +1,49 @@
+---
+title: Znanstveni lab u CroEcon aplikaciji - brza i jednostavna ekonometrijska analiza
+author: Mislav Šagovac
+date: '2019-03-12'
+slug: znanstveni-lab-u-croecon-apliakciji-najbr-i-i-najlak-i-ekonometrijski-testovi
+categories:
+  - Ekonomika
+  - Ekonometrija
+  - Firme
+  - R
+tags:
+  - investicije
+  - nefinancijska poduzeća
+  - R
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+
+<p>Ako Vas netko upita: što objašnjava rast/pad varijable <code>y</code> nefinancijskih poduzeća u Republici Hrvatskoj, pri čemu <code>y</code> može biti izvoz, uvoz, prihodi, dobit i td, što biste odgovorili? Vjerojatno bi se pokušavali sjetiti nekog nedavnog istraživanja koje ste čitali, a koje se bavi izučavanjem varijable <code>y</code> ili bi pokušali odgovoriti intuitivno, prvoloptaški (npr. visoki nameti). Čak i kada biste imali kratko vrijeme na raspolaganju teško bi uspjeli brzo prikupiti podatke, i napraviti jednostavan model (graf, ekonometrijski model), koji bi Vam pomogao u odgovoru na pitanje. Na koji način biste najbrže prikupili informacije za odgovor na ovo pitanje? Većina istraživača, koja se sjeća osnovnih znanja iz ekonometrije, pomislila bi da bi bilo korisno izgraditi jednostavan ekonometrijski model koji s lijeve strane ima varijablu koju želimo objasniti, a s lijeve strane skup nezavisnih varijabli, za koje vjerujemo (na temelju teorije ili intuicije) da su važne za objašnjenje zavisne varijable. Nakon toga bi korištenjem jedne funkcije u statističkom paketu mogli dobiti određeni uvid o povezanosti varijabli od interesa. Međutim, ovakav pothvat bi zahtijevao dosta vremena i truda. Prvo biste trebali imati kvalitetne mikro podatke na temelju kojih radite analizu, u ovom slučaju podatke o nefinancijskim poduzećima. Nakon toga biste trebali urediti podatke za analizu: harmonizirati i strukturirati bazu podataka, pozabaviti se nedostajućim varijablama, identificirati outliere i td. Nakon toga je potrebno specificirati jednadžbu i procijeniti parametre. Na kraju je potrebno interpretirati rezultate. Nakon što shvatite koliko je vremena potrebno, vjerojatno ćete odustati od cijelog procesa i ostati pri prvom intuitivnom (apriornom) odgovoru.</p>
+<p>Kako bi prevladao potonji problem, napravio sam novi modul u CroEcon aplikaciji, koji omogućuje provođene brze analize o međuovisnosti pojedinih varijabli za nefinancijska poduzeća u Republici Hrvatskoj. Novom modulu možete pristupiti preko već poznate <a href="https://forensis.shinyapps.io/CroEcon/">poveznice</a>. Potrebno je kliknuti na “Znanstveni lab” i potom na “Panel regresija”. Ukratko ću objasniti kako model funkcionira. U prvom inputu se može izabrati baza podataka za provođenje brzog empirijskog istraživanja. Za sada je to samo jedna baza. U budućnosti možemo uključiti i druge baze podataka. Drugi input sadrži ekonometrijske metode koje možete koristiti. Za sada su dostupne samo dvije metode: višestruka regresija i panel fiksni efekti. Nakon izbora metode i baze, moguće je izabrati percentil podataka koji se eliminiraju iz istraživanja. Poznato je da su varijable u bazi nefinancijskih poduzeća vrlo volatilne, a ekstremne vrijednosti mogu imati vrlo veliki utjecaj na procijenjene parametre. U empirijskim istraživanjima se najčešće isključuje određeni percentil podataka (0.01, 0.02, 0.05 itd), pa je u modulu primjenjuje isti pristup: mogu je eliminirati određeni percentili podataka. Zadane vrijednosti iznose 0.01 i 0.99. To znači da će se iz analize eliminirati opservacije koje prelaze 99 percentil i koje su manje od 1. percentila, za <strong>sve</strong> variajble korištene u analizi. U empirijskoj literaturi postoje <a href="https://www.leuphana.de/fileadmin/user_upload/Forschungseinrichtungen/ifvwl/WorkingPapers/wp_207_Upload.pdf">metode</a> robusne na ekstremne vrijednosti, ali za početak je dovoljno primijeniti ovaj pojednostavljeni pristup. Na kraju je potrebno specificirati ekonometrijsku jednadžbu koja se procjenjuje, to jest formulu. “Formula” je posebna klasa u R programskom jeziku, a koristi se kao input u gotovo svim ekonometrijskim funkcijama zadanim u R-u. Sintaksa je vrlo jednostavna (vrlo dobar pregled je dan <a href="https://www.datacamp.com/community/tutorials/r-formula-tutorial">ovdje</a>). Zadana formula <code>b335~lag(b334)+lag(b110)</code> predstavlja ekonometrijsku jednadžbu <code>b335 = lag(b334) + lag(b110) + e</code> (zanemarujući <em>subscripte</em>). Ostaje zadnje pitanje: što predstavljaju varijable b335, b334 i b110? Odgovor možete dobiti klikom na gumb “varijable”, koji otkriva sve varijable dostupne u bazi podataka. Ako vas zanima posebna varijabla, u gornji desni pretraživač možete upisati varijablu koja želite proučavati.</p>
+<p>Nakon opisa modula, u nastavku ćemo isprobati modul na jednom primjeru: empirijskoj funkciji investicija. Empirijska funkcija investicija kao nezavisne varijable najčešće uključuje određenu mjeru agregatne potražnje. U literaturi se kao mjera agregatne potražnje koriste poslovni prihodi. U literaturi o djelovanju financijskih frikcija na investicije u jednadžbu se uključuju i novčani tokovi, kao mjera neto vrijednosti. Literatura je potvrdila važnost novčanih tokova za investicije pa će se koristiti i ova varijabla U jednadžbu će se uključiti i jedan pokazatelj financiranja (ukupne obveze/ukupna imovina) te pokazatelj likvidnosti. Konačna R formula ima oblik:</p>
+<p><span class="math inline">\(I(log((b010+b123)/b010)) ~ log(b151+b123) + log(b110) + I(log(b084+b094)/b061) + I(log(b034/b094))\)</span></p>
+<p>Procjena jednadžbe daje sljedeće rezultate:</p>
+<pre class="r"><code># Call:
+#    felm(formula = as.formula(paste0(input$formula, &quot; | as.factor(subjectid) |0|0&quot;)),      data = panelDataFinal) 
+# 
+# Residuals:
+#     Min      1Q  Median      3Q     Max 
+# -3.7028 -0.1442 -0.0242  0.0664 11.0497 
+# 
+# Coefficients:
+#                            Estimate Std. Error t value Pr(&gt;|t|)    
+# log(b151 + b123)          7.614e-02  5.869e-04  129.72   &lt;2e-16 ***
+# log(b110)                -2.682e-02  8.753e-04  -30.64   &lt;2e-16 ***
+# I(log(b084 + b094)/b061)  1.187e+03  1.660e+01   71.50   &lt;2e-16 ***
+# I(log(b034/b094))         5.499e-02  7.645e-04   71.93   &lt;2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.4244 on 654577 degrees of freedom
+# Multiple R-squared(full model): 0.3891   Adjusted R-squared: 0.2605 
+# Multiple R-squared(proj model): 0.03987   Adjusted R-squared: -0.1623 
+# F-statistic(full model):3.025 on 137834 and 654577 DF, p-value: &lt; 2.2e-16 
+# F-statistic(proj model):  6795 on 4 and 654577 DF, p-value: &lt; 2.2e-16 </code></pre>
+<p>Rezultati pokazuju da su svi procijenjeni koeficijenti statistički signifikantni uz razinu značajnosti 1%. Razlog je u velikom vrlo velikom uzorku (preko milijun opservacija). Prvi koeficijent pokazuje pozitivnu korelaciju novčanog toka i investicija. S obzirom da s obje strane sadrže logaritam varijabli, koeficijent se može interpretirati kao efekt postotka. Povećanje novčanog toka za jedan posto u prosjeku povećava investicije za 0.07%. Predznak uz ukupne prihode je suprotan očekivanom predznaku. Rast prihoda korelira sa padom investicija. Koeficijent uz stopu zaduženosti je vrlo signifikantan. Rast poluge korelira sa rastom investicija. Rast pokazatelja zaduženosti za 1% dovodi do rasta investicija za 120%. konačno, rast likvidnosti korelira sa rastom investicija. Rast pokazatelja likvidnosti od 1% dovodi do rasta investicija od 0.05%. Iz ove jednostavne analize proizlazi da rast <em>pokazatelja</em> zaduženosti najsnažnije korelira sa rastom investicija. Ovo može upućivati na mogući problem financijskog ograničenja tvrtki. Pad ponude kredita može dovesti do manje kreditna sposobnosti i. posljedično, do manjih investicija.</p>
+<p>Modul “Znanstveni lab” može se proširivati na mnoštvo načina. Moguće je dodati nove baze podataka za analizu ili poštivati postojeću bazu podataka. Moguće je dodavati nove ekonometrijske metode, te nove inpute za čišćenje podataka. Uz formulu, korisno bi bilo uključiti opciju izbora podskupa podataka, koja je dio većine modelskih funkcija u R-u. U budućnost će se modul proširivati za neke od ovih opcija, kako bi se mogla dobiti još bolja predodžba međuovisnosti varijabli od interesa.</p>

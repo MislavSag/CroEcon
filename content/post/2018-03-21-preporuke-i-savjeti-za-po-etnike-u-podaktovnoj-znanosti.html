@@ -1,0 +1,68 @@
+---
+title: Preporuke i savjeti za početnike u podatkovnoj znanosti
+author: Mislav Sagovac
+date: '2018-03-21'
+slug: preporuke-i-savjeti-za-po-etnike-u-podatkovnoj-znanosti
+categories:
+  - R
+tags:
+  - R
+  - strojno učenje
+  - duboko učenje
+  - Shiny
+---
+
+
+
+<p>Primio sam poruku u kojoj me osoba zamolila za savjet o educiranju na polju podatkovne znanosti. Kao odgovor odlučio sam napisati post o tome, kako bi i drugi čitatelji mogli imati koristi od iznesenih prijedloga. Prvo bih želio naglasiti da osobno nisam stručnjak za navedeno područje, ali posljednjih 4-5 godina radim poslove koji po sadržaju pripadaju podatkovnoj znanosti. Prošao sam dosta <em>online</em> predavanja i pročitao više knjiga, pa bih htio podijeliti svoja iskustva sa drugima koji žele započeti raditi u navedenom području. Svatko tko je zainteresiran za navedeno područje može naći mnogo bolje savjete <em>googlanjem</em>, ali sam se ipak odlučio za ovaj post jer mladi studenti često nisu upoznati sa svim edukacijskim mogućnostima na internetu. Najteže je proći barijeru i napraviti prvi korak. Iz mog iskustva, kada se pogleda nekoliko predavanja i uvidi korist od uloženog vremena, učenje ide samo od sebe.</p>
+<p>Prva odluka koju trebate donijeti je izbor programskog jezika. Najpopularniji programski jezici za podatkovnu znanost su R i Python (koriste se i drugi, popu Scale, Jave i td., ali spomenuta dva su najpopularnija). Postoji mnoštvo tekstova na internetu koji uspoređuju ova dva jezika, ali po mome iskustvu, svejedno je koji jezik odaberete. Većinu problema moći ćete riješiti pomoću oba programska jezika. Možda postoji 2% problema koje možete riješiti u jednom, ali ne u drugom jeziku, ali na takve probleme ćete nailaziti tek korištenjem naprednijih algoritama ili modela. Osobno mnogo više radim u R-u (svakodnevno) dok Python koristim samo ponekad (primjerice ako je neka metoda iz strojnog učenja već napisana u Pythonu ili za <em>web crawling</em>).</p>
+<p>Ako pretpostavimo da je R vaš izbor, prvi korak za ulazak u područje podatkovne znanosti predstavlja učenje programskog jezika. Dakako, ako već imate iskustva s nekim drugim programskim jezikom, učenje će ići mnogo brže. Pripadam onoj grupi koja nije znala ništa o programiranju prije upoznavanja s R-om, pa mogu potvrditi da učenje R-a može biti zahtjevno, ali istovremeno vrlo zabavno i nadasve korisno. Za početak učenja programskog jezika R, ali i drugih koncepata iz podatkovne znanosti predlažem stranicu <a href="https://www.datacamp.com/home">Data Camp</a>.
+Ovo je općenito odlična stranica za ulazak u bilo koje područje podatkovne znanosti. Gotovo da nema područja koje nije pokriveno određenim kolegijem, od samih osnova programiranja do statistike, strojnog učenja, izrada aplikacija, izvještaja i rada s prostornim podacima. Za početak predlažem izučavanje sljedećih kolegija na stranici:</p>
+<ul>
+<li>Introduction to R</li>
+<li>Intermediate R</li>
+<li>Writing functions in R</li>
+</ul>
+<p>Ovo bi za početak trebalo biti dovoljno. Ova tri kolegija se sigurno mogu proći u tjedan dana, ako se izdvaja oko 4 sata dnevno za učenje. Ako se nakon ova tri kolegija još uvijek ne osjećate sigurno možete probati sa kolegijem sa Coursere <a href="https://www.coursera.org/learn/r-programming">R programming</a>.</p>
+<p>Nakon što se nauče osnove programiranja, te osnovne stvari oko manipulacije podataka, potrebno je krenuti raditi sa stvarnim podacima. Prvo je potrebno naučiti osnove unošenja podataka u R. Ponovno, postoji cijeli kolegije o tome na <a href="https://www.datacamp.com/courses/importing-data-in-r-part-1">Data campu</a>, ali za početak je dovoljno da se nauči par osnovnih funkcija (<em>read.csv, read.csv2, trad.table</em>), a ostale oblike unosa podataka možete naučiti po putu ovisno o potrebi (JSON, MySQL, mongDB i ostalo). Unošenje podataka možete naučiti za jedan dan.</p>
+<p>Po mom iskustvu, najveći dio vremena kod bavljenja podatkovnom znanosti uzima manipulacija podataka. Operacije poput selektiranja kolona, filtriranja pojedinih redova, izračuna prosjeka i sl. obavljaju se svakodnevno. Zato smatram da je poželjno potrošiti što više vremena za učenje paketa koji se koriste za manipulaciju podataka. Ponovno se preporučuju kolegiji sa Data Campa:</p>
+<ul>
+<li>Introduction to Tidyverse</li>
+<li>Dana manipulation in R with dplyr</li>
+<li>Dana Analysis in R, the dana.table way</li>
+<li>Joining data in R with dplyr</li>
+</ul>
+<p>Dodatno se mogu proći tekstovi koji prikazuju dva najpopularnija paketa u R-u za manipulaciju podataka dplyr i data.table. Uz to ćete često koristiti pakete tidyr, plyr i stringr. Također, nužno je da se registrirate na <a href="https://stackoverflow.com/">stackoverflow</a>, gdje ćete postavljati sva pitanja koja su vezana uz programiranje i manipulaciju podataka, ali i sva ostala pitanja vezana uz podaktivnu znanost.</p>
+<p>U ovom trenutku raspolažete fundamentalnim znanjima za bavljenje podatkovnom znanošću. Sljedeći korak u edukaciji uvelike ovisi o vašim preferencijama, postojećim znanjima i zahtjevima posla. Svako pojedino područje podatkovne znanosti se ponovno možete podijeliti u neka druga podpodručja koja se mogu izučavati. Upravo zbog ovako velikog raspona mogućnosti pojam podatkovna znanost (<em>dana science</em>) smatram pomalo maglovitim i neprimjereno definiranim. Primjerice često se ističe da podatkovna znanost uključuje znanje statistike, međutim statistika je posebna grana koja se proučava godinama.
+Iako postoji nekoliko područja navest ću samo područja kojima sam se sam bavio i koja u mi koristila u istraživačkim radovima ili u poslu. Navest ću najviše tri izvora za svako područje. Ako prođete bilo koja od tri područja, moći ćete sami pronaći ostale relevantne izvore.</p>
+<p><strong>Strojno učenje</strong> – Ovo je vjerojatno trenutno najpopularnije područje podatkovne znanosti, a orijentirana je na predviđanje budućih događaja. Često se u današnje vrijeme spominje umjetna inteligencija i njezin utjecaj na budući rast i društvene odnose općenito Veliki udio u ovim promjenama ima upravo strojno učenje. Kolegije koje predlažem:</p>
+<ul>
+<li><a href="https://www.coursera.org/learn/machine-learning" class="uri">https://www.coursera.org/learn/machine-learning</a></li>
+<li><a href="https://lagunita.stanford.edu/courses/HumanitiesSciences/StatLearning/Winter2016/about" class="uri">https://lagunita.stanford.edu/courses/HumanitiesSciences/StatLearning/Winter2016/about</a></li>
+<li>Knjiga: <a href="https://www.amazon.com/Machine-Learning-Probabilistic-Perspective-Computation/dp/0262018020" class="uri">https://www.amazon.com/Machine-Learning-Probabilistic-Perspective-Computation/dp/0262018020</a></li>
+</ul>
+<p><strong>Duboko učenje</strong> – duboko učenje je posebno područje strojnog učenja koje podrazumijeva primjenu dubokih neuronskih mreža (neuronske mreže s više <em>layera</em>). Ako je strojno učenje najpopularnije područje unutar podatkovne znanosti, onda je duboko učenje najpopularnije područje strojnog učenja. Modeli iz dubokog učenja u posljednjih par godina gotovo uvijek pobjeđuju na <a href="https://www.kaggle.com/">Kaggle</a> natjecanjima. Za ovo područje bih predložio:</p>
+<ul>
+<li>Knjiga <a href="https://www.manning.com/books/deep-learning-with-r" class="uri">https://www.manning.com/books/deep-learning-with-r</a></li>
+<li><a href="https://www.coursera.org/specializations/deep-learning" class="uri">https://www.coursera.org/specializations/deep-learning</a></li>
+<li>Knjiga <a href="http://www.deeplearningbook.org/" class="uri">http://www.deeplearningbook.org/</a></li>
+</ul>
+<p><strong>Web scraping</strong> – kvalitetni podaci vrijede više od statističke metode (metoda strojnog učenja). Ako imate kvalitetne podatke visoke frekventnosti, moći ćete pobijediti i napredniji algoritam sa manje kvalitetnim podacima. Na internetu se nalazi mnoštvo podataka koji se mogu koristiti za razne analize. Neke baze podataka su lako dostupne u strukturiranoj formi (npr . <a href="https://cran.r-project.org/web/packages/eurostat/vignettes/eurostat_tutorial.pdf">eurostat</a>), dok je za druge potrebno koristiti posebne tehnike web scrapinga. U R-u se za potonje najviše koriste paketi <em>rvest</em> (za jednostavnije stranice) i <em>RSelenium</em> (za kompliciranije stranice bogate <em>javascriptom</em>). Na žalost ne postoji knjiga koja detaljno prolazi kroz sve mogućnosti i probleme web scrapinga u R-u, pa preporučujem prolazak kroz pakete:</p>
+<ul>
+<li><a href="https://github.com/ropensci/RSelenium" class="uri">https://github.com/ropensci/RSelenium</a> (za početak je dovoljno proći kroz
+<a href="http://rpubs.com/johndharrison/RSelenium-Basics" class="uri">http://rpubs.com/johndharrison/RSelenium-Basics</a>)</li>
+<li><a href="https://www.datacamp.com/community/tutorials/r-web-scraping-rvest" class="uri">https://www.datacamp.com/community/tutorials/r-web-scraping-rvest</a></li>
+<li>Knjiga <a href="https://www.amazon.com/Automated-Data-Collection-Practical-Scraping/dp/111883481X" class="uri">https://www.amazon.com/Automated-Data-Collection-Practical-Scraping/dp/111883481X</a> (po meni malo preopširna i nedovoljno praktična li nema druge za R)</li>
+</ul>
+<p><strong>Izvještavanje i web aplikacije</strong> – vrlo važan korak u procesu podatkovne znanosti predstavlja izvještavanje o rezultatima. Nakon što se preuzeli zanimljive podatke sa tehnikama web scrapinga, spremili podatke u neku bazu (lokalno ili u oblaku), napravili statistički model koji ima dobre predikcijske sposobnosti, željeli biste podijeliti rezultate s drugima (unutar tvrtke, zemlje, s kolegama …). Najbolji alat za potonje u R-u je shiny apliakcija (koja se koristi i u ovom blogu). Ako želite rezultate isporučivati u obliku izvještaja možete koristiti paket <em>rmarkdown</em>. Možete čak napisati knjigu u R-u koristeći <em>bookdown</em> ili napraviti web stranicu koristeći <em>blogdown</em>. Najbolji izvori za početak su:</p>
+<ul>
+<li><a href="https://shiny.rstudio.com/" class="uri">https://shiny.rstudio.com/</a></li>
+<li><a href="https://www.datacamp.com/courses/building-dashboards-with-shinydashboard" class="uri">https://www.datacamp.com/courses/building-dashboards-with-shinydashboard</a></li>
+<li><a href="https://www.datacamp.com/courses/reporting-with-r-markdown" class="uri">https://www.datacamp.com/courses/reporting-with-r-markdown</a></li>
+</ul>
+<p><strong>Ostalo</strong> – postoji još mnoštvo zanimljivih paketa i područja koji su vrlo korisni u bavljenju podatkovnom znanošću, a koja nisu spomenuta. Neka od njih su:</p>
+<p><strong>Vizualizacije</strong> – postoji cijela serija predavanja o korištenju paketa ggplot2, najpoznatijeg paketa za vizualizacije u r-u: <a href="https://www.datacamp.com/courses/tech:r/topic:data_visualization" class="uri">https://www.datacamp.com/courses/tech:r/topic:data_visualization</a></p>
+<p><strong>Paralelna komputacija</strong> – za brzinu: <a href="http://spark.rstudio.com/" class="uri">http://spark.rstudio.com/</a> i <a href="https://www.r-bloggers.com/how-to-go-parallel-in-r-basics-tips/" class="uri">https://www.r-bloggers.com/how-to-go-parallel-in-r-basics-tips/</a></p>
+<p><strong>Prostorni podaci</strong> – rad s raster podacima <a href="https://www.datacamp.com/courses/working-with-geospatial-data-in-r" class="uri">https://www.datacamp.com/courses/working-with-geospatial-data-in-r</a></p>
+<p>…</p>
+<p>Za kraj bih htio pružiti još jedan savjet. Najbolje je učiti kada u pozadini postoji cilj koji želite postići. Primjerice, kada sam krenuo raditi u R-u imao sam samo jedan cilj. Napraviti grafove i statističke procjene za istraživački rad na kojem sam radio. Kasnije sam htio napraviti aplikaciju koja automatski preuzima podatke s interneta i prikazuje ih krajnjem korisniku. U konačnici, bez primjene znanja na konkretnim situacijama ne ćete naučiti niti jednu metodu. Sjećat ćete se samo osnovnih stvari. Iako se čini kao mnogo rada i truda, stvari idu dosta brzo, ako se prati slijed koji je predložen u ovom postu i ako postoji cilj koji želite postići ili problem koji želite riješiti.</p>

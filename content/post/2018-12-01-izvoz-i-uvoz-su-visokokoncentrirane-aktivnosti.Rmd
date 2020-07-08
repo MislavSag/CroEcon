@@ -1,0 +1,129 @@
+---
+title: Koncentriranost izvoza i uvoza u RH
+author: Mislav Sagovac
+date: '2018-12-06'
+slug: izvoz-i-uvoz-su-visokokoncentrirane-aktivnosti
+categories:
+  - Međunarodna razmjena
+  - Ekonomika
+  - Firme
+  - R
+tags:
+  - Izvoz
+  - Uvoz
+subtitle: ''
+header-includes:
+    - \usepackage{caption}
+---
+\captionsetup[table]{labelformat=empty}
+```{r echo = FALSE, results = "hide", message=FALSE}
+library(odbc)
+library(DBI)
+library(dplyr)
+library(purrr)
+library(knitr)
+library(httr)
+library(jsonlite)
+
+# coonect to database
+con <- DBI::dbConnect(RMySQL::MySQL(), 
+                      host = "91.234.46.219", 
+                      port = 3306L,
+                      dbname = "odvjet12_gfi",
+                      username = "odvjet12_jtica",
+                      password = "jtica112018",
+                      Trusted_Connection = "True")
+# query variables
+q <- tbl(con, "gfi_all") %>%
+  dplyr::select(subjectid, reportyear, b335, b370) %>%
+  dplyr::filter(reportyear >= 2002)
+gfi <- q %>% collect()
+gfi <- gfi[!duplicated(gfi[,c("subjectid", "reportyear")]),]
+
+```
+
+Fokus literature iz područja međunarodne razmjene u posljednjih 20-ak godina prešao je  s analize makroekonomskih agregatnih tokova roba i usluga na analizu obilježja međunarodne razmjene nefinancijskih poduzeća.  Mikroekonomska analiza međunarodne trgovine naglašava važnost stupnja participacije poduzeća u međunarodnoj razmjeni,a rezultati nedvojbeno pokazuju da postoji vrlo mali broj uvoznih i izvoznih firmi među proizvodnim poduzećima, kako u razvijenim, tako i u nerazvijenim zemljama. Istraživanja također pokazuju da su izvoznici produktivniji, kapitalno intenzivniji te isplaćuju veće plaće. Ukratko izvoznici ostvaruju u prosjeku znatno bolje performanse od poduzeća koja nisu uključena u međunarodnu razmjenu. U ovom postu ću analizirati kako se međunarodna trgovina hrvatskih firmi uklapa u  stilizirane činjenice iz moderne literature o međunarodnoj trgovini. 
+
+Analizu koncentriranosti uvozne i izvozne aktivnosti započet ću s mjerenjem udjela izvoznika i uvoznika u ukupnom broju nefinancijskih poduzeća. Udio izvoznika u ukupnoj populaciji poduzeća prikazani su u tablici 1. Tvrtka je definirana kao izvozna,  ako je vrijednosti prihoda iz inozemstva (izvoza) veća od nula. U prosjeku u periodu 2002-2017, oko 15% poduzeća u RH pripada grupi izvoznika. U SAD-u ovaj broj iznosi oko 4% (Bernard et al, 2007) pa se može činiti da je udio izvoznika u RH relativno visok. Jasno, ova razlika je rezultat veličine zemlje. Hrvatska je mala otvorena ekonomija, dok su SAD velika svjetska ekonomija. Zanimljiva je i dinamika kretanja udjela izvoza. Tijekom krize, udio je pao s 16% 2008. godine na 11% 2009. godine, čak pet postotnih bodova.  Međutim, udio se ponovno vratio na prosječnu vrijednost.
+
+
+```{r echo = FALSE, message=FALSE}
+izvoz_udio <- gfi %>%
+  dplyr::mutate(export_dummy = ifelse(b335 > 0, 1, 0)) %>%
+  dplyr::group_by(reportyear) %>%
+  count(export_dummy) %>%
+  mutate(export_udio = n / sum(n))
+izvoz_udio_ispis <- tidyr::spread(izvoz_udio[izvoz_udio$export_dummy == 1, c("reportyear", "export_udio")], 
+                                  reportyear, export_udio)  # za lijepsi ispis
+izvoz_udio_ispis <- map_df(izvoz_udio_ispis, function(x) paste0(round(x, digits = 2) * 100, "%"))
+kable(izvoz_udio_ispis, caption = "Tablica 1: Udio izvoznih poduzeća u ukupnom broju nefinancijskih poduzeća")
+```
+
+Mala participacija izvoza može se preslikati i na uvoz. Tablica 2. pokazuje udio uvoznih poduzeća u ukupnom broju nefinancijskih poduzeća tijekom razdoblja 2002-2017.  Prosječni udio uvoza je identičan udjelu izvoza – 15%. Međutim, promjene udjela tijekom promatranog razdoblja su znatno volatilnije. U pretkriznom razdoblju udio uvoznika je bio oko 19%, da bi nakon krize pao na 13%, pad od 5 postotnih poena. Može se zaključiti da većina poduzeća u Hrvatskoj (oko 85%) ne uvozi niti izvozi.
+
+```{r echo = FALSE, message=FALSE}
+uvoz_udio <- gfi %>%
+  dplyr::mutate(uvoz_dummy = ifelse(b370 > 0, 1, 0)) %>%
+  dplyr::group_by(reportyear) %>%
+  count(uvoz_dummy) %>%
+  mutate(uvoz_udio = n / sum(n))
+uvoz_udio_ispis <- tidyr::spread(uvoz_udio[uvoz_udio$uvoz_dummy == 1, c("reportyear", "uvoz_udio")], 
+                                  reportyear, uvoz_udio)  # za lijepsi ispis
+uvoz_udio_ispis <- map_df(uvoz_udio_ispis, function(x) paste0(round(x, digits = 2) * 100, "%"))
+kable(uvoz_udio_ispis, caption = "Tablica 2: Udio uvoznih poduzeća u ukupnom broju nefinancijskih poduzeća")
+```
+
+Ograničena participacija izvoznih poduzeća ne odnosi se samo na njihov broj, već i na izvoznu koncentraciju. Kako bi dobili uvid o veličini koncentracije, u nastavku se analizira udio izvoza najvećih izvoznika u ukupnom izvozu. Za početak, u tablici 3  je prikazano 5 najvećih izvoznika u Hrvatskoj za svaku promatranu godinu (razdoblje 2002-2017). U svakoj godini, najveći izvoznik je INA d.d., koja uključuje otprilike 8 % ukupnog izvoza svih nefinancijskih poduzeća u Hrvatskoj. Drugi najveći izvoznik je Pliva d.d., s otprilike 2.5% ukupnog izvoza svih poduzeća. Zanimljivo je primijetiti da je veliki udio najvećih izvoznika bio ili je u vlasništvu države (Croatia airlines d.d., Pretokemija d.d., HT d.d., Pliva Hrvatska…).
+
+```{r echo = FALSE, message=FALSE}
+top_var <- function(data, var){
+  top_x <- data %>%
+    dplyr::group_by(reportyear) %>%
+      dplyr::mutate(udio_izvoz = (!!rlang::sym(var) / sum(!!rlang::sym(var), na.rm = TRUE)) * 100) %>%
+    dplyr::top_n(., 5, !!rlang::sym(var)) %>%
+    ungroup()
+  nazivi <- fromJSON(toJSON(content(POST(url = "https://api.data-api.io/v1/subjekti",
+                                         add_headers('x-dataapi-key' = "59dd75a6525e",
+                                                     'content-type' = "application/json"),
+                                         body = list(oib = top_x$subjectid), encode = "json", verbose()),
+                                    type = "application/json"), null = "null"), flatten = TRUE)
+  top_x <- merge(top_x, nazivi[,c("naziv", "mb")], by.x = "subjectid", by.y = "mb", 
+                             all.x = TRUE, all.y = FALSE)
+  top_x <- top_x %>%
+    dplyr::arrange(reportyear, desc(!!rlang::sym(var)))
+}
+trgovina_sql <- gfi %>% mutate(NetoIzvoz = b335 - b370)
+top_izvoznici_po_godinama <- top_var(trgovina_sql, "b335")
+top_izvoznici_po_godinama$naziv <- as.character(top_izvoznici_po_godinama$naziv)
+top_izvoznici_po_godinama <- top_izvoznici_po_godinama[, -1]
+colnames(top_izvoznici_po_godinama) <- c("Godina", "Izvoz", "Uvoz", "Neto izvoz", "Udio izvoza", "Naziv")
+top_izvoznici_po_godinama[, c(1,2,4,5)] <- map_df(top_izvoznici_po_godinama[, c(1,2,4,5)] , 
+                                                  function(x) round(x, digits = 2))
+kable(top_izvoznici_po_godinama, caption = "Tablica 3: Top izvoznici po godinama")
+```
+
+U tablici 4 su prikazani najveći uvoznici u RH. Tablica pokazuje da je koncentracija uvoznika još veća od koncentracije izvoznika . Primjerice, tri najveća uvoznika u 2017. Godini (Ina d.d., Pliva d.d. i HEP d.o.o.) čine oko 14% ukupnog uvoza u RH. Dvadeset najvećih uvoznika čini 24.25% ukupnog uvoza. 
+
+```{r echo = FALSE, message=FALSE}
+trgovina_sql <- gfi %>% mutate(NetoIzvoz = b335 - b370)
+top_izvoznici_po_godinama <- top_var(trgovina_sql, "b370")
+top_izvoznici_po_godinama$naziv <- as.character(top_izvoznici_po_godinama$naziv)
+top_izvoznici_po_godinama <- top_izvoznici_po_godinama[, -1]
+colnames(top_izvoznici_po_godinama) <- c("Godina", "Izvoz", "Uvoz", "Neto izvoz", "Udio izvoza", "Naziv")
+top_izvoznici_po_godinama[, c(1,2,4,5)] <- map_df(top_izvoznici_po_godinama[, c(1,2,4,5)] , 
+                                                  function(x) round(x, digits = 2))
+kable(top_izvoznici_po_godinama, caption = "Tablica 4: Top uvoznici po godinama")
+```
+
+Kao sljedeću mjeru koncentracije koristim udio 1%, 5% i 10% najvećih izvoznika u ukupnom izvozu. Brojke su sljedeće:
+
+* 1% najvećih izvoznika čini 87.8% ukupnog izvoza.
+* 5% najvećih izvoznika čini 97.9% ukupnog izvoza
+* 10% najvećih izvoznika čini 99.5% ukupnog izvoza.
+
+Rezultati pokazuju da izvoznu aktivnost karakterizira visok stupanj koncentracije  među domaćim firmama. Ako bi se promatrao samo prerađivački sektor,  brojke su slične: 81.1%, 96.6% i 99.0%. Valja podsjetiti da promatramo samo 1% najvećih izvoznika. Zanimljivo je da u  cijeloj populaciji  hrvatskih poduzeća,manje od 1% poduzeća čini kompletni hrvatski izvoz/uvoz.
+
+Na kraju se može zaključiti da mikroekonomski aspekti međunarodne trgovine u uzorku hrvatskih firmi odgovaraju predviđanjima empirijske literature iz područja međunarodne trgovine: izvozna i uvozna aktivnost su snažno koncentrirane. Naime, tek mali broj domaćih poduzeća je uključen u međunarodnu razmjenu, a agregatna razina razmjene je pod snažnim utjecajem nekoliko velikih poduzeća. 
+
+
+

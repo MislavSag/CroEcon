@@ -1,0 +1,634 @@
+---
+title: Pogled na hrvatsku tehnološku granicu
+author: Luka Šikić
+date: '2019-03-06'
+slug: pogled-na-hrvatsku-tehnolo-ku-granicu
+categories:
+  - Ekonomika
+  - Firme
+tags:
+  - produktivnost
+  - Dodana nova vrijednost
+  - Konvergencija
+  - sektori
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r setup, warning = FALSE, include = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(eurostat)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(grid)
+library(ggthemes)
+library(extrafont)
+library(purrr)
+library(gridExtra)
+library(tidyr)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(gridExtra)
+library(scales)
+library(ggpubr)
+library(prodest)
+
+```
+
+```{r paketi, message = FALSE , include = FALSE}
+
+
+db <- dbConnect(MySQL(), dbname = "odvjet12_gfi", host =  "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b372 AS Zaposleni,
+                     b010/1000000000 AS matimov, 
+                     b063/1000000000 AS kapital_rezerve,
+                     b064/1000000000 AS osnovni_kapital,
+                     b003/1000000000 AS nematimov,
+                     b110/1000000000 AS prihod,
+                     b120/1000000000 AS placa_net,
+                     b119/1000000000 AS placa_brutto,
+                     b123/1000000000 AS amortizacija,
+                     b136/1000000000 AS financijski_trosak,
+                     b159/1000000000 AS porez_dobit,
+                     b151/1000000000 AS nett,
+                     b115/1000000000 AS materijalni_trosak,
+                     b084/1000000000 AS d_obveze,
+                     b094/1000000000 AS k_obveze,
+                     b335/1000000000 AS Export,
+                     b370/1000000000 AS Import,
+                     b337/1000000000 AS energy,
+                     reportyear, subjectid, employeecounteop, foreigncontrol,
+             nacerev21, nacerev22, nacerev23, nacerev24
+             FROM gfi_all 
+             WHERE reportyear >= 2000;")  
+
+data <- dbGetQuery(db, q)
+dbDisconnect(db)
+
+
+```
+
+```{r spajanje na bazu, message = FALSE, include = FALSE, eval = FALSE}
+
+
+# brzi pregled dodane vrijednosti // preskoči
+
+data %>%
+  group_by( reportyear, subjectid) %>%
+  summarise (rad = sum( placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija, na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak, na.rm = TRUE),
+             tax_nett = sum(porez_dobit, na.rm = TRUE),
+             nett = sum(nett, na.rm = TRUE),
+             kapital_k = sum(kapital_rezerve, na.rm = TRUE),
+             energy = sum(energy, na.rm = TRUE)) %>%
+  mutate(dv = rad + amortizacija + fin_rashod + tax_nett + nett) %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear)) %>%
+  select(dv, reportyear, subjectid, kapital, rad, energy ) -> tfpd
+
+
+str(tfpd)
+
+summary(tfpd)
+
+tfpd %>%
+  group_by(reportyear) %>%
+  summarise(dv = sum(dv, na.rm = TRUE),
+            kapital = sum(kapital, na.rm = TRUE),
+            rad = sum(rad, na.rm = TRUE),
+            energy = sum(energy, na.rm = TRUE)) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  ggplot(., aes(reportyear)) + 
+  geom_line(aes(y =  dv, colour = "dv")) +
+  geom_line(aes(y = kapital, colour = "kapital"))+
+  geom_line(aes(y = rad, colour = "rad")) +
+  geom_line(aes(y = energy, colour = "energy"))
+
+```
+
+``` {r est_firme, message = FALSE , include = FALSE }
+
+
+
+#procjena TFP // firme
+
+mtp <- function(x) x * 1000000000
+
+
+# broj zaposlenih kao rad
+
+data %>%
+  filter(nacerev21 %in% c("C", "G", "D", "M", "J", "H", "I", "F", "K") ) %>%
+  group_by( reportyear, subjectid) %>%
+  summarise (rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE),
+             nacerev21 = toString(nacerev21)) %>%
+  mutate_at(vars(mim, nim, placa, amortizacija, fin_rashod, tax_nett, nett, kapital, energy), funs(mtp)) %>%
+  mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+         kapital_ = mim + nim) %>%
+         #inv = ((mim + amortizacija) - dplyr::lag(mim)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0)  %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear),
+         subjectid = as.numeric(as.character(subjectid))) %>%
+  select(dv, kapital, rad, energy, subjectid, nacerev21, reportyear) %>%
+  rename(Y = dv  , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = subjectid,
+         timevar = reportyear) -> tfp_zaposleni 
+
+# tfp_zaposleni <- tfp_zaposleni[is.finite(rowSums(tfp_zaposleni)),]
+
+
+
+
+```
+
+```{r spec1, message = FALSE , include = FALSE, eval = FALSE}
+
+
+rad kao broj zaposlenih
+
+
+
+LP <- prodestLP(tfp_zaposleni$Y,
+                    tfp_zaposleni$fX, 
+                    tfp_zaposleni$sX,
+                    tfp_zaposleni$pX, 
+                    tfp_zaposleni$idvar, 
+                    tfp_zaposleni$timevar)
+
+
+LP.solnp <- prodestLP(tfp_zaposleni$Y,
+                    tfp_zaposleni$fX, 
+                    tfp_zaposleni$sX,
+                    tfp_zaposleni$pX, 
+                    tfp_zaposleni$idvar, 
+                    tfp_zaposleni$timevar,
+                    opt ='solnp')
+
+OP <- prodestOP(tfp_zaposleni$Y,
+                    tfp_zaposleni$fX, 
+                    tfp_zaposleni$sX,
+                    tfp_zaposleni$pX, 
+                    tfp_zaposleni$idvar, 
+                    tfp_zaposleni$timevar)
+
+OP.solnp <- prodestOP(tfp_zaposleni$Y,
+                    tfp_zaposleni$fX, 
+                    tfp_zaposleni$sX,
+                    tfp_zaposleni$pX, 
+                    tfp_zaposleni$idvar, 
+                    tfp_zaposleni$timevar, 
+                    opt='solnp')
+
+OP.fit.control <- prodestOP(tfp_zaposleni$Y,
+                    tfp_zaposleni$fX, 
+                    tfp_zaposleni$sX,
+                    tfp_zaposleni$pX, 
+                    tfp_zaposleni$idvar, 
+                    tfp_zaposleni$timevar,
+                    cX = tfp_zaposleni$cX)
+
+
+ROB <- prodestROB(tfp_zaposleni$Y, 
+                     tfp_zaposleni$fX,
+                     tfp_zaposleni$sX, 
+                     tfp_zaposleni$pX,
+                     tfp_zaposleni$idvar,
+                     tfp_zaposleni$timevar)
+```
+
+```{r spec2, message  = FALSE , include = FALSE}
+
+
+WRDG <- prodestWRDG(tfp_zaposleni$Y, 
+                               tfp_zaposleni$fX,
+                               tfp_zaposleni$sX, 
+                               tfp_zaposleni$pX,
+                               tfp_zaposleni$idvar,
+                               tfp_zaposleni$timevar)
+
+#WRDG.GMM <- prodestWRDG_GMM(tfp_zaposleni$Y, 
+#                    tfp_zaposleni$fX,
+#                    tfp_zaposleni$sX, 
+#                    tfp_zaposleni$pX,
+#                    tfp_zaposleni$idvar,
+#                    tfp_zaposleni$timevar)
+  
+
+
+
+#summary(LP)
+#summary(LP.solnp)
+#summary(OP)
+#summary(OP.solnp)
+#summary(ROB)
+summary(WRDG)
+#summary(WRDG.GMM)
+
+
+#omega(LP) -> tfp.lp
+#omega(LP.solnp) -> tfp.lsolnp
+#omega(OP) -> tfp.op
+#omega(OP.solnp) -> tfp.osolnp
+#omega(ROB) -> tfp.rob
+omega(WRDG) -> tfp.wrdg
+#omega(WRDG.GMM) -> tfp.wrdg.gmm
+
+ 
+ dset_zaposleni <- tfp_zaposleni 
+  
+ #dset_zaposleni[,"tfp_rob"] <- tfp.rob
+ dset_zaposleni[,"tfp_wrdg"] <- tfp.wrdg
+ 
+# dset_zaposleni[,c("tfp.lp",
+#                   "tfp.lsolnp",
+#                   "tfp.op", 
+#                   "tfp.osolnp",
+#                   "tfp.rob",
+#                   "tfp.wrdg" )] <- c(tfp.lp,
+#                                      tfp.lsolnp,
+#                                      tfp.op,
+#                                      tfp.osolnp,
+#                                      tfp.rob,
+#                                      tfp.wrdg)
+ 
+ 
+#rubustness check: agregacija
+ 
+# dset_zaposleni %>%
+#   filter(nacerev21 %in% c( "C")) %>%
+#   group_by(timevar) %>%
+#   summarise (tfpw = sum(tfp_wrdg, na.rm = TRUE)) %>%
+#   mutate(tfpw = as.numeric(tfpw, na.rm = TRUE),
+#          tfp_ind = 100 * tfpw / tfpw[1]) %>%
+#   ggplot(.,aes(timevar, tfp_ind)) + geom_line() 
+      
+ 
+# 95%
+ 
+ dset_zaposleni %>%
+   filter(tfp_wrdg < quantile(tfp_wrdg, 0.95)) %>% 
+   mutate( tfp = as.numeric(tfp_wrdg)) %>%
+   group_by(timevar) %>%
+   summarise(tfp = sum(tfp, na.rm = TRUE)) %>%
+   mutate(tfp_ind = 100*tfp/tfp[1],
+          tfp_gr = c(0, diff(tfp))) -> t95 
+ t95%>%
+   ggplot(.,aes(timevar, tfp_ind)) + geom_line()
+
+
+ 
+#tehnološka granica firmi 5% najproduktivnijih 
+ 
+ dset_zaposleni %>%
+   filter(tfp_wrdg > quantile(tfp_wrdg, 0.95)) %>% 
+   mutate( tfp = as.numeric(tfp_wrdg)) %>%
+   group_by(timevar) %>%
+   summarise(tfp = sum(tfp, na.rm = TRUE)) %>%
+   mutate(tfp_ind = 100*tfp/tfp[1],
+          tfp_gr = c(0, diff(tfp))) -> t5
+ t5%>%
+   ggplot(.,aes(timevar, tfp_ind)) + geom_line()
+ 
+```
+
+Tehnologiju nije jednostavno definirati, a još ju je teže kvantificirati. Ekonomisti najčešće koriste produktivnost faktora proizvodnje ( [TFP](http://www.people.hbs.edu/dcomin/def.pdf) ) kao *proxy* za tehnologiju. TFP kao mjera tehnologije krije niz [konceptualnih](http://www.csls.ca/ipm/1/lipsey-e.pdf) i [praktičnih](http://www.csls.ca/ipm/1/diewert-un-en.pdf) poteškoća, ali je i nadalje dobro rješenje za analizu tehnološkoga napretka.Zbog toga sam odlučio procijeniti proizvodnu funkciju domaćih tvrtki i na temelju toga promotriti tehnološke trendove u gospodarstvu.Procjena TFP-a svojevrsni je analitički poduhvat i uglavnom se odnosi na [pravilnu specifikaciju](https://cran.r-project.org/web/packages/prodest/prodest.pdf) proizvodne funkcije. Rezultati koje sam dobio nepromjenjivi su u nekoliko različitih specifikacija, ali i u usporedbi s domaćim kolektivnim znanjem o toj temi. 
+
+U Hrvatskoj postoji nekoliko analitičkih studija produktivnosti koje su provedene za razne agregacije (za cjelokupno gospodarstvo ili sektore) pri čemu su korišteni različiti podatci za neujednačena razdoblja, a i produktivnost je izračunata na različite načine. [Nedavna analiza](http://www.pse-journal.hr/en/archive/public-investment-and-corporate-productivity-in-croatia_2743/full-article/) koja prikazuje promjenu produktivnosti u tvrtkama u zadnjih desetak godina, pokazala je da javne investicije povećavaju produktivnost tvrtki u Hrvatskoj. Tu sam analizu koristio kao benchmark za usporedbu rezultata svoje procjene. [Na EIZu su analizirali](https://pdfs.semanticscholar.org/7fa4/c4372bc23ff5e0e023604914ad0880b17c89.pdf?_ga=2.196484972.1792293651.1551460258-1464141081.1551460258)produktivnost u javnim i privatnim tvrtkama pri čemu se pokazalo da produktivnost u javnim tvrtkama raste brže nego privatnim.  U radu je prikazano kretanje produktivnosti u najvećim sektorima pa sam i to također koristio za usporedbu.  [EFZG](https://hrcak.srce.hr/149639) je produktivnost u sektorima analizirao i agregatno, ali promatrani period te analize bio mi je prekratak za benchmarking. Ipak, vrlo je jasno opisana metodologija izračuna produktivnosti kao i način agregacije.  [HNB](https://www.hnb.hr/documents/20182/2004569/p-039.pdf/6324ab5c-630c-4859-8c63-7fdc21389bed) koristi in-house (nedostupne!?) podatke za analizu produktivnosti u vrijeme krize. Njihovi rezultati pokazuju pad produktivnosti u recesiji, ali i veći pad produktivnosti niskoproduktivnih tvrtki. Tehnološki naprednije tvrtke očito se bolje nose s krizom.  Treba također reći da je produktivnost analizirana i na razini ukupnoga gospodarstva, a [rezultati](https://hrcak.srce.hr/171136) pokazuju pozitivan utjecaj tranzicijskog procesa na rast produktivnosti te pokazuju da se doprinos produktivnosti ukupnom rastu nije promijenio s obzirom na druge proizvodne faktore.
+
+Procjena produktivnosti, prije svega, zahtijeva neku mjeru proizvodnje pa sam prvo izračunao  [novo-dodanu vrijednost](http://croecon.contentio.biz/post/dodana-nova-vrijednost-hrvatskih-poslovnih-subjekata/). Potom je bilo potrebno procijeniti veličinu udjela s kojima, u stvaranju novododane vrijednosti, participiraju rad i kapital. Kao mjeru rada sam koristio broj zaposlenih. Alternativne se veličine odnose na ukupne plaće ili plaću po zaposlenom – ali one se nisu pokazale robusnima. Za kapital sam koristio bilančni kapital i rezerve jer su alternative poput materijalne i/ili nematerijalne imovine davale manje pouzdanu procjenu. Varijable koje sam testirao dio su skupine varijabli [dobrih europskih praksa](https://www.ecb.europa.eu/home/pdf/research/compnet/CompNet_ECB_WS2_Angeloni-Benatti.pdf?fcbfe722c459aa408dbdd244dc28b1ae) formiranih na uzorku od oko 20 EU zemalja. Nakon sređivanja varijabli bilo je potrebno procijeniti definirane parametre. To je moguće provesti mnoštvom raznih  [metoda](https://pdfs.semanticscholar.org/8b92/362ad98652a1c9f6a5fb84f28542a80002d5.pdf), a *R* pdržava procjenu većine metoda kroz tri paketa: 
+
+*Paket [productivity](https://cran.r-project.org/web/packages/productivity/productivity.pdf) omogućava procjenu produktivnosti svim pristupima za izračun standardnih TFP indeksa, ali zahtijeva detaljne podatke o cijenama i količinama na razini tvrtke.
+
+*Slično je omogućeno i u paketu [micEcon](https://cran.r-project.org/web/packages/micEcon/micEcon.pdf) za mikroekonometriju koji omogućava detaljnu specifikaciju parametara proizvodne funkcije i izračun produktivnosti, no također zahtijeva nedostupne varijable.
+
+*Paket [prodest](https://cran.r-project.org/web/packages/prodest/prodest.pdf) za statističku procjenu proizvodne funkcije omogućuje nekoliko metoda od kojih sam koristio [Wooldridge](https://ac.els-cdn.com/S0165176509001487/1-s2.0-S0165176509001487-main.pdf?_tid=8bfc4156-977a-4d82-8dc2-c46f21f14b8b&acdnat=1551532590_88a3e2c08a6f30937275697e838ecd03) procijenitelj. Rezultati su isti kada se koristi Robinson-Wooldridge procedura, no [Olley-Peaks](http://dimetic.dime-eu.org/dimetic_files/Olley_Pakes_1996.pdf) i [Levinsohn-Petrin](https://www.nber.org/papers/w7819.pdf) procedure daju nešto drugačije rezultate i puno su osjetljivije na specifikaciju.
+
+```{r firme_gg, message = FALSE, echo = FALSE} 
+## GRAF ##
+ 
+
+t5 %>%
+  rename(tfp_ind_t5 = tfp_ind,
+         tfp_gr_t5 = tfp_gr) %>%
+  left_join(., t95, by = "timevar") %>%
+  ggplot(., aes(timevar)) +
+  geom_line(aes(y = tfp_ind_t5, linetype = "Tehnoloska_granica"), size = 1.2) +
+  geom_line(aes(y = tfp_ind , linetype ="Ostale_tvrtke" ),  size = 1) + 
+  theme_bw() +
+  scale_linetype_manual(values = c(Tehnoloska_granica = "solid",
+                                   Ostale_tvrtke = "dotted"),
+                        labels = c("95% tvrtki",
+                                   "Tehnološka granica : 5%")) + 
+  theme(legend.title = element_blank(),
+        legend.position = c(0.8, 0.9),
+        legend.background = element_rect(fill = alpha("white", 0.1))) +
+  labs(title = "Grafikon 1:\nTEHNOLOŠKA GRANICA HRVATSKIH TVRTKI",
+       y = "TFP Index: 2002 = 100",
+       x = "Godina") +
+  scale_x_continuous(breaks = c(2002, 2004, 2006 , 2008, 2010, 2012, 2014, 2016),
+                     labels =  c("2002", "2004", "2006" , "2008", "2010", "2012", "2014", "2016")) 
+       
+
+
+
+  
+  
+```
+
+```{r est_sektori, message = FALSE, include = FALSE}
+#procjena TFP za 10 najvećih sektora
+
+data %>%
+  filter(nacerev21 %in% c("C", "G", "D", "M", "J", "H", "I", "F", "K") ) %>%
+  group_by(reportyear) %>%
+  mutate (ponder = prihod / sum(prihod, na.rm = TRUE)) %>%
+  ungroup() %>%
+  group_by( reportyear, nacerev21) %>%
+  summarise (rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE),
+              ponder = sum(ponder, na.rm = TRUE)) %>%
+  mutate_at(vars(mim, nim, placa, amortizacija, fin_rashod, tax_nett, nett, kapital, energy), funs(mtp)) %>%
+  mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+         kapital_ = mim + nim) %>%
+         #inv = ((mim + amortizacija) - dplyr::lag(mim)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0   ) %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear),
+         nacerev21 = recode(nacerev21,
+                            C = 1,
+                            G = 2,
+                            D = 3,
+                            M = 4,
+                            J = 5,
+                            H = 6,
+                            I = 7,
+                            F = 8,
+                            K = 9),
+         nacerev21 = as.numeric(nacerev21)) %>%
+  select(dv, kapital, rad, energy, nacerev21, reportyear, ponder) %>%
+  rename(Y = dv , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = nacerev21,
+         timevar = reportyear) -> tfp_sektori
+
+```
+         
+``` {r spec3, message = FALSE, include = FALSE }
+
+
+LP <- prodestLP(tfp_sektori$Y,
+                    tfp_sektori$fX, 
+                    tfp_sektori$sX,
+                    tfp_sektori$pX, 
+                    tfp_sektori$idvar, 
+                    tfp_sektori$timevar)
+
+
+LP.solnp <- prodestLP(tfp_sektori$Y,
+                    tfp_sektori$fX, 
+                    tfp_sektori$sX,
+                    tfp_sektori$pX, 
+                    tfp_sektori$idvar, 
+                    tfp_sektori$timevar,
+                    opt ='solnp')
+
+OP <- prodestOP(tfp_sektori$Y,
+                    tfp_sektori$fX, 
+                    tfp_sektori$sX,
+                    tfp_sektori$pX, 
+                    tfp_sektori$idvar, 
+                    tfp_sektori$timevar)
+
+OP.solnp <- prodestOP(tfp_sektori$Y,
+                    tfp_sektori$fX, 
+                    tfp_sektori$sX,
+                    tfp_sektori$pX, 
+                    tfp_sektori$idvar, 
+                    tfp_sektori$timevar, 
+                    opt='solnp')
+
+OP.fit.control <- prodestOP(tfp_sektori$Y,
+                    tfp_sektori$fX, 
+                    tfp_sektori$sX,
+                    tfp_sektori$pX, 
+                    tfp_sektori$idvar, 
+                    tfp_sektori$timevar,
+                    cX = tfp_sektori$cX)
+
+
+ROB <- prodestROB(tfp_sektori$Y, 
+                     tfp_sektori$fX,
+                     tfp_sektori$sX, 
+                     tfp_sektori$pX,
+                     tfp_sektori$idvar,
+                     tfp_sektori$timevar)
+
+
+
+WRDG <- prodestWRDG(tfp_sektori$Y, 
+                               tfp_sektori$fX,
+                               tfp_sektori$sX, 
+                               tfp_sektori$pX,
+                               tfp_sektori$idvar,
+                               tfp_sektori$timevar)
+
+#WRDG.GMM <- prodestWRDG_GMM(tfp_sektori$Y, 
+#                     tfp_sektori$fX,
+#                     tfp_sektori$sX, 
+#                     tfp_sektori$pX,
+#                     tfp_sektori$idvar,
+#                     tfp_sektori$timevar)
+
+
+#summary(LP)
+#summary(LP.solnp)
+#summary(OP)
+#summary(OP.solnp)
+#summary(ROB)
+summary(WRDG)
+#summary(WRDG.GMM)
+
+
+#omega(LP) -> tfp.lp
+#omega(LP.solnp) -> tfp.lsolnp
+#omega(OP) -> tfp.op
+#omega(OP.solnp) -> tfp.osolnp
+omega(ROB) -> tfp.rob
+omega(WRDG) -> tfp.wrdg
+#omega(WRDG.GMM) -> tfp.wrdg.gmm
+
+ 
+ dset_sektori <- tfp_sektori 
+ 
+ 
+# dset_sektori[,"tfp_lp"] <- tfp.lp
+# dset_sektori[,"tfp_op"] <- tfp.op
+ dset_sektori[,"tfp_rob"] <- tfp.rob
+ dset_sektori[,"tfp_wrdg"] <- tfp.wrdg
+
+ dset_sektori %>%
+   mutate_at(vars(tfp_rob, tfp_wrdg), funs(as.numeric)) -> dset_sektori
+#  dset_sektori[,c(#"tfp.lp",
+                   #"tfp.lsolnp",
+                   #"tfp.op", 
+                  # "tfp.osolnp",
+ #                  "tfp.rob",
+ #                  "tfp.wrdg" )] <- c(#tfp.lp,
+                                      #tfp.lsolnp,
+                                      #tfp.op,
+                                      #tfp.osolnp,
+#                                     tfp.rob,
+#                                     tfp.wrdg)
+
+
+#stope rasta TFP po sektorima 
+ 
+sektori <- c(               "1" = "Prerađivačka industrija",
+                            "2" = "Trgovina",
+                            "3" = "Opskrba energijom",
+                            "4" = "Visoko-tehnološke djelatnosti",
+                            "5" = "Informacije i komunikacije",
+                            "6" = "Prijevoz i skladištenje",
+                            "7" = "Turizam",
+                            "8" = "Građevinarstvo",
+                            "9" = "Financije i osiguranje")
+
+
+break.vec <- c(as.Date("2002-01-01"),
+               seq(from = as.Date("2004-01-01"), to = as.Date("2014-01-01"),
+                 by = "2 year"),
+               as.Date("2016-01-03"))
+
+```
+
+Grafikon 1 prikazuje kretanje produktivnosti 5 % tehnološki najnaprednijijh hrvatskih tvrtki i ostalih 95 % tvrtki. Uzorak se odnosi na 10 najvećih sektora, a rezultati su isti i kad se uključe svi sektori. Vidljiv je rast tehnološke granice u razdoblju do krize i brži rast produktivnih tvrtki od ostatka tvrtki. Nakon krize dolazi do pada i stagnacije tehnološke granice kao i do pada i stagnacije rasta ostatka tvrtki prema tehnološkoj granici. U 2015. godini ponovno počinje rasti tehnološka granica pa prestaje tehnološka konvergencija među tvrkama. Čini se da je kriza smanjila razlike u distribuciji tehnologije unutar gospodarstva. Ovi rezultati ponešto se razlikuju od analize HNB-a koja zaključuje da su najproduktivnije tvrtke, u smislu gubitka produktivnosti, prošle bolje u krizi. Valja reći i to da HNB ipak blaže definira tehnološku granicu (10 % najproduktivnijih). Stagnacija ukupne tehnološke granice u relativno dugom periodu od 2011. od 2015. godine u svakom slučaju predstavlja značajan gubitak. 
+
+Da [Agregacija TFP](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1004429) nije bezazlena stvar(!?) govori činjenica da lako može dovesti do problema s interpretacijom rezultata. Produktivnost sektora je u zapravo zbroj produktivnosti svih pripadajućih tvrtki pri čemu je uzeta u obzir veličina svake tvrtke. Ipak,  u praksi nije jasno što je najbolje korisiti kao proxy za veličinu, a različite mjere se nisu pokazale robusne u mojim  procjenama. Predlaže se udio u prihodu, no udio u dodanoj vrijednosti, zaposlenosti i izvozu znatno mijenjaju rezulat agregacije, a nisu nista manje legitiman izbor. Zbog toga sam preliminarno procijenio produktivnost na sektorskoj razini i izbjegao agregacijske nevolje. 
+
+```{r sektori_gg, message = FALSE, echo = FALSE }
+
+#kretanje indeksa TFP po sektorima t1 = 2002
+
+ 
+ dset_sektori %>%
+   group_by(idvar, timevar) %>%
+   summarise(tfp = sum(tfp_rob, na.rm = TRUE),
+             tfp_p = ponder * tfp) %>%
+   mutate(tfp_gr = c(0, diff(tfp)),
+          tfp_ind = 100*tfp/tfp[1]) %>% 
+   mutate(timevar = seq(from = as.Date("2002-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year"))  %>%
+   ggplot(., aes(timevar, tfp_ind)) +
+   geom_line() +
+   facet_wrap(~idvar, labeller = as_labeller(sektori)) +
+   theme_bw() +
+   theme(strip.background = element_rect(fill = "white"),
+         axis.text.x = element_text(size = 10, angle = 45, colour = "black",
+                                   vjust = 1, hjust = 1)) +
+   labs(title = " Grafikon 2:\nKRETANJE PRODUKTIVNOSTI PO SEKTORIMA",
+       y = "TFP Index: 2002 = 100",
+       x = "Godina") +
+   scale_x_date(breaks = break.vec,
+                labels = date_format("%Y"))
+
+```
+   
+Tehnološki najdinamičniji sektori nakon krize su *oprskrba energijom* i *turizam* (grafikon 2). *Građevinarstvo* je dosta volatilno ali također ima visoke stope rasta u razdoblju nakon krize i potencijalno je u skupini brzorastućih u ovom poslovnom ciklusu. Zanimljiva je situacija i u *IT sektoru * koji ima relativno niske stope rasta produktivnosti iako je *digitalna ekonomija* trenutačno na globalnoj tehnološkoj granici. Niska produktivnost u ITu može biti pod unutrasektorskim utjecajem *telekomunikacija* ili je riječ o nekakvoj vrsti [sektorskog paradoksa produktivnosti](http://www.csls.ca/ipm/31/vanark.pdf). 
+ 
+```{r sektori_gg2, message = FALSE, echo = FALSE }
+
+dset_sektori %>%
+  group_by(idvar, timevar) %>%
+  summarise(tfp = sum(tfp_rob, na.rm = TRUE)) %>%
+  mutate(tfp_gr = c(0, diff(tfp)),
+          tfp_ind = 100*tfp/tfp[1]) %>%
+  summarise(gr = ((tfp[15] - tfp[1])/15)*100) %>%
+  spread(., idvar, gr ) %>%
+  plyr::rename(., sektori) %>%
+  gather(varijable, gr ) %>%
+  mutate(gr = gr/100) %>%
+  ggplot(.,aes(reorder(varijable,-gr),gr, fill = ifelse(gr > 0, "a", "b"))) +
+    geom_bar(stat = "identity") + 
+    theme_bw() +
+    theme(axis.text.x = element_text(size = 8, angle = 40, colour = "black",
+                                   vjust = 1, hjust = 1),
+          legend.position = "none") +
+     scale_fill_manual(values = c("gray", "black")) +
+     labs(title = "Grafikon 3:\nPROMJENA PRODUKTIVNOSTI PO SEKTORIMA: 2002-2016") +
+     xlab("") +
+     ylab("Promjena TFP") +
+  scale_y_continuous(labels = scales::percent) 
+
+
+```  
+
+Na grafikonu 3 vidljivo je da su financije najlošije prošle u promatranom razdoblju, no taj je rezultat možda pod utjecajem volatilnosti procjenjenje produktivnosti u tom sektoru ali i potrebom da se produktivnost financijskog sektora računa na [specifičan način](https://www.bis.org/review/r081114a.pdf) koji bi uključio izvještaje za banke i osiguravajuća društva. Radi preciznijega uvida prikazane su i stope promjene produktivnosti na grafikonu 4.  
+
+```{r sektori_gg3, message = FALSE, echo = FALSE }  
+
+dset_sektori %>%
+   group_by(idvar, timevar) %>%
+   summarise(tfp = sum(tfp_rob, na.rm = TRUE),
+             tfp_p = ponder * tfp) %>%
+   mutate(tfp_gr = c(0, diff(tfp)),
+          tfp_ind = 100*tfp/tfp[1]) %>% 
+   mutate(timevar = seq(from = as.Date("2002-01-01"),
+                        to = as.Date("2016-01-01"),
+                        by = "year")) %>%  
+   ggplot(., aes(timevar, tfp_gr)) + 
+   geom_line() +
+   facet_wrap(~idvar, labeller = as_labeller(sektori))+
+   theme_bw() +
+   theme(strip.background = element_rect(fill = "white"),
+         axis.text.x = element_text(size = 10, angle = 45, colour = "black",
+                                   vjust = 1, hjust = 1)) +
+   labs(title = "Grafikon 4:\nPROMJENA PRODUKTIVNOSTI PO SEKTORIMA",
+       y = "TFP promjena",
+       x = "Godina") + 
+   scale_x_date(breaks = break.vec,
+                labels = date_format("%Y"))
+
+```
+  
+Zaključno bi se moglo reći da u analizi tehnologije postoji dosta metodološkoga ali i mitološkoga. Na kvantifikaciji produktivnosti susreću se poznato i nepoznato, teorija i metode procjene s jedne strane kao i teškoća da se kvalitetno definira tehnologija, s druge strane. Najviše nepoznatoga vidim u gubitku robusnosti kod agregacije i u pravilnoj specifikaciji ulaznih varijabli, a metodologija procjene manja je mitologija.
+  
+  

@@ -1,0 +1,123 @@
+---
+title: Analiza investicija u RH u posljednjih 15 godina
+author: Mislav Sagovac
+date: '2019-10-24'
+slug: analiza-investicija-u-rh-u-posljednjih-15-godina
+categories:
+  - Ekonomika
+tags:
+  - investicije
+  - GDP
+  - nefinancijska poduzeća
+  - sektori
+type: ''
+subtitle: ''
+image: '/img/post_inv.jpg'
+bigimg: 
+  - {src: "/img/post_inv.jpg", desc: "Analiza kandidata"}
+---
+```{r echo=FALSE,warning=FALSE,message=FALSE,results='hide'}
+
+library(ggplot2)
+library(tidyverse)
+library(kableExtra)
+library(gridExtra)
+
+knitr::opts_chunk$set(echo = FALSE, fig.width=7, fig.height=5, fig.align = "center")
+
+scale_x_reordered <- function(..., sep = "___") {
+  reg <- paste0(sep, ".+$")
+  ggplot2::scale_x_discrete(labels = function(x) gsub(reg, "", x), ...)
+}
+
+reorder_within <- function(x, by, within, fun = mean, sep = "___", ...) {
+  new_x <- paste(x, within, sep = sep)
+  stats::reorder(new_x, by, FUN = fun)
+}
+  
+gt <- readRDS("C:\\Users\\Mislav\\academics_opatija\\opatija_za_rmd.rds")
+gfi <- readRDS("C:\\Users\\Mislav\\academics_opatija\\opatija_gfi.rds")
+```
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results='hide'}
+broj_subjekata <- length(unique(gfi$subjecttaxnoid))
+gfi %>% 
+  dplyr::filter(subjecttaxnoid == "57500462912" & reportyear == 2016) %>% 
+  dplyr::select(b369)
+```
+
+Prošli tjedan sam u koautorstvu s prof. Ticom, za skup koje organizira Hrvatsko društvo ekonomista, napisao tekst o dinamici i strukturi investicija nefinancijskih poduzeća u RH. U ovom postu ću iznijeti neke zanimljive nalaze iz te analize. Analiza koristi podatke različite razine agregacije pa su osim uobičajenih makro podataka (Eurostat, HNB, DZS) u radu korišteni i mikro podaci iz GFI-ova što omogućuje dublji uvid o naravi investicija u dugom razdoblju (uzorak uključuje panel podatke za razdoblje od 2000. do 2017 godine; ukupno 206.148 poduzeća i 1.631.359 opservacija). O investicijama se mnogo govori u javnom prostoru, ali dublja analiza u pravilu nedostaje. U postu ću pokazati da je procikličnost investicija ključna determinanta poslovnih ciklusa u RH. Najveći dio investicija bio je usmjeren u građevinske objekte, posebno (auto)ceste, te građevinski i prerađivački sektor. Nadalje, pokazat ću da investicije karakterizira visoki stupanje koncentracije, a jedan od važnih uzroka pada investicija nakon financijske krize čine financijske frikcije.
+
+Pogledajmo prvo dinamiku bruto investicija prema podacima DZS-a, koji obuhvaćaju "investicije u novu dugotrajnu imovinu, troškove transakcija rabljene dugotrajne imovine te nabave nematerijalne dugotrajne imovine" (DZS). Bruto investicije su komponenta agregatnih nacionalnih računa, a ujedno su i najvažniji ekonomski podatak koji objavljuje DZS pa ne čudi da se u javnosti jako često koristi. Dinamika bruto investicija i ostalih temeljnih komponenti nacionalnih računa prikazani su na donjoj slici.
+
+
+```{r warning=FALSE,message=FALSE}
+
+gt$struktura_bdp +
+  labs(subtitle = "Osobna potrošnja, državna potrošnja, investicije i neto izvoz  od 2000. do 2018.\nu postotku od agregiranog BDP-a; cjenovni indeks 2010 =100.")
+
+```
+
+Dok su osobna i državna potrošnja, kao omjer BDP-a, relativno stabilni u cijelom razdoblju, investicije pokazuju značajnu volatilnost. Od 2000. do 2008. godine su investicije rasle s 18% na čak 30% BDP-a, a u samo jednoj godini pale su na 24 % BDP-a. Pad je nastavljen i nakon Velike recesije, pa su se 2014. godine investicije vratile na razine BDP-a na kojima su bile 2000. godine. Nakon 2014. investicije se počinju oporavljati, ali su razine investicija još uvijek znatno niže od pretkriznih razina. Upravo tu se vidi visoka volatilnost domaćih investicija. Zanimljivo je da neto izvoz i ukupne investicije izgledaju kao zrcalne funkcije u odnosu prema horizontalnoj osi. To daje naslutiti da je rast domaćih investicija bio financiran priljevom inozemnog viška štednje. To također potvrđuju i podaci HNBa, prema kojima poduzeća tijekom cijeloga pretkriznog razdoblja imaju rast inozemnog zaduživanja u postotku od BDP-a (HNB, 2019). Dugovi nefinancijskog sektora rastu s 38 % BDP-a 2001. godine na 81,3 % BDP-a 2010. godine. Međutim nakon 2010. godine poduzeća se razdužuju na stranom i na domaćem tržištu. Grafikon jasno pokazuje da je za razumijevanje ekonomske (financijske) krize i dugoročne stagnacije u Hrvatskoj, presudno objasniti šokove investicija, odnosno poremećaje koji utječu na transformaciju domaće i strane štednje u budući kapital. Na grafikonu još valja primijetiti da državna i osobna potrošnja imaju stabilan udio u BDP-u.
+
+```{r}
+gt$graf_i_usporedba +
+  labs(subtitle = "Porast bruto kapitalne formacije za izabrane zemlje centralne i istočne Europe\nza razdoblje 1999-2009 i 2009-2018.")
+```
+
+Nakon pregleda agregatnih trendova na domaćem tržištu, dinamiku investicija valja staviti u međunarodni kontekst. Grafikon 2., prikazuje Hrvatsku u komparativnom kontekstu CEE zemalja. Hrvatska je imala najveći rast investicija u pretkriznom razdoblju (oko 75%), ali i najmanji rast investicija nakon Velike Recesije (0.3%). Na grafikonu se vidi preinvestiranost u prvom promatranom razdoblju i podinvestiranost u razdoblju nakon 2009. godine. Ostale zemlje pokazuju uravnoteženiji rast investicija kroz cijelo razdoblje. Primjerice Slovačka u prvom periodu ima rast investicije od 20%, a u drugom rast od 50%. Jasno je stoga da je dinamika investicija u RH znatno drugačije od ostalih CEE zemalja. Važno je i napomenuti da ne postoji jasna korelacija između rasta investicija u razdoblju prije krize (1999‒2009) i pada nakon. Primjerice, Hrvatska i Litva imale su vrlo sličan rast investicija prije krize (oko 74%), ali je rast investicija u Hrvatskoj bio znatno manji od 2009. do 2018. Heterogenosti između zemalja daju naslutiti da je dinamika investicija uvelike određena domaćim ekonomskim faktorima, a ne samo vanjskim šokovima.
+
+Nakon prikaza agregatnih podataka, prelazim na analizu investicija na osnovi mikro podataka. Prvi važan izbor kod analize investicija na mikro razini je način mjerenja (investicija). Iz godišnjih financijskih izvještaja mogu se izračunati najmanje tri mjere investicija:
+
+1. Investicije: razlika neto materijalne imovine u sadašnjem razdoblju uvećana za amortizaciju i neto vrijednosti materijalne imovine u prošlom razdoblju, $i_t=(MI_t+A_t)-MI_{(t-1)}$.
+2. Investicijski tok: uključuje materijalnu i financijsku imovinu, a računa se na temelju bilance razlika.
+3. Bruto kapitalna formacija: iskazuje se ukupan iznos vrijednosti nove dugotrajne imovine (osim zemljišta i šuma) nabavljene od proizvođača ili trgovaca, ukupan iznos vrijednosti izgrađene nove dugotrajne imovine i ukupan iznos vrijednosti nabave nove dugotrajne imovine financijskim leasingom u izvještajnoj godini.
+4. Neto investicije: izračunane su kao razlika sadašnje vrijednosti materijalne imovine, $MI_t-MI_{(t-1)}$.
+
+Dinamika sve tri mjere investicija se vidi na grafikonu 3.
+
+```{r}
+gt$investicije_plot +
+  labs(subtitle = "Investicije, bruto kapitalna formacija, investicijski tok i neto investicije nefinancijskih poduzeća\nod 2001. do 2017. u milijardama kuna")
+```
+
+
+Vidljiva su dva *outleira*. Prvi je u 2002. godini, kada je HEP d.d. imao pad investicija od 21,7 milijardi kuna, a Hrvatske šume od 17,4 milijarde kuna. Ovaj pad investicija nije bio rezultat stvarnog dezinvestiranja nego računovodstvenih preknjižavanja. Drugi je u 2016. godini, kada je HAC zabilježio rast u novu dugotrajnu imovinu u iznosu od 5.7 milijardi kuna. Slika pokazuje znatnu procikličnost investicija (usporediti sa slikom 1). Primjećuje se rast investicija u pretkriznom razdoblju i stalan pad investicijske aktivnosti nakon Velike recesije. Jedina je razlika u tome što neto investicije pokazuju pad vrijednosti već nakon 2006. godine, a ostale mjere investicija pokazuju preokret tek godinu dana kasnije. Promatrajući cijelo razdoblje, poslovni su subjekti najmanje investirali u 2014. godini.
+
+Investicije poslovnih subjekata moguće je strukturirati s obzirom na različite kriterije. Jedan od kriterija su oblik vlasništva (javno/privatno) i podrijetlo kapitala (domaće/strano). Grafikon 4 pokazuje dinamiku investicija s obzirom na oba kriterija. Privatni subjekti podijeljeni su na dvije skupine. U prvoj su skupini poduzeća s natpolovičnim stranim podrijetlom kapitala, a u drugoj poduzeća s natpolovičnim domaćim podrijetlom kapitala. Statistika o podrijetlu kapitala bilježi se tek od 2008. godine pa je i na slici prikazano razdoblje od 2008. do 2017. godine. Iako većinu investicija čine poduzeća s domaćim podrijetlom kapitala, postoji trend rasta udjela investicija poduzeća sa stranim podrijetlom kapitala. Točnije, udio investicija poduzeća sa stranim podrijetlom kapitala raste s 22% 2008. godine na 25% 2017. godine. kada se četvrtinu investicija rade poduzeća sa stranim porijeklom kapitala.
+
+```{r}
+
+gt$plot_jpds +
+  labs(subtitle = "Udio investicija poduzeća s inozemnim i domaćim podrijetlom kapitala te javnih i privatnih investicija\nu ukupnim investicijama od 2000. do 2017.")
+```
+
+U prijašnjem [postu](http://croecon.contentio.biz/post/visoka-koncetriranost-dobiti-dnv-a-i-investicija-u-rh/) sam pokazao da svi oblici zarade poduzeća i investicije pokazuju vrlo visoki stupanj koncentriranosti pa ovdje prigodničarski prikazujem najveće investitore u RH u posljednjih 15 godina:
+
+```{r}
+gt$inv_biggest_plot +
+  labs(subtitle = ": Najveći investitori u RH u razdoblju od 2001. do 2017.")
+```
+
+Zbrajajući investicije triju subjekata s najvećim iznosom investicija u promatranu razdoblju, vidi se da one čine 10.63% svih investicija u razdoblju 2001-2017. Investicije velikih poduzeća uvelike određuju agregatne investicije u Republici Hrvatskoj! Zanimljivo je primijetiti da se najveći udio ukupnih investicija na grafikonu odnosi na ulaganje u prometnu infrastrukturu (poduzeća Hrvatske autoceste d.o.o., Hrvatske ceste d.o.o. i Autocesta Zagreb ‒ Rijeka d.o.o.), otprilike 6.13% ukupnih investicija za razdoblje od 2000. do 2017. te da su najveći investitori tri velike tvrtke u državnom vlasništvu. Na proširenoj listi najvećih investitora, 10 od 20 su u većinskom su državnom vlasništvu. Pri tome su poduzeća koja su u promatranu razdoblju privatizirana (poput HT-a d.d.) evidentirana kao privatna.
+
+Investicije označavaju ulaganja u materijalnu imovinu društva, a materijalna imovina je u financijskim izvještajima raščlanjena na 9 stavki. Na sljedećem grafikonu stoga prikazujem strukturu investicija prema svim stavkama materijalne imovine te dodatno prema sektoru kojem investitori pripadaju. Iz slike je vidljivo da najveći udio materijalne imovine ima građevinski sektor. Iz prethodnog grafa se može zaključiti da se veliki dio građevinskih objekata odnosi na cestovnu i željezničku infrastrukturu. Ostatak otpada na stambene i nestambene nekretnine. 
+Prerađivačka industrija, iako znatno veća po udjelu prihoda i dobiti u agregatnim prihodima svih poslovnih subjekata, ima otprilike upola manji iznos materijalne imovine i očekivano, najveći udio postrojenja i oprema. Sektor trgovine i usluga smještaja ima veliki udio građevinskih objekata u ukupnoj strukturi imovine.
+
+```{r}
+gt$investicije_struktura_plot_nacerev +
+  labs(subtitle = "Struktura investicija u RH prema vrsti mat. imovine i djelatnosti u razdoblju od 2000. do 2014.")
+```
+
+U RH najviše ulaže građevinski sektor, a pri tome se najviše ulaže u građevinske objekte (ceste, željeznice, stambene i nestambene nekretnine). Također nije pretjerano pretpostaviti da su ulaganja u građevinske pridonijela rastu cijena nekretnina u pretkriznom razdoblju! Nekretnine olakšavaju financiranje (u odnosu prema npr. R&D investicijama) jer je riječ o opipljivoj imovini koja može poslužiti kao kolateral pri novom zaduživanju. Drugim riječima, pri ulaganju u nekretnine vrijednost je založenog (eng. *pledged*) dohotka veća nego u ostalim oblicima ulaganja. Ulaganje u građevinske objekte i financiranje investicija tako stvaraju povratnu petlju koja može pojačavati procikličnost investicijske i opće ekonomske aktivnosti.
+
+Oscilacije investicija u kratkoročnom i srednjoročnom razdoblju uglavnom se objašnjavaju pomoću tri faktora: rastom neizvjesnosti (Bloom, 2009), padom agregatne potražnje (MMF, 2015; Krugman 2011) i rastom stupnja financijskog ograničenja (Brunnermeier, M., 2009). Nakon krize se posebna pozornost pridavala trećem faktoru: investicijskom kanalu financijskih frikcija. Stoga za kraj pokazujem grafikon iz zbornika, koji održava djelovanje financijskih frikcija na investicije poslovnih subjekata u RH za različite sektore.
+
+```{r}
+gt$frikcije_plot +
+  labs(subtitle = "Struktura investicija u RH prema vrsti mat. imovine i djelatnosti u razdoblju od 2000. do 2014.")
+```
+
+Grafikon pokazuje investicije nefinancijskih poduzeća po industrijama za 4 različite grupe poduzeća. Grupe su diferencirane prema pokazatelju intenziteta zaduženosti u 2008. godini, pri čemu se koeficijent zaduženosti računa kao omjer ukupnih obveza (kratkotrajnih i dugotrajnih) i ukupne imovine. Primjerice oznaka [0,0.3) označuje grupu poduzeća koja je 2008. godine imala vrijednost intenziteta zaduženosti između 0 i 0.3. Kao godina raščlanjivanja izabrana je 2008. godina jer je investicijski kanal financijskih frikcija značajka financijskih kriza. Na svim grafovima prva grupa poduzeća (najmanje zadužena) pokazuje relativno najmanji pad investicija, ali i najbrži oporavak nakon krize. Na svim grafovima je vrijednost investicija niskozaduženih poduzeća u 2017. godini veća od razina investicija u 2008. godini. Najveći rast je zabilježen u sektoru usluga smještaja (turizam). 
+
+U izvornom radu, koji će biti objavljen u zborniku, nalazit će se dodatni zanimljivi uvidi o dinamici investicija u RH u posljednjih 15 godina, pa pozivam sve čitatelje da pročitaju tekst kada izađe.

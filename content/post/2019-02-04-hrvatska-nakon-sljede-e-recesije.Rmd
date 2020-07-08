@@ -1,0 +1,145 @@
+---
+title: Hrvatska nakon sljedeće recesije
+author: Mislav Šagovac
+date: '2019-02-04'
+slug: hrvatska-nakon-sljede-e-recesije
+categories:
+  - Ekonomika
+  - R
+tags:
+  - GDP
+  - R
+  - CROBEX
+  - Javni dug
+type: ''
+subtitle: ''
+image: ''
+
+---
+
+U posljednje vrijeme ekonomisti u međusobno neovisnim postovima i izjavama sve češće predviđaju novu recesiju. Hamilton i Chin [analiziraju](http://econbrowser.com/archives/2019/01/guest-contribution-economic-policy-uncertainty-and-recession-probability) krivulju prinosa i *Economic Policy Uncertainty Index* (EPUI), te zaključuju da je recesija izgledna u 2019. Brad De Long također [smatra](https://www.project-syndicate.org/commentary/possible-causes-of-next-us-recession-by-j--bradford-delong-2019-01) da je recesija izvjesna, a moguće uzroke vidi u bijegu u sigurnu imovinu zbog nestabilnosti na tržištima kapitala. Larry Summers [tvrdi](http://fortune.com/2018/11/16/larry-summers-recession-by-2020/) da je recesija do 2020. vrlo izgledna. Nedavno se i na hrvatskom portalu [pojavio](https://www.index.hr/vijesti/clanak/hrvat-s-princetona-opisao-kako-ce-izgledati-konacna-propast-hrvatske/2053639.aspx) tekst koji upozorava na skoru recesiju i moguće negativne efekte na hrvatsku ekonomiju. Predviđa se "urušavanje" i "scenarij Grčke":
+
+> Scenarij koji je vrlo vjerojatan jer su za većinu spomenutih stvari kaskadni procesi već započeli i pitanje je dana kada će se sustav urušiti. Jedino što nam je potrebno je jedna mala globalna recesija i u Hrvatskoj vrlo lako možemo vidjeti scenarij Grčke
+>... Već se događaju određene korekcije tržišta i povećava se volatilnost tako da su to obično prvi indikatori. Ono što nas treba plašiti je to da Hrvatska možda neće preživjeti sljedeću globalnu recesiju.
+
+U ovom postu ću kroz nekoliko grafova pokazati zašto ne vjerujem u ovakav scenarij. Dapače, smatram da će Hrvatska kroz novu krizu proći relativno bolje nego kroz prošlu krizu. Važno je naglasiti riječ relativno: Hrvatska neće biti treća odostraga po ekonomskom oporavku kao u razdoblju 2008-2013. (nakon Grčke i Cipra) nego da će biti u okviru prosjeka EU, ako ne i bolja. Osnovni makroekonomski podaci pokazuju da je situacija u 2019 znatno drugačija od one u 2008. godini. U ovom postu ću, za razliku od prethodnih, prezentirati i R kod, kako bi čitatelji koji koriste programski jezik R mogli reproducirati rezultate i izmijeniti određene parametre (kod je vidljiv nakon pritiska na tipku *Code* s desne strane).
+
+Krenimo od najčešće spominjanog uzroka duboke recesije na jugu Europe u 2008.: *Suden stop*. Države na jugu Europe su generirale visoke deficite bilance plaćanja, što se odražavalo na rast javnog duga. Tvrtke iz sjevernih zemalja su ulagale u južne zemlje zbog viših graničnih prinosa na kapital. Banke su identificirale velik broj građana bez kreditnih kartica, a s relativno stabilnim bonitetom. Investitori su vidjeli priliku za ostvarivanje visokih prinosa. Svi ovi razlozi i brojni drugi su doveli do visokih kreditnih i kapitalnih priljeva u RH i druge južne zemlje Europe. Međutim, nakon pojave krize dolazi do snažnog odljeva kapitala (posebno špekulativnog), što je dovelo do snažnog pada likvidnosti i pada cijena imovine. Može li se ovakav scenarij očekivati i u sljedećoj recesiji? Prema prvom grafikonu, takav scenarij nije izgledan. Za razliku od 2008., kada je RH godinama generirala visoke deficite bilance plaćanja, u 2019. Hrvatska ulazi sa višegodišnjim suficitima platne bilance. Tako je i vanjski dug smanjen s 46 na 40 milijardi kuna. Iznenadni odljevi kapitala se događaju nakon višegodišnje generiranih deficita , a ne suficita. To ne znači da se priljev kapitala neće smanjiti, ali Hrvatska ne bi trebala iskusiti tako veliki šok u odnosima s inozemstvom.
+
+```{r message=FALSE, warning=FALSE,}
+library(eurostat)
+library(tidyverse)
+library(plotly)
+library(rvest)
+library(readxl)
+library(tidyr)
+
+ca <- eurostat::get_eurostat("tipsbp20", type = "label", select_time = "Y", stringsAsFactors = FALSE,
+                              filters = list(geo = "HR"))
+ca %>%
+  filter(complete.cases(values) & grepl("GDP", unit)) %>%
+  select(time, values, bop_item) %>% 
+  ggplot(aes(x = time, y = values, color = bop_item)) + 
+  geom_line() + geom_hline(yintercept = 0, linetype = "dashed") + 
+  annotate("rect", fill = "gray", alpha = 0.5, 
+           xmin = as.Date("2008-01-01"), xmax = as.Date("2009-01-01"),
+           ymin = -Inf, ymax = Inf) +
+  labs(title = "Tekući račun bilance plaćanja", x = "", y = "% od BDP-a") +
+  theme_bw() %+replace% theme(legend.position = "bottom", legend.title = element_blank())
+
+# ggplotly(p) %>% layout(legend = list(orientation  = "h", y = -0.15))
+```
+
+U tekstu s Indexa se naglašava da bi Hrvatska mogla biti nova Grčka. treba napomenuti da je kriza u Grčkoj nakon 2008. jedna od najgorih ikada zabilježenih u povijesti. Primjerice, u razdoblju, 2007-2013., realni dohodak *per capita* je pao za [26% posto](https://voxeu.org/article/greek-crisis-autopsy). Jedan od osnovnih razloga ovakvog potonuća Grčke bio je izuzetno visoki javni dug i fiskalna konsolidacija kao odgovor na ovakvo stanje. Javni dug Grčke je iznosio [130% BDP-a, a državni deficit 15% BDP-a](https://voxeu.org/article/greece-past-critiques-and-path-forward). Hoće li Hrvatska doživjeti isti scenarij u novoj recesiji? Prvo pogledajmo razine deficita/suficita u RH:
+
+```{r message=FALSE, warning=FALSE}
+def <- eurostat::get_eurostat("gov_10dd_edpt1", type = "label", select_time = "Y", 
+                              stringsAsFactors = FALSE, 
+                              filters = list(na_item = "B9", unit = "PC_GDP", sector = "S13"))
+def %>% 
+  filter(geo == "Croatia" & complete.cases(values)) %>% 
+  select(na_item, time, values) %>%
+  ggplot(aes(x = time, y = values, color = na_item)) + geom_line() +
+  annotate("rect", fill = "gray", alpha = 0.5, 
+           xmin = as.Date("2008-01-01"), xmax = as.Date("2009-01-01"),
+           ymin = -Inf, ymax = Inf) +
+  labs(title = "Deficit/suficit proračuna", x = "", y = "% od BDP-a") +
+  theme_bw() %+replace% theme(legend.position = "bottom", legend.title = element_blank())
+
+```
+
+Graf pokazuje smanjenje deficita nakon 2011 i prvi ostvareni suficit u posljednjoj godini. Za razliku od suficita koji u posljednjoj godini ostvaruje RH, Grčka je ostvarivala primarni deficit od 10% BDP-a. Graf javnog duga pokazuje da su razine javnog duga manje od grčkih razina za gotovo 60% BDP-a. Graf pokazuje smanjenje javnog duga u posljednjih nekoliko godina. Valja ipak upozoriti da je razina javnog duga visoka, posebno ako se usporedi sa istočnim zemljama poput Poljske i Slovačke (50% BDP-a), međutim razine su ipak mnogo niže od onih zabilježenih u Grčkoj 2008. godine.
+
+```{r message=FALSE, warning=FALSE}
+debt <- eurostat::get_eurostat("gov_10dd_edpt1", type = "label", select_time = "Y", 
+                              stringsAsFactors = FALSE, 
+                              filters = list(na_item = "GD", unit = "PC_GDP", sector = "S13"))
+debt %>% 
+  filter(geo == "Croatia" & complete.cases(values)) %>% 
+  select(na_item, time, values) %>%
+  ggplot(aes(x = time, y = values, color = na_item)) + geom_line() +
+  annotate("rect", fill = "gray", alpha = 0.5, 
+           xmin = as.Date("2008-01-01"), xmax = as.Date("2009-01-01"),
+           ymin = -Inf, ymax = Inf) +
+  labs(title = "Javni dug (bruto)", x = "", y = "% od BDP-a") +
+  theme_bw() %+replace% theme(legend.position = "bottom", legend.title = element_blank())
+```
+
+Iako često zastupljeni u stranim medijima, u Hrvatskoj se manje govori o utjecaju pada cijena dionica na krizu. Korekcija na financijskim tržištima može biti snažan okidač za krizu (npr. *dot-com* mjehur). Nisu mi poznati empirijski radovi o ovom fenomenu u RH, ali može se pretpostaviti da je rast cijena dionica prije krize i snažan pad nakon krize imao značajan utjecaj na ciklus, posebno kroz efekt bogatstva. Prije krize  investicijski fondovi su ostvarivali godišnje prinose od 40%. CROBEX je prešao 5.000 bodova, da bi nakon krize ostvario snažan pad. Neki sektori su ostvarivali padove od 80% i nisu se oporavili do današnjeg dana. Ukratko, postojao je jasan balon na dioničkom tržištu. Na sljedećem grafikonu prikazujem kretanje CROBEX-a od 1.1.2008 (iz nekog razloga ZSE ne želi ranije podatke učiniti lako dostupnima), kako bi se usporedilo kretanje cijena na dioničkom tržištu.
+
+```{r message=FALSE, warning=FALSE}
+
+# preuzimanje podataka o CROBEXU sa www.zse.hr
+url <- "http://www.zse.hr/default.aspx?id=44101&index=CROBEX"
+session <- html_session(url, encoding = "UTF-8")
+form <- html_form(session) %>%
+  .[[2]]
+fillForm <- set_values(form, "DateFrom" = "01.01.2008", "DateTo" = "01.01.2019")
+p <- submit_form(session, fillForm)
+crobex <- p %>%
+  rvest::html_nodes(xpath = '//*[@id="dnevna_trgovanja"]') %>%
+  .[[2]] %>%
+  rvest::html_table(header = TRUE, fill = TRUE) %>% 
+  dplyr::filter(!is.na(Datum)) %>% 
+  dplyr::select(Datum, Zadnja) %>% 
+  dplyr::mutate(Zadnja = gsub("\\.", "", Zadnja)) %>% 
+  dplyr::mutate(Zadnja = gsub(",", "\\.", Zadnja)) %>% 
+  dplyr::mutate(Zadnja = as.numeric(Zadnja)) %>% 
+  dplyr::mutate(Datum = as.Date(Datum, "%d.%m.%Y"))
+
+# grafikon
+crobexPlot <- ggplot(crobex, aes(Datum, Zadnja)) +
+  geom_line() +
+  theme_bw() %+replace% theme(legend.position = "bottom", legend.title = element_blank())
+ggplotly(crobexPlot)
+
+```
+
+Nakon krize 2008., dioničko tržište u RH nije ostvarivalo gotovo nikakav rast. Očito je dakle da ne postoje mjehuri na tržištima kapitala, što znači da se ne može očekivati snažan šok na dioničkim tržištima. Čak i kada bi CROBEX pao za dodatnih 20%, pad vrijednosti imovine koje građani, fondovi i tvrtke imaju u dioničkim udjelima bio bi zanemariv u odnosu na pad vrijednosti 2008. godine.
+
+Jedna od najvećih promjena u ekonomskoj znanosti, nakon krize, odnosi se na znatno veći fokus istraživanja financijskih tržišta. Pojavljuje se mnoštvo analiza koje krizu (posebno duboke financijske krize) nastoje objasniti određenim frikcijama na tržištima kapitala. To se posebno odnosi na rast/pad ponude kredita u vremenima ekspanzije/kontrakcije. Empirijski radovi jasno identificiraju rast kreditnih plasmana kao indikator ranog upozorenja za pojavu krize (vidjeti na primjer [ovdje](https://voxeu.org/article/leveraged-bubbles)). Ovaj obrazac se jasno uočava i u RH prije 2008:
+
+```{r message=FALSE, warning=FALSE}
+# preuzimanje podataka o kreditnim plasmanima sa stranica HNB-a
+url <- "https://www.hnb.hr/documents/20182/120538/h-mp_11.xlsx"
+tempFile <- tempfile("hnb_plasmani.xlsx")
+download.file(url, destfile = tempFile, mode = "wb")
+plasmani <- readxl::read_excel(tempFile)
+plasmani <- plasmani %>%
+  dplyr::filter(complete.cases(.)) %>% 
+  dplyr::rename(datum = 1, stanovnistvo = 2, poduzeca = 3) %>% 
+  dplyr::mutate_at(vars(2:3), as.numeric) %>% 
+  dplyr::mutate(datum = seq.Date(as.Date("1995-06-01"), by = "month", length.out = length(datum))) %>% 
+  tidyr::gather(vrstaKredita, vrijednosti, - datum)
+
+# graf
+plasmaniPlot <- ggplot(plasmani, aes(datum, vrijednosti, color = vrstaKredita)) +
+  geom_line() +
+  labs(title = "Stope rasta kredita", x = "", y = "%", caption = "Izvor: HNB") +
+  theme_bw() %+replace% theme(legend.position = "bottom", legend.title = element_blank())
+ggplotly(plasmaniPlot)
+```
+
+Graf pokazuje snažan rast kreditnih plasmana kako poduzećima, tako i stanovništvu prije 2008 godine. U razdoblju 2000-2005 stope rasta su bile oko 25% godišnje. Međutim posljednjih nekoliko godina stope rasta su negativne, što znači da ja u RH od 2012. zabilježena kreditna kontrakcija. Ovakva dinamika je dovela do pada kreditnih plasmana sa cca 250 na 220 milijardi kuna. Treba napomenuti i da je udio kreditnih plasmana otprilike na razinama usporedivih zemalja. 
+
+Ova kratka analiza pokazuje da ne postoji značajan izvor unutarnje ili vanjske likvidnosti kao generatora poslovnog ciklusa, pa je posljedično teško pretpostaviti značajnije povlačenje likvidnosti u nadolazećoj recesiji. Strukturni disbalansi su još uvijek uočljivi u razinama zaduženosti, kako države, tako i nefinancijskih poduzeća, ali ako se ovakvi strukturni odnosi održavaju uz negativan rast kredita, nedostatak rasta dioničkog tržišta i nedostatak stranih ulaganja, potvrđuje se njihova kratkoročna održivost. Prikazani grafovi ipak ne odražavaju dobro stanje u Hrvatskoj ekonomiji. Dapače, nedostatak rasta kredita i cijena dionica, pretpostavlja stagnaciju investicija nefinancijskih poduzeća, kao generatora dugoročnog rasta. Upravo je rast kapitalne formacije (investicija), kao komponente agregatne potražnje, bio ključan segment rasta u razdoblju 2002-2008, a koji je potpuno izostao prethodnom desetljeću. Posljednjih deset godina može se označiti i kao izgubljeno desetljeće. Međutim, ovaj post nije objašnjenje o dugoročnom rastu i raznoraznim reformama, nego pokušaj prikazivanja razloga otpornosti RH na sljedeću recesiju. Nadam se da nisam u krivu kada mislim da će Hrvatska *relativno* bolje proći kroz sljedeću recesiju i da nije novi primjer Grčke.

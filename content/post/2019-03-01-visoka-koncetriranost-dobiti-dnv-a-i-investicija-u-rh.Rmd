@@ -1,0 +1,187 @@
+---
+title: Visoka koncetriranost dobiti, DNV-a i investicija u RH
+author: Mislav Sagovac
+date: '2019-03-01'
+slug: visoka-koncetriranost-dobiti-dnv-a-i-investicija-u-rh
+categories:
+  - Ekonomika
+  - Firme
+tags:
+  - Dodana nova vrijednost
+  - GDP
+  - investicije
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+```{r message=FALSE,echo=FALSE,warning=FALSE}
+library(odbc)
+library(DBI)
+library(dplyr)
+library(purrr)
+library(httr)
+library(jsonlite)
+library(RMySQL)
+library(plyr)
+library(tidyverse)
+library(kableExtra)
+
+loadData_dist <- function(dbName, tableName, columns) {
+  db <- dbConnect(MySQL(), dbname = dbName, host = "91.234.46.219",
+                  port = 3306, user = "odvjet12_mislav",
+                  password = "Theanswer0207")
+  dvars <- paste0(columns, collapse = ", ")
+  query <- paste0("SELECT ", dvars, " FROM ", tableName," GROUP BY ", dvars, " DESC")
+  dbSendQuery(db, 'set character set "utf8"')
+  dbSendQuery(db, 'SET NAMES utf8')
+  data <- dbGetQuery(db, query)
+  dbDisconnect(db)
+  for(i in 1:ncol(data)){
+    data[,i] <- as.character(data[,i])
+    Encoding(data[,i]) <- "UTF-8"
+  }
+  data
+}
+zup_grad <- loadData_dist(dbName = "odvjet12_croecon", tableName = "gfi",
+                          columns = c("zupanija", "naziv_zup", "municipalityid", "naziv_opc"))
+filtriranje <- data.frame(Kod = c("b145", "b147", "b335", "b370", "b004", "dnv"),
+                          Pozicija = c("Prihodi", "Dobit", "Izvoz", "Uvoz", "Izdaci za razvoj",
+                                       "Novo dodana vrijednost"),
+                          stringsAsFactors = FALSE)
+sudski_reg_API <- function(oibreq){
+  df <- list()
+  for (o in 1:length(oibreq)) {
+    req <- GET(paste0("https://sudreg-api.pravosudje.hr/javni/subjekt_detalji?",
+                      "tipIdentifikatora=oib&identifikator=",
+                      oibreq[o], "&expand_relations=true"),
+               add_headers('Ocp-Apim-Subscription-Key' = "0c7a9bbd34674a428e4218340fba732b"),
+               httr::verbose())
+    json <- content(req, as = "text", encoding = "UTF-8")
+    json <- jsonlite::fromJSON(json)
+    df[[o]] <- cbind.data.frame(oib = json[["oib"]], naziv = json$tvrtke$ime)
+  }
+  df_final <- do.call(rbind.fill, df)
+  df_final$oib <- str_pad(df_final$oib, 11, "left", "0")
+  df_final
+}
+
+dataApi <- function(mb) {
+  df <- list()
+  for (i in 1:length(mb)) {
+    req <- GET(paste0('https://api.data-api.io/v1/subjekti/', mb[i]),
+               add_headers('x-dataapi-key' = "59dd75a6525e", 'content-type' = "application/json"))
+    reqCon <- content(req, as = "text", encoding = "UTF-8")
+    json <- jsonlite::fromJSON(reqCon)
+    df[[i]] <- cbind.data.frame(json[c("mb")], json[c("naziv")])
+  }
+  df_final <- do.call(rbind, df)
+  return(df_final)
+}
+
+loadStars <- function(kriterij, zupanija = NA, opcina = NA, godine, nBiggest) {
+  db <- dbConnect(MySQL(), dbname = "odvjet12_gfi",
+                  host = "91.234.46.219",
+                  port = 3306,
+                  user = "odvjet12_mislav",
+                  password = "Theanswer0207")
+
+  # kriterij <- "b117"
+  zupanija <- NA
+  opcina <- NA
+  # godine <- as.character(2002:2017)
+  # nBiggest <- 30L
+
+  zupanija_code <- unique(zup_grad[zup_grad$naziv_zup == zupanija, "zupanija"])
+  add_zup <- ifelse(is.na(zupanija), "", paste0("AND countyid  = '", zupanija_code, "' "))
+  group_zup <- ifelse(is.na(zupanija), "", paste0(", countyid"))
+  opcina_code <- unique(zup_grad[zup_grad$naziv_opc == opcina, "municipalityid"])
+  add_opcina <- ifelse(is.na(opcina), "", paste0("AND municipalityid = '", opcina_code, "' "))
+  group_opcina <- ifelse(is.na(opcina), "", paste0(", municipalityid"))
+  godine <- as.character(godine)
+  
+  query <- paste0("SELECT subjectid, SUM(", kriterij, ") AS ", kriterij, " ",
+                  "FROM gfi_all ",
+                  "WHERE reportyear IN(", paste0(godine, collapse = ", "), ") ", add_zup, add_opcina,
+                  "GROUP BY subjectid ",
+                  "ORDER BY ", kriterij, " DESC limit ", nBiggest, ";"
+  )
+  query2 <- paste0("SELECT SUM(", kriterij, ") AS total ",
+                   "FROM gfi_all ",
+                   "WHERE reportyear IN(", paste0(godine, collapse = ", "), ") ", add_zup, add_opcina,
+                   "ORDER BY ", kriterij, " DESC limit ", nBiggest, ";"
+  )
+  dbSendQuery(db, 'set character set "utf8"')
+  dbSendQuery(db, 'SET NAMES utf8')
+  data <- dbGetQuery(db, query)
+  query3 <- paste0("SELECT mb, naziv ",
+                   "FROM zaglav ",
+                   "WHERE mb IN(", paste0(data$subjectid, collapse = ", "), ");"
+  )
+  totals <- dbGetQuery(db, query2)
+  nazivi <- dbGetQuery(db, query3)
+  dbDisconnect(db)
+
+  if (length(setdiff(data$subjectid, nazivi$mb)) > 0) {
+    naziviApi <- sudski_reg_API(setdiff(data$subjectid, nazivi$mb))
+    nazivi <- rbind.data.frame(nazivi, naziviApi)
+  }
+  if (length(setdiff(data$subjectid, nazivi$mb)) > 0) {
+    naziviApi <- dataApi(setdiff(data$subjectid, nazivi$mb))
+    nazivi <- rbind.data.frame(nazivi, naziviApi)
+  }
+  data <- cbind.data.frame(data, totals) %>%
+    dplyr::mutate(udio = (!!rlang::sym(kriterij) / total)) %>%
+    dplyr::select(-total) %>%
+    left_join(nazivi, by = c("subjectid" = "mb")) %>%
+    select(subjectid, naziv, dplyr::everything())
+  Encoding(data$naziv) <- "UTF-8"
+  return(data)
+}
+
+```
+
+
+
+Ekonomske fenomene često karakterizira visoka razina koncetracije Primjerice, u jednom od prošlih [postova](http://croecon.contentio.biz/post/izvoznici-i-uvoznici-su-naj-e-e-iste-tvrtke/) je prikazan stupanj koncentracije izvozne aktivnosti. Pokazano je da u razdoblju 2002-2017, 10 najvećih izvoznika čini čak 18% ukupnog izvoza, a 30 najvećih izvoznika čini 30% ukupnog hrvatskog izvoza. U ovom kratkom postu ću analizirati stupanj koncentracije nefinancijskih poduzeća za druge ekonomske varijable. Stupanj koncetracije pokazuje koliko je kretanje makroekonomskih varijabli pod utjecajem velikih poduzeća. Analiza koncentriranosti nalazi se u [CroEcon aplikaciji](https://forensis.shinyapps.io/CroEcon/) u modulu "Poslovni subjekti", pa čitatelj može samostalno analizirati stupanj koncetracije za razne varijable poput uvoza, izvoza, prihoda i dr. Osim varijabli, čija se koncetracija analizira, moguće je birati raspon godina promatranja, broj tvrtki koji se želi prikazati, kao i specifična županija/općina.
+
+U nastavku posta pokazujem tablice koje se mogu generirati kroz aplikaciju. Za početak, u tablici je prikazana koncentracija dobiti u RH za razdoblje 2002-2017. Prikazano je 20 poduzeća sa najvećom dobiti u promatranom razdoblju. Zanimljivo je da jedna tvrtka, HT d.d., čini čak 10.3% % posto ukupno generirane dobiti. INA, HEP i Adris zajedno čine još 10%  dobiti. Ukupno svih 20 poduzeća uključuje ukupno 45.6% ukupne dobiti ostvarene u razdoblju 2002-2017. Očito je da je koncentracija dobiti nefinancijskih poduzeća u RH izrazito visoka. U RH posluje preko 100.000 poduzeća, a samo njih 20 čini gotovo polovinu ukupno generirane dobiti u petnaestogodišnjem razdoblju. 
+
+```{r message=FALSE,echo=FALSE,warning=FALSE}
+df <- loadStars("b147", godine = as.character(2002:2017), nBiggest = 20)
+df$kumulativno <- cumsum(df$udio)
+df %>% 
+  select(naziv, udio, kumulativno) %>% 
+  mutate(udio = round(udio * 100, 2), kumulativno = round(kumulativno * 100), 2) %>% 
+  kable() %>% 
+  kable_styling()
+```
+
+U tablici 2 je prikazana koncetracija novo dodane vrijednosti, odnosno doprinos pojedine tvrtke BDP-u u RH. Koncetracija je očekivano manja, ali još uvijek se može primjetiti znatna osjetljivost dinamike DNV-a na nekoliko velikih tvrtki. Točnije, 20 najvećih tvrtki je generiralo 17% BDP-a u RH u razdoblju 2002-2017. Ponovno je na prvom mjestu HR d.d., sa 2.4% ukupno generirane novo dodane vrijendosti, a slijede INA, HEP i Zagrebački holding.
+
+```{r message=FALSE,echo=FALSE,warning=FALSE}
+df_izdaci <- loadStars("dnv", godine = as.character(2002:2017), nBiggest = 20)
+df_izdaci$kumulativno <- cumsum(df_izdaci$udio) 
+df_izdaci %>% 
+  select(naziv, udio, kumulativno) %>% 
+  mutate(udio = round(udio * 100, 2), kumulativno = round(kumulativno * 100), 2) %>% 
+  kable() %>% 
+  kable_styling()
+```
+
+Na kraju u tablici 3 je prikazana koncetracija investicija u novu dugotrajnu imovinu za razdoblje 2004-2017 (izbačena je 2002. i 2003. godina zbog određenih *outliera* koji se pojavljuju u tom razdbolju). Promatrajući cijelo razdoblje, najviše su investirale Hrvatske autoceste d.o.o. Ukupni iznos investicija  je 84 milijardi kuna, što je 10.8% ukupnih investicija u cjelokupnom razdoblju 2004-2017. U, primjerice, 2014. godini agregatna bruto kapitalna formacija za cijelu RH je iznosila 35 milijardi kuna, što znači da je bruto kapitalna formacija Hrvatskih autocesta d.o.o. u razdoblju 2004-2017 više od dva puta veća od cjelokupnih investicija u 2014. godini. Ako bi se investicijama pridružilo i povećanje materijalne imovine iz  2001. godine, kada je poduzeće osnovano, iznos bi svakako bio veći. Nakon Hrvatskih autocesta d.o.o., najveći iznos bruto kapitalne formacije je ostvarila INA-industrija nafte d.d., cca 31.83 milijardu kuna ili 4.12% ukupnih investicija u razdoblju 2004-2017. Treći subjekt je Hrvatski Telekom, a četvrti Autocesta Rijeka-Zagreb d.d., sa ukupnim ulaganjem (BKF) od 14.3 milijarde kuna ili 1.86% ukupnih investicija. Zbrajajući investicije 5 subjekata sa najvećim iznosom investicija u promatranom razdoblju, može se zaključiti da one čine 20.00% ukupnih investicija. Proizlazi da investicije velikih poduzeća uvelike određuju agregatne investicije u Republici Hrvatskoj. Zanimljivo je primijetiti da se najveći udio ukupnih investicija odnosi na ulaganje u prometnu infrastrukturu (poduzeća Hrvatske autoceste d.o.o. i Autocesta Zagreb-Rijeka d.o.o.), otprilike 12.6% ukupnih investicija za razdoblje 2004-2017. Valja također istaknuti da su 3 od 5 tvrtki s najvećim investicijama tvrtke u državnom vlasništvu. Ako se gleda veći broj poduzeća, 10 od 18 najvećih investitora je u većinskom državnom vlasništvu. Pri tome su poduzeća koja u promatranom razdoblju privatizirana (poput HT-a d.d.), evidentirana kao privatna.
+
+```{r message=FALSE,echo=FALSE,warning=FALSE}
+df_izdaci <- loadStars("b369", godine = as.character(2004:2017), nBiggest = 20)
+df_izdaci$kumulativno <- cumsum(df_izdaci$udio) 
+df_izdaci %>% 
+  select(naziv, udio, kumulativno) %>% 
+  mutate(udio = round(udio * 100, 2), kumulativno = round(kumulativno * 100), 2) %>% 
+  kable() %>% 
+  kable_styling()
+```
+
+Može se zaključiti da je stupanj koncentriranosti dobiti i investicija u RH u zadnjih 15 godina vrlo visok. Bilo bi zanimljivo ove rezultate usporediti sa ostalim zemljama EU, kako razvijenim tako i nerazvijenim. Nastavno na analizu izvoza i uvoza, o kojoj sam pisao u prošlim postovima, može se pretpostaviti da je u drugim zemljama stupanj koncentriranosti još i veći, posebno u razvijenim zemljama u kojima posluju multinacionalne kompanije. 
+
+Slobodno u komentarima predložite varijable koje možemo dodati u aplikaciju radi analize stupnja koncentriranosti.

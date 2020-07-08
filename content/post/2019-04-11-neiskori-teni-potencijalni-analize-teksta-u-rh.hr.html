@@ -1,0 +1,1338 @@
+---
+title: Neiskorišteni potencijalni analize teksta u RH
+author: Mislav Šagovac
+date: '2019-04-11'
+slug: neiskori-teni-potencijalni-analize-teksta-u-rh
+categories:
+  - Tekst
+tags:
+  - analiza teksta
+  - R
+type: ''
+subtitle: ''
+image: ''
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>Nedavno sam razgovarao s kolegom s Ekonomskog fakulteta o mogućem utjecaju velikih količina podataka na (makro)ekonomiju. U razgovoru smo se dotakli jednog praktičnog primjera o korištenju javno dostupnih, nestrukturiranih, relativno velikih podataka u makroekonomskim istraživanjima. Riječ je o tekstovima koji se nalaze na webu. Dok se podaci statističkih zavoda uglavnom nalaze u strukturiranoj formi, za analizu tekstova dostupnih na webu potrebno je uložiti određeni napor da bi se podatci preuzeli i uredili za statističku ili neku drugu analizu. Jedna vrsta tih podataka su i tekstovi koji se nalaze na posjećenim hrvatskim web portalima, poput Indexa, 24 sata, jutarnjeg, večernjeg lista i td. Podaci prikupljeni s ovih stranica mogu se koristiti u makroekonomskoj analizi. U konkretnom slučaju o kojem smo raspravljali, radilo s o prikupljanju podataka o učestalosti korištenja riječi “recesija” na javnim portalima, što se može koristiti kao indikator moguće recesije. U ovom postu ću pokušati na jednostavnom primjeru prikazati kako bi se podaci za takvu analizu mogli prikupiti pomoću programskog paketa R.</p>
+<p>Proces prikupljanja sadržaja sa web stranica naziva se <em>web crawling</em>, a skripta koja automatski prikuplja podatke naziva se <em>bot</em>. Jednostavno rečeno, <em>bot</em> posjećuje željene web stranice, preuzima željeni sadržaj (cjelokupan ili parcijalan) i prati poveznice koje se nalaze na stranici. Cilj je posjetiti sve željene stranice i preuzeti sve podatke od interesa. To može uključivati kompletan tekst sa neke domene (što nije preporučljivo) ili samo određeni tekst sa nekih poveznica (recimo naslove filmova znanstvene fantastike). Najpoznatiji bot na svijetu je Google. Iako do sada možda niste razmišljali na ovaj način, Google ustvari <em>crawla</em> ogromni broj poveznica i sprema sadržaje pronađene na poveznicama na vlastite servere. Potom omogućuje pretragu teksta koji se nalazi na serveru.</p>
+<p>R ima razvijen paket upravo za ovu svrhu, a zove se <code>Rcrawler</code>. Ovaj paket je vrlo jednostavan i mogu ga koristiti čak i apsolutni početnici u programiranju i <em>web crawlingu</em>. Osobno ne koristim predmetni paket jer mi ne daje potpunu kontrolu nad procesom web crawlinga, ali za početnike je najbolji izbor. Prije web scrapinga uvijek je preporučljivo pročitati opće uvjete korištenja koji se nalaze na stranici. Stranice uglavnom ne dopuštaju brzo i masovno preuzimanje podataka. Korisno je crawler napraviti na način da se preuzimaju samo ciljane web stranice i dijelove teksta koji su zaista potrebni. Nije poželjno koristiti veliki broj paralelnih R procesa jer će Vam vrlo vjerojatno pristup biti zabranjen. Također, poželjno je između svakog GET zahtjeva koristiti određen vremenski zastoj.</p>
+<p>U nastavku prikazujem jednostavnu analizu podataka teksta na temelju članaka preuzetih sa hrvatskog web portala <a href="https://www.vecernji.hr/pretraga">Večernji.hr</a>. Podaci uključuju razdoblje 1.1.2018. - 28.3.2019. Baza podataka sadrži ukupno 65.822 tekstova iz raznih područja (vijesti, posao, showbizz i td.). Prije analize je bilo potrebno urediti podatke i strukturirati podatke. Prvo sam napravio tokenizaciju svih objavljenih tekstova. Tokenizacija podrazumijeva transformaciju tekstova u tokene (riječi). Primjerice, rečenica: “Čitam blog CroEcon” se pretvara u vektor tokena: (“čitam”, “blog”, “croecon”). Nakon tokenizacije, iz vektora su izbačene “stop riječi”. “Stop riječi” su riječi koje se vrlo često pojavljuju u nekom jeziku. Primjer stop riječi u hrvatskom su “a”, “ali”, “bi” itd. Treba napomenuti da različiti NLP (<em>Natural language processing</em>) paketi sadrže različiti skup stop riječi. Za potrebe ovog posta sam koristio riječi paketa <a href="https://github.com/quanteda/quanteda">quanteda</a>.</p>
+<p>Nakon prilagodbe podataka, možemo napraviti nekoliko jednostavnih analiza. Za početak je korisno pogledati najkorištenije riječi u svim tekstovima. Prikazat ćemo 50 najkorištenijih riječi.</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; ">
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-3">Table 1: </span>Tablica 1
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+Token
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Frekvencija
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+godine
+</td>
+<td style="text-align:right;">
+61822
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+više
+</td>
+<td style="text-align:right;">
+56024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+zbog
+</td>
+<td style="text-align:right;">
+46307
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rekao
+</td>
+<td style="text-align:right;">
+39575
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godina
+</td>
+<td style="text-align:right;">
+37604
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ima
+</td>
+<td style="text-align:right;">
+37531
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+može
+</td>
+<td style="text-align:right;">
+34849
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prema
+</td>
+<td style="text-align:right;">
+32467
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dok
+</td>
+<td style="text-align:right;">
+31274
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kad
+</td>
+<td style="text-align:right;">
+30697
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dana
+</td>
+<td style="text-align:right;">
+30034
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatske
+</td>
+<td style="text-align:right;">
+29848
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+jedan
+</td>
+<td style="text-align:right;">
+28411
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+posto
+</td>
+<td style="text-align:right;">
+27551
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ljudi
+</td>
+<td style="text-align:right;">
+27227
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+bez
+</td>
+<td style="text-align:right;">
+26860
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+danas
+</td>
+<td style="text-align:right;">
+26849
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sada
+</td>
+<td style="text-align:right;">
+26428
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+protiv
+</td>
+<td style="text-align:right;">
+26319
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatskoj
+</td>
+<td style="text-align:right;">
+26309
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+oko
+</td>
+<td style="text-align:right;">
+26151
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kuna
+</td>
+<td style="text-align:right;">
+25961
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kaže
+</td>
+<td style="text-align:right;">
+25238
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatska
+</td>
+<td style="text-align:right;">
+24233
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tri
+</td>
+<td style="text-align:right;">
+23636
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pogledajte
+</td>
+<td style="text-align:right;">
+23367
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+mogu
+</td>
+<td style="text-align:right;">
+23241
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+toga
+</td>
+<td style="text-align:right;">
+23092
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dva
+</td>
+<td style="text-align:right;">
+22752
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+gdje
+</td>
+<td style="text-align:right;">
+22555
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vrijeme
+</td>
+<td style="text-align:right;">
+22124
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+im
+</td>
+<td style="text-align:right;">
+22105
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+treba
+</td>
+<td style="text-align:right;">
+21509
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:right;">
+21303
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kod
+</td>
+<td style="text-align:right;">
+20704
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+milijuna
+</td>
+<td style="text-align:right;">
+20579
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ove
+</td>
+<td style="text-align:right;">
+19957
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prvi
+</td>
+<td style="text-align:right;">
+19570
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kojem
+</td>
+<td style="text-align:right;">
+18451
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nekoliko
+</td>
+<td style="text-align:right;">
+18449
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+uvijek
+</td>
+<td style="text-align:right;">
+17434
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dvije
+</td>
+<td style="text-align:right;">
+17387
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+čak
+</td>
+<td style="text-align:right;">
+17338
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kojoj
+</td>
+<td style="text-align:right;">
+16954
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:right;">
+16936
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ovo
+</td>
+<td style="text-align:right;">
+16730
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dobro
+</td>
+<td style="text-align:right;">
+16451
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+puno
+</td>
+<td style="text-align:right;">
+16408
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hdz
+</td>
+<td style="text-align:right;">
+16232
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sad
+</td>
+<td style="text-align:right;">
+15924
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Najkorištenija riječ je riječ “godine”, dok je riječ istog korijena, “godina”, na petom mjestu. Može se primijetiti veliki broj često korištenih riječi, poput “više” i “zbog”. Neki NLP paketi ove riječi uključuju u “stop” riječi (npr. poznati python paket <a href="https://github.com/explosion/spaCy/blob/master/spacy/lang/hr/stop_words.py">spacy</a>). Zanimljivo je da se na vrlo visokom 49. mjestu nalazi ¸“hdz”. Pojam “hdz” je čak učestaliji i od riječi sad. Zanimljivo je primjetiti da se na dosta visokom mjestu nalazi i riječ kuna. Na visokom mjestu su i pojmovi “novci” i “milijuni”, što ukazuje na vrlo veliki broj tekstova na o novcu i ekonomiji.</p>
+<p>Prethodnu analizu sam ponovio na tekstovima s najvećim brojem komentara. Dakle, htio sam vidjeti koje riječi koreliraju sa velikim brojem komentara. Za jasnu identifikaciju bi bilo potrebno provesti statistički tekst, ali ova jednostavna analiza može stvoriti predodžbu o korelacijama između riječi i komentara. Dakle, prvo sam izabrao 100 tekstova sa najviše komentara te sam izdovjio najfrekventnije riječi.</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; ">
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+Token
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Frekvencija
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+hrvatske
+</td>
+<td style="text-align:right;">
+325
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rekao
+</td>
+<td style="text-align:right;">
+273
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ljudi
+</td>
+<td style="text-align:right;">
+227
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prema
+</td>
+<td style="text-align:right;">
+222
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatska
+</td>
+<td style="text-align:right;">
+218
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+zbog
+</td>
+<td style="text-align:right;">
+215
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+foto
+</td>
+<td style="text-align:right;">
+201
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+oko
+</td>
+<td style="text-align:right;">
+190
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+trgu
+</td>
+<td style="text-align:right;">
+186
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+više
+</td>
+<td style="text-align:right;">
+184
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatskoj
+</td>
+<td style="text-align:right;">
+172
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sati
+</td>
+<td style="text-align:right;">
+165
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+bana
+</td>
+<td style="text-align:right;">
+134
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+jelačića
+</td>
+<td style="text-align:right;">
+134
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+između
+</td>
+<td style="text-align:right;">
+130
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+protiv
+</td>
+<td style="text-align:right;">
+129
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+može
+</td>
+<td style="text-align:right;">
+128
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+danas
+</td>
+<td style="text-align:right;">
+121
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+gdje
+</td>
+<td style="text-align:right;">
+118
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ima
+</td>
+<td style="text-align:right;">
+118
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godine
+</td>
+<td style="text-align:right;">
+117
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vučić
+</td>
+<td style="text-align:right;">
+115
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+trga
+</td>
+<td style="text-align:right;">
+107
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+trg
+</td>
+<td style="text-align:right;">
+105
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pixsell
+</td>
+<td style="text-align:right;">
+102
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+rekla
+</td>
+<td style="text-align:right;">
+102
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kaže
+</td>
+<td style="text-align:right;">
+101
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+predsjednik
+</td>
+<td style="text-align:right;">
+99
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dok
+</td>
+<td style="text-align:right;">
+95
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+policija
+</td>
+<td style="text-align:right;">
+95
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+srbije
+</td>
+<td style="text-align:right;">
+95
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pogledajte
+</td>
+<td style="text-align:right;">
+94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+reprezentacije
+</td>
+<td style="text-align:right;">
+94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+republike
+</td>
+<td style="text-align:right;">
+94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hdz
+</td>
+<td style="text-align:right;">
+93
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kad
+</td>
+<td style="text-align:right;">
+92
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+migranata
+</td>
+<td style="text-align:right;">
+90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+putin
+</td>
+<td style="text-align:right;">
+90
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vatrenima
+</td>
+<td style="text-align:right;">
+88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+im
+</td>
+<td style="text-align:right;">
+87
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kazao
+</td>
+<td style="text-align:right;">
+86
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+policije
+</td>
+<td style="text-align:right;">
+85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godina
+</td>
+<td style="text-align:right;">
+84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+put
+</td>
+<td style="text-align:right;">
+83
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+autobus
+</td>
+<td style="text-align:right;">
+82
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+među
+</td>
+<td style="text-align:right;">
+81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+posto
+</td>
+<td style="text-align:right;">
+81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ulica
+</td>
+<td style="text-align:right;">
+81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+zagrebu
+</td>
+<td style="text-align:right;">
+81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dana
+</td>
+<td style="text-align:right;">
+80
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Osim uobičajenih riječi, koje se pojavljuju, u svim tekstovima, poput “rekao”, “prema”, “ljudi”, postoje određene riječi koje se ne pojavljuju na listi najčešće korištenih riječi u tablici 1. To se posebno odnosi na riječi “vučić” i “srbije”. Očito je da tekstovi o Srbiji i Srpskom predsjedniku privlače veliki broj komentara. Vrlo visoko se nalazi i pojam “reprezentacije” i “vatreni”, što znači da ljudi vrlo često komentiraju nastupe reprezentacije. Od zanimljivijih riječi se još pojavljuju i pojmovi “migranta” i “putin”. Pogledajmo još prikaz najučestalijih riječi poznatog autora Nine Raspudića, koji ima ukupno 70 tekstova:</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; ">
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+Token
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Frekvencija
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+hdz
+</td>
+<td style="text-align:right;">
+242
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+više
+</td>
+<td style="text-align:right;">
+222
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kad
+</td>
+<td style="text-align:right;">
+197
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+može
+</td>
+<td style="text-align:right;">
+183
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+im
+</td>
+<td style="text-align:right;">
+162
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+bez
+</td>
+<td style="text-align:right;">
+159
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+zašto
+</td>
+<td style="text-align:right;">
+154
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ljudi
+</td>
+<td style="text-align:right;">
+148
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+nitko
+</td>
+<td style="text-align:right;">
+146
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+onda
+</td>
+<td style="text-align:right;">
+142
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tko
+</td>
+<td style="text-align:right;">
+141
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prema
+</td>
+<td style="text-align:right;">
+138
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+danas
+</td>
+<td style="text-align:right;">
+133
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godina
+</td>
+<td style="text-align:right;">
+131
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ima
+</td>
+<td style="text-align:right;">
+130
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sada
+</td>
+<td style="text-align:right;">
+130
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatskoj
+</td>
+<td style="text-align:right;">
+126
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dok
+</td>
+<td style="text-align:right;">
+117
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+zbog
+</td>
+<td style="text-align:right;">
+117
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dakle
+</td>
+<td style="text-align:right;">
+116
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+plenković
+</td>
+<td style="text-align:right;">
+108
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+treba
+</td>
+<td style="text-align:right;">
+108
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kojem
+</td>
+<td style="text-align:right;">
+103
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+oko
+</td>
+<td style="text-align:right;">
+103
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kojeg
+</td>
+<td style="text-align:right;">
+99
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dana
+</td>
+<td style="text-align:right;">
+97
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatske
+</td>
+<td style="text-align:right;">
+97
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+godine
+</td>
+<td style="text-align:right;">
+95
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+jedan
+</td>
+<td style="text-align:right;">
+94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+protiv
+</td>
+<td style="text-align:right;">
+93
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+vrijeme
+</td>
+<td style="text-align:right;">
+89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+eu
+</td>
+<td style="text-align:right;">
+87
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+poput
+</td>
+<td style="text-align:right;">
+87
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+hrvatska
+</td>
+<td style="text-align:right;">
+86
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+mogu
+</td>
+<td style="text-align:right;">
+85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+možda
+</td>
+<td style="text-align:right;">
+85
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+čemu
+</td>
+<td style="text-align:right;">
+82
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tom
+</td>
+<td style="text-align:right;">
+81
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+čini
+</td>
+<td style="text-align:right;">
+80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prvi
+</td>
+<td style="text-align:right;">
+79
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+malo
+</td>
+<td style="text-align:right;">
+78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+primjerice
+</td>
+<td style="text-align:right;">
+76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+puno
+</td>
+<td style="text-align:right;">
+76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sdp
+</td>
+<td style="text-align:right;">
+76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+drugi
+</td>
+<td style="text-align:right;">
+75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kojoj
+</td>
+<td style="text-align:right;">
+75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dio
+</td>
+<td style="text-align:right;">
+74
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+radi
+</td>
+<td style="text-align:right;">
+73
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+toga
+</td>
+<td style="text-align:right;">
+72
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Iz ove pregledne analize bi se dalo zaključiti da Nino Raspudić najviše piše o HDZ-u i premijeru Plenkoviću. Vjerujem da čitatelji već mogu uvidjeti koristi od analize tekstova, kako za analizu medija, politike, tako i za analizu ekonomije.</p>
+<p>S obzirom da je primjena analize teksta na ekonomske fenomene bila motivacijski pokretač ovog posta, dodatno sam analizirao određene ekonomske pojmove. Pogledajmo primjerice koliko često se pojam recesije pojavljivao u tekstovima:</p>
+<p><img src="/post/2019-04-11-neiskori-teni-potencijalni-analize-teksta-u-rh.hr_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Graf pokazuje relativno ujednačenu frekvenciju pojma “recesija” do veljače 2019. Pojam recesija je naviše puta spomenut 23.2.2019. Međutim, važno je podsjetiti da jedan članak može više puta koristiti isti pojam. Primjerice, 23.02. objavljen je tekst pod naslovom: “Je li Hrvatska pred novom recesijom? Stručnjak otkriva što je slično kao i 2008. godine”. Očito je da samo taj jedan tekst može sadržavati veliki broj pojmova recesija. Sljedeća tablica pokazuje pet datuma sa najvećom frekvencijom pojma “recesija”:</p>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+datumShort
+</th>
+<th style="text-align:right;">
+Frekvencija
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2019-02-23
+</td>
+<td style="text-align:right;">
+21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2019-02-01
+</td>
+<td style="text-align:right;">
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2018-09-27
+</td>
+<td style="text-align:right;">
+14
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2019-01-31
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2019-02-12
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2019-02-15
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+</tbody>
+</table>
+<p>Ako bi se iz grafa zaključivalo o riziku pojave nove recesije. čini se da je postojao signal pojave recesije u veljači i ožujku, ali da u posljednjih nekoliko dana ovaj signal oslabio. Ova kretanja su možda povezana i s događanjima u Uljaniku:</p>
+<p><img src="/post/2019-04-11-neiskori-teni-potencijalni-analize-teksta-u-rh.hr_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Cijela ova analiza pokazuje veliki potencijal primjene tekstualne analize na analizu teksta, medija, politike i ostalih područja. Najveće ograničenje predstavlja prikupljanje podataka s web-a (čime se inače bavimo :)), dok je analiza teksta lakši i zanimljivi dio U budućnosti možemo očekivati sve više tekstualnih analiza u ekonomiju, posebno u području <em>nowcastinga</em>.</p>

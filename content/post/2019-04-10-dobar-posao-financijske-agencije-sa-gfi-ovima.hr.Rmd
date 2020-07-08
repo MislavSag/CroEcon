@@ -1,0 +1,39 @@
+---
+title: Dobar posao Financijske agencije sa GFI-ovima
+author: Mislav Šagovac
+date: '2019-04-10'
+slug: dobar-posao-financijske-agencije-sa-gfi-ovima
+categories:
+  - Politička ekonomija
+tags:
+  - Politička ekonomija
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+Nedavno je na Indeks.hr obavljen [tekst](://www.index.hr/vijesti/clanak/fina-prijavila-suosnivaca-nanobita-on-u-soku-nevjerojatno-cime-se-uhljebi-bave/2074587.aspx) u kojem se iznosi čuđenje suosnivača poznate tvrtke  Nanobit zbog dopisa koji je dobio od Financijske agencije (dalje FINA).  Ukratko, Alan Sumina je, uz suvlasništvo u Nanobitu, i vlasnik druge tvrtke koja ne obavlja djelatnost  (u mirovanju je), ali koja je dužna objavljivati financijske izvještaje. S obzirom da izvještaj nije predo, FINA je Sumini poslala „poziv“ da preda izvještaj i da će protiv njega biti pokrenuta tužba ukoliko ne se ne odazove pozivu.  U ovom postu ću se osvrnuti na  nelogičnosti cijelog sustava predaje i upotrebe računovodstveno-financijskih izvještaja u RH.  
+
+Svaka tvrtka u RH, bilo da je obrt ili firma (doo, d.d. i dr.), mora knjižiti sve poslovne događaje. Velike firme to najčešće obavljaju same, dok male tvrtke koriste vanjske računovodstvene urede. Tvrtke troše znatan novac na računovodstvene usluge. Primjerice mala d.o.o tvrtka, koja ima dva zaposlena i mali broj ulaznih i izlaznih računa troši cca 1.000 kn mjesečno na računovodstvene usluge. Za malu tvrtku s prihodima od 200.000 kn godišnje ovaj trošak iznosio 6% prihoda, što nije neznatan teret za svaku malu tvrtku. Na kraju godine računovodstveni servis izrađuje godišnji financijski izvještaj koji je potrebno predati FINA-i  poreznoj upravi. Izrada završnih računa se najčešće dodatno naplaćuje. Iz svega toga je jasno da je godišnji financijski izvještaj vlasništvo tvrtke. Riječ je o nematerijalnoj imovini, koja ima svoju vrijednost. Ako bi vas netko tražio da mu predate informaciju iz svojih računovodstvenih knjiga ili financijskih izvještaja, vjerojatno biste tražili određenu naknadu ili ne biste uopće htjeli predati svoje financijske podatke!
+
+Međutim, zakonodavac i FINA na ovaj postupak gledaju drugačije. Zakonodavac je obvezao sve tvrtke da predaju godišnje financijske izvještaje FINA-i, a  što je najčudnije, prisilio tvrtke da FINA-i plaćaju naknadu prilikom predaje financijskih izvještaja. Naknada nije velika, iznosi 250 kn, ali je u potpunosti neutemeljena. Predaja financijskih izvještaja bi u najmanju ruku trebala bila besplatna jer se radi o izvještajima koji su vlasništvo tvrtke i koji imaju svoju vrijednost. Zanimljivo je da predaja porezne bilance ne zahtijeva nikakav trošak, ali predaja izvještaja FINA-i, košta 250 kn. 
+
+Prema podacima FINA-e, u 2017. godini u Hrvatskoj su 112.072 poslovna subjekta predala financijske izvještaje FINA-i. To znači da je FINA samo od naknade od 250 kn u 2017. godini zaradila 28.018.000 kn. Ponovit ću još jednom: FINA je na temelju naknada koje zaračunava poduzetnicima u 2017. godini zaradila 28 milijuna kuna. Nisam siguran od kada se ova naknada naplaćuje, ali ako  se naplaćuje posljednjih 10 godina, FINA je temelju naknada koju naplaćuje poduzetnicima uprihodila  280 milijuna kuna naknada u posljednjih 10 godina.  
+
+Pokušavam zamisliti koji bi bio izgovor FINA-e za ovako veliki namet! Mogli bi, recimo, reći da cijeli sustav zahtijeva velik broj zaposlenih  djelatnika i razvijen informacijski sustav. Međutim, čak i laik u području informatike i upravljanja bazama podatka zna da je to vrlo jednostavan sustav. Svi podaci iz financijskih izvještaja stanu u csv datoteku sa 112.073 redova  i cca 500 kolona. Time možete upravljati u Excelu. Međutim. Čak i kada bi prihvatili tezu da je to nešto jako kompleksno, pitam se da li im zaista treba 28 milijuna kuna da bi održavali cijeli sustav!?
+
+Naknada od 250 kn je samo prva u nizu nelogičnosti cijelog procesa predaje financijskih izvještaja. Ako od FINA-e zatražite neke podatke iz godišnjih financijskih izvještaja, morat ćete to dobro platiti. Ukoliko je cijena još uvijek 20 lipa po svakoj ćeliji,  cijeli  prošireni financijski izvještaj će vas izaći oko 76 kn. Ako biste htjeli otkupiti cijelu bazu godišnjih financijskih izvještaja, trebali biste izdvojiti , uz određene popuste, cca 100.000 EUR. Ovo je vrlo gruba procjena. Koliko će na kraju koštati cijela baza ovisi vjerojatno o pregovorima sa Financijskom agencijom. 
+
+Nemam podatke koliko je FINA novaca zaradila na prodaji izvještaja, ali sigurno je riječ o velikom iznosu. Recimo da je riječ o 22 milijuna kuna, tako da ukupni prihodi FINA-e iznose 50 milijuna kuna godišnje (uz ranijih 28 milijuna), samo na financijskim izvještajima. Dakle, FINA zarađuje velike novce na temelju prodaje izvještaja koje su vlasništvo i važna poslovna informacija svih tvrtki u RH, a koje je platila 0kn. Logične bi bile samo dvije solucije 1) svi podaci iz RGFI-ja su besplatni za sve tvrtke koje predaju financijske izvještaje 2) zarada od financijskih izvještaja se djelomično distribuira tvrtkama. Međutim, zašto bi FINA dijelila svoj lako zarađen novac?
+
+Netko bi mogao tvrditi da su podaci iz RGFI-a cijelo vrijeme dostupni na stranicama FINA-e i da se lako može dobiti uvid o poslovanju svake tvrtke potpuno besplatno. Međutim, to je samo djelomično točno. Prvo podaci nisu bili dostupni u strojno čitljivom obliku. Ako biste primjerice, htjeli učitati podatke i analizirati poslovanje djelatnosti, potrebna je velika upornost uz ručno izvlačenje podataka za svaku pojedinačnu firmu. Dodatno, podaci iz proširene bilance nalazili su se samo u pdf-ovima, pa biste dodatno trebali uspostaviti OCR svakog pdf-a. Od nedavno FINA ima dostupne izvještaje u strojno čitljivom obliku, međutim na ovaj korak se nisu odlučili zbog svijesti o nepravednom odnosu prema svim potencijalnim korisnicima izvještaja,  već zato što ih je to tražio GONG preko svoje platforme [„Imamo pravo znati“]( https://imamopravoznati.org/request/registar_godisnjih_financijskih#comment-2418).
+
+Osvrnuo bih se i na još jednu nelogičnost. Naime, za pojedine natječaje tvrtke su dužne dostaviti BON-1. To znači da vi kao tvrtka morate od FINA-e zatražiti izdavanje BON-1. FINA će vam to, naravno, naplatiti. Što se nalazi u BON-1? Nalaze se podaci iz financijskog izvještaja koje ste  predali FINA-i?! Dakle, FINA vam naplaćuje isporuku podataka koje ste im dali, koje i sami imate u svojim bazama i koji su ustvari vaše vlasništvo. Zanimljivo je također istaknuti da, [prema izvještajima FINA-e]( https://www.fina.hr/documents/52450/83565/Fina_GIop_2017.pdf/deee274e-1119-7d37-6825-2fd39f5418ef), ukupni prihod FINA-e u 2017 godini (planirano) iznose 916 milijuna kn. 
+
+Zaključno, nisam protiv predaje financijskih izvještaja Financijskoj agenciji, ali smatram da bi predaja izvještaja trebala biti besplatna (ili znatno jeftinija), a svi podaci iz RGFI-a (uključujući proširene bilance) iz izvještaja bi, sukladno Zakonu o pravu na pristupu informacijama i zdravoj logici, trebali biti besplatni (posebno ako poduzetnik sam za sebe traži BON-1!).
+
+Na kraju jedan kratak vic iz političke ekonomije. Na FINA-noj [web stranici](https://www.fina.hr/tko-smo), u kojoj opisuju „tko su oni“, stoji:
+
+> Iako u državnom vlasništvu, Fina posluje isključivo na **tržišnom principu**. Uspješno surađujemo s bankama, Hrvatskom narodnom bankom, brojnim poslovnim sustavima i drugim subjektima poslovnog života…
+

@@ -1,0 +1,129 @@
+---
+title: Izvoznici i uvoznici su najčešće iste tvrtke
+author: Mislav Šagovac
+date: '2018-12-09'
+slug: izvoznici-i-uvoznici-su-naj-e-e-iste-tvrtke
+categories:
+  - Međunarodna razmjena
+tags:
+  - Uvoz
+  - Izvoz
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r echo = FALSE, results = "hide", message=FALSE}
+library(odbc)
+library(DBI)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyr)
+library(jsonlite)
+library(httr)
+
+# coonect to database
+con <- DBI::dbConnect(RMySQL::MySQL(), 
+                      host = "91.234.46.219", 
+                      port = 3306L,
+                      dbname = "odvjet12_gfi",
+                      username = "odvjet12_jtica",
+                      password = "jtica112018",
+                      Trusted_Connection = "True")
+# query variables
+q <- tbl(con, "gfi_all") %>%
+  dplyr::select(subjectid, reportyear, b335, b370, b110, nacerev21) %>%
+  dplyr::filter(reportyear >= 2002)
+gfi <- q %>% collect()
+gfi <- gfi[!duplicated(gfi[,c("subjectid", "reportyear")]),]
+
+```
+
+U prošlom [postu](http://croecon.contentio.biz/post/izvoz-i-uvoz-su-visokokoncentrirane-aktivnosti/) sam analizirao koncentriranost uvozne i izvozne aktivnosti u RH. Većina izvozne i uvozne aktivnosti odnosi se na mali postotak velikih poduzeća.  Primjerice 1% najvećih izvoznika čini 87.8% ukupnog izvoza, a 20 najvećih uvoznika čini čak 25% ukupnog uvoza nefinancijskih poduzeća.  Na temelju pregleda podataka o međunarodnoj razmjeni uočava se kako su veliki izvoznici u pravilu i veliki uvoznici. Primjerice, INA d.d. je u prosjeku najveći izvoznik, ali je ujedno i najveći uvoznik. U 2017. godini INA izvezla roba i usluga u vrijednosti  7.3 milijarde kuna, dok je uvoz iznosio 10.7 milijarde kuna. Pliva, kao drugi najveći izvoznik (3.1 milijarde kuna) je ostvarila uvoz od 2.6 milijarde kuna. Ostala izvozna poduzeća sa liste najvećih izvoznika pokazuju sličan obrazac. Ovakva dinamika vanjskotrgovinske aktivnosti poduzeća ne iznenađuje s obzirom da je visoka koncentracija uvoza i izvoza empirijski dokazna u globalnom uzorku tvrtki i kao takva ima implikacije za ekonomske politike. Prije svega se to odnosi na  potencijalnu štetnost reguliranja vanjske trgovine ekonomskim politikama poticanja izvoza i destimuliranja (ili čak zabranjivanja) uvoza. Obzirom da u pretežitom broju slučajeva iste tvrtke simultano ostvaruju većinu uvoza i izvoza, ekonomske politike reguliranja vanjskotrgovinske razmjene bi  podrazumijevale istovremeno stimuliranje i destimuliranje istih kompanija. 
+
+Kako bi dobili jasnu sliku o pokrivenosti izvoza uvozom, na grafu 1 je prikazan odnos ukupnog izvoza svih poduzeća (koja su ostvarila izvoz veći od nule u analiziranoj godini) i ukupnog uvoza istih poduzeća. Jednostavno rečeno, graf pokazuje koliko izvozna poduzeća uvoze. Vrijednost pokazatelja za cijelo promatrano razdoblje iznosi 1.04, što znači da je izvoz u prosjeku tek neznatno veći od uvoza. U prosjeku, ako neka tvrtka ostvari 1.04 mil kuna izvoza, istovremeno ostvaruje i 1 milijun kuna uvoza. Agregatno gledajući, *izvozne* tvrtke u promatranom razdoblju ostvaruju tek neznatan neto izvoz. Odnos izvoza i uvoza je gotovo 1:1. 
+
+Osim prosječnih vrijednosti, zanimljiva je i dinamika kretanja omjera. U razdoblju prije Velike recesije, *izvozne* firme su ostvarivale veći uvoz od izvoza. U razdoblju 2002-2007 omjer izvoza i uvoza iznosi oko 0.78. Dakle izvozne firme više uvoze nego što izvoze. Nakon 2009. godine dolazi do snažne strukturne promjene i omjer počinje rasti, pa tako u 2007. godini poprima vrijednosti od 1.3. Dakle tek nakon Velike recesije *izvozna* poduzeća ostvaruju veći izvoz od uvoza (na 1.3 mil. Kn izvoza dolazi 1 mil kuna uvoza). Postoji nekoliko mogućih objašnjenja ove strukturne promjene: 1) izvozne firme supstituiraju uvozna dobrima praizvedenim u tuzemstvu 2) izvoznici koji su ujedno i neto uvoznici izlaze s tržišta 3) trgovinski sektor smanjuje uvoz uslijed smanjenja agregatne potražnje.
+
+```{r message=FALSE, warning=FALSE, echo = FALSE}
+izvoznici <- gfi[gfi$b335 > 0, ]
+izvoznici <- izvoznici %>% 
+  dplyr::group_by(reportyear) %>%
+  dplyr::summarise(izvozKrozUvoz = sum(b335) / sum(b370))
+g <- ggplot(izvoznici, aes(x = reportyear, y = izvozKrozUvoz)) + 
+  geom_line(size = 2) + labs(x = NULL, y ="Izvoz / Uvoz")
+g
+```
+
+Moguća kritika ovakve analize je u načinu razgraničavanja poduzeća na uvozna i izvozna. Naime, poduzeće se može samo uvjetno smatrati izvoznim ako ima prihode iz inozemstva veće od 0 kn u nekoj godini. Stoga na grafu 2 prikazujem isti grafikon, ali skup izvoznih poduzeća uključuje sve poslovne subjekte kojima izvoz čini najmanje 20% prihoda. Graf pokazuje znatno veće vrijednosti omjera izvoza i uvoza. U prosjeku, izvozne firme ostvaruju duplo veći izvoz nego uvoz. Međutim, još uvijek vrijedi hipoteza o međuovisnosti uvoza i izvoza. Dinamika je ista kao i na prethodnom grafu do 2012 godine, ali nakon toga vrijednosti omjera se kreću u suprotnim smjerovima. 
+
+```{r message=FALSE, warning=FALSE, echo = FALSE}
+izvoznici <- gfi[(gfi$b335 / gfi$b110) > 0.2, ]
+izvoznici <- izvoznici %>% 
+  dplyr::group_by(reportyear) %>%
+  dplyr::summarise(izvozKrozUvoz = sum(b335) / sum(b370))
+g <- ggplot(izvoznici, aes(x = reportyear, y = izvozKrozUvoz)) + 
+  geom_line(size = 2) + labs(x = NULL, y ="Izvoz / Uvoz")
+g
+```
+
+Gornje prikazani grafikoni prikazuju omjer agregatnog izvoza i uvoza. Kako bi dobili jasniju sliku dinamike neto izvoza, na sljedeća dva grafikona prikazuje kretanje izvoza i uvoza po industrijama. Na grafu 3 su izdvojena dva sektora:trgovinski sektor kao glavni neto uvoznik i proizvođački sektor, koji je u posljednjem desetljeću glavni neto izvoznik. Ostali sektori ostvaruju zanemarive iznose neto izvoza. Ipak, treba naglasiti da grafikon ne prikazuje potpuno vjerodostojno udio izvoza u pojedinim sektorima jer trgovinski sektor  ima intermedijarnu ulogu između inozemstva i domaćih poduzeća. Nemoguće je stoga precizno utvrditi krajnje uvoznike dobara i usluga. Na grafikonu 4 su izbačeni trgovinski i prerađivački sektor, kako bi se bolje prikazali doprinosi pojedinih sektora neto izvozu. Najveći neto uvoznik je sektor opskrbe električnom energijom, plinom, parom i klimatizacija, dok je najveći neto izvoznik djelatnost pružanja smještaja te pripreme i usluživanja hrane (turizam). Kod ostalih sektora, odnos izvoza i uvoza je relativno ujednačen i stabilan.
+
+```{r message=FALSE, warning=FALSE, echo = FALSE}
+ind <- gfi[gfi$reportyear != 2017, ]
+ind <- ind %>%
+  group_by(reportyear, nacerev21) %>%
+  dplyr::summarise(Izvoz = sum(b335), Uvoz = sum(b370))
+ind_plot <- ind %>% gather(Varijable, `Milijarde kn`, - c(reportyear, nacerev21))
+ind1 <- ind_plot %>% filter(!(nacerev21 %in% c("T", "S", "P", "O", "Q", "R")))
+g1 <- ggplot(ind1, aes(x = reportyear, y = `Milijarde kn`, col = Varijable)) +
+  geom_line(aes(linetype = Varijable), size = 1.2) +
+  facet_wrap(~ nacerev21) +
+  labs(x = NULL, title = "Izvoz i uvoz po industrijama")
+g1
+ind2 <- ind_plot %>% filter(!(nacerev21 %in% c("T", "S", "P", "O", "Q", "R", "C", "G", "H", NA, "")))
+g2 <- ggplot(ind2, aes(x = reportyear, y = `Milijarde kn`, col = Varijable)) +
+  geom_line(aes(linetype = Varijable), size = 1.2) +
+  facet_wrap(~ nacerev21) +
+    labs(x = NULL, title = "Izvoz i uvoz po industrijama bez trgovine i prerađivačkog sektora")
+g2
+```
+
+Za kraj, u tablici 1, prikazujem najveće neto izvoznike za razdoblje 2002-2017. Neto izvozi svih razdoblja su zbrojeni kako bi se vidio doprinos svake firme neto izvozu (bilanci plaćanja). Na popisu su poduzeća iz različitih sektora, a najveći neto izvoznici su Tankerska plovidba i Croatia Airlines. Sve kompanije zajedno sadrže 129 milijardi kuna neto izvoza. Da druge strane, najveći neto uvoznici su HEP d.o.o. i Prorsche d.o.o.. Agregatno, 20 najvećih neto uvoznika ostvarilo je ukupno 184 milijardi kuna negativnog neto izvoza.
+
+```{r echo = FALSE, message=FALSE, results = 'asis'}
+sel <- function(x, y){
+  kolona_izbor <- list()
+  for (i in 1:length(y)) {
+    kolona_izbor[[i]] <- which(colnames(x) == y[[i]])
+  }
+  kolona_izbor <- unlist(kolona_izbor)
+  return(kolona_izbor)
+}
+top_agr <- function(data, var, nr){
+  top_x <- data %>%
+    dplyr::group_by(subjectid) %>%
+    dplyr::summarise(x = sum(!!rlang::sym(var), na.rm = TRUE)) %>%
+    ungroup() %>%
+    mutate(udio_neto_izvoz = (x / sum(x, na.rm = TRUE)) * 100) %>%
+    dplyr::top_n(., nr, x)
+  nazivi <- fromJSON(toJSON(content(POST(url = "https://api.data-api.io/v1/subjekti",
+                                         add_headers('x-dataapi-key' = "59dd75a6525e",
+                                                     'content-type' = "application/json"),
+                                         body = list(oib = top_x$subjectid), encode = "json", verbose()),
+                                    type = "application/json"), null = "null"), flatten = TRUE)
+  top_x <- merge(top_x, nazivi[,c("naziv", "mb")], by.x = "subjectid", by.y = "mb",
+                             all.x = TRUE, all.y = FALSE)
+  top_x <- top_x %>% arrange(desc(x))
+  colnames(top_x)[sel(top_x, "x")] <- as.character(var)
+  return(top_x)
+}
+gfi$NetoIzvoz <- gfi$b335 - gfi$b370
+top_netoIzvoznici_plus <- top_agr(gfi, "NetoIzvoz", 20)
+top_netoIzvoznici_plus$naziv <- as.character(top_netoIzvoznici_plus$naziv)
+top_netoIzvoznici_plus <- top_netoIzvoznici_plus[, -c(1, 3)]
+colnames(top_netoIzvoznici_plus) <- c("Netoizvoz", "Naziv")
+top_netoIzvoznici_plus[, c(1)] <- round(top_netoIzvoznici_plus[, c(1)], digits = 2)
+kable(top_netoIzvoznici_plus, caption = "Tablica 1: Najveći neto izvoznici")
+```

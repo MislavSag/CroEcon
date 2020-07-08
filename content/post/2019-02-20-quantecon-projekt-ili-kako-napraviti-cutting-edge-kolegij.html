@@ -1,0 +1,671 @@
+---
+title: QuantEcon projekt ili kako napraviti *cutting edge* kolegij
+author: Mislav Sagovac
+date: '2019-02-20'
+slug: quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij
+categories:
+  - R
+  - Ekonomika
+  - Makroekonomija
+tags: []
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+
+<p>U ovom postu želim podijeliti svoje oduševljenje sa <em>online</em> platformom za podučavanje kvantitativne makroekonomiju te prikazati kako se pripadajući programski kodovi (modeli), pisani u Pythonu, mogu implementirati u programskom jeziku R. Riječ je o stranici <a href="https://lectures.quantecon.org/"><em>Quantitative macroeconomics</em></a>, čiji su autori <a href="http://www.tomsargent.com/">T. Sargent</a> i <a href="http://johnstachurski.net/">J. Stachurski</a>. Stranica me nije oduševila zbog vrste kolegija na koji se odnosi (kvantitativna makroekonomija), već zbog upotrebe modernih alata u podučavanju tehnički zahtjevnog i kompleksnog područja. Iako platforma postoji već dosta vremena, čini mi se da veliki broj ljudi nije upoznat s njom. Zanimljivo je da ovu stranicu često preporučuju ne samo ekonomisti, nego i programeri, kao uvod u učenje Pythona za <em>data science</em> ili razne tehničke smjerove na poslijediplomskoj razini. U nastavku objašnjavam zašto me stranica oduševila.</p>
+<p>Krenut ću od očiglednog. Sav sadržaj nalazi se na internetu i svima je dostupan. Sve što je potrebno za korištenje sadržaja je internet veza. S obzirom da je cjelokupni sadržaj prezentiran u html/markdown formatu, moguće je koristiti sve prednosti ovog pristupa, koji nisu dostupni u pisanoj formi. Primjerice, u tekst se kontinuirano dodaju poveznice koje čitatelja šalju na stranice sa detaljnim objašnjenima pojedinih fenomena. Nije potrebno objašnjavati pojmove koji su detaljno i precizno objašnjeni na nekim drugim stranicama.</p>
+<p>Druga očigledna prednost je cijena. Sav sadržaj na stranici je besplatan. Cilj je edukacija, a ne zarada. Ako netko želi potaknuti cijeli <em>QuantEcon</em> projekt, može <a href="https://quantecon.org/store">kupiti majice sa njihovim logom</a>. Naglasak je dakle na dobrovoljnoj pomoći, a ne na plaćanju sadržaja. Ako je stranica kvalitetna i od pomoći, ljudi će biti spremni donirati određeni dio sredstava za njezino održavanje. Dodatno, programski jezici koji se koriste u analizi su <em>open source</em> (jednostavno rečeno besplatni). Ekonomska analiza se uobičajeno radi u Matlabu, čija licenca i nije baš jeftina. Iza Pythona stoji vrlo bogata zajednica koja može vrlo brzo pomoći svakome tko zapne u bilo kojoj fazi pisanja koda.</p>
+<p>Treća, po meni najznačajnija prednost, je uključivanje kodova i rezultata u tekst. Kada sam kao student čitao o određenim ekonomskim modelima, najveće ograničenje mi je predstavljala njihova apstraktnost. Uvjeren sam da ljudi mnogo bolje shvaćaju takve modele kroz numeričko programiranje nego kroz suhoparni matematički model. Kada sami definirate parametre i napišete funkciju koja generira neki ekonomski fenomen, mnogo je lakše shvatiti predmet učenja, kako na razini intuicije, tako i na razini formalnih modela.</p>
+<p>Valja napomenuti da su autori cijeli tekst, zajedno s kodovima i slikama prezentirali pomoću poznatog Python alata - Jupyter notebook. Isti se alat može koristiti i za druge programske jezike, ali se mogu koristiti i drugi alati (primjerice bookdown u R-u ). Ovo je najveća prednost knjige jer omogućuje ono što je u znanosti najbitnije - ponovljivost. Određeni model se može smatrati znanstvenim doprinosom jedino ako je ponovljiv. Iako je večina radova iz ekonomike tehnički reproducibilna, ponavljanje istraživanja u praksi je često vrlo nezgodno. Često autori u radovima ističu da su podaci ili kodovi korišteni u analizi dostupni na zahtjev. Ako uspijete doći do kodova, morate potrošiti vrijeme da shvatite strukturu koda i povežete sve s teorijom. Međutim <em>QuantEcon</em> daje teorijski pregled, poveznice na druge izvore, kodove i rezultate u jednom. Ako želite procijeniti osjetljivost rezultata na neki parametar potrebno je samo promijeniti jedan broj u tekstu.</p>
+<p>Postoji još nekoliko sjajnih stvari oko <em>QuantEcona</em>. Predavanjima se kontinuirano dodaje novi sadržaj. Dok se nekada moralo godinama čekati na objavljivanje novog izdanja neke knjige, ovdje se novi sadržaj dodaje kontinuirano. Primjerice 24.01.2019 je <a href="https://quantecon.org/news/krusell-smith-julia">dodan novi <em>notebook</em></a> u kojem se analizira “Krusell-Smith” model u programskom jeziku Julia. Nadalje, cijeli projekt je nadišao samo predavanje koje su pisali Sargent i Stachurski. Osim ovih predavanja postoje i ad hoc analize različitih ekonomista, te radionice i seminari. Više možete vidjeti <a href="https://quantecon.org/">ovdje</a>.</p>
+<p>Jedna stvar me zasmetala dok sam istraživao stranicu: nema R kodova :). Stoga sam “morao” replicirati nekoliko jednostavnih modela iz <a href="https://lectures.quantecon.org/py/index_advanced_python_programming.html">3 poglavlja</a> u R-u. Ovaj dio teksta je više tehnički, pa čitatelji koje ne zanima primjena u R-u mogu preskočiti ovaj dio.</p>
+<p>Autori kroz cijeli tekst koriste klase za izgradnju modela. Više o klasama i objektno orijentiranom programiranju nalazi se u sljedećem <a href="https://lectures.quantecon.org/py/python_oop.html">potpoglavlju predavanja</a>. Postavlja se pitanje, kako napraviti klasu u R-u, odnosno kako primijeniti OOP u R-u? Tri su moguća pristupa: S3 klase, S4 klase i R6 klase. Postoje još neke druge klase, ali one nisu zaživjele u R zajednici. Najpoznatija je S4 klasa (najviše se koristi u izrađivanju R paketa), ali činilo mi se da je R6 klasa prihvatljivija za navedeni problem, te vjernije može preslikati modele sa QuantEcon-a. Za konstruiranje R6 klase potrebna je samo jedna funkcija: <code>R6::R6Class()</code>. Unutar te funkcije postoje samo dva argumenta koja su nužna za funkcioniranje klase: <code>classname</code> i <code>public</code>.</p>
+<p>Sada ću prikazati kako sam pomoću R-a. koristeći R6 klase, replicirao modele u <em>QuantEconu</em>. Za početak ću prikazati “Consumer” klasu koja se <a href="https://lectures.quantecon.org/py/python_oop.html">prikazuje nakon podnaslova “Example: A Consumer Class”</a>. Potrebno je učitati R6 paket, definirati nazive klase i <code>public</code> argument:</p>
+<div id="consuer-model" class="section level3">
+<h3>CONSUER MODEL</h3>
+<pre class="r"><code>library(R6)
+library(tidyr)
+library(assertive)
+
+Consumer &lt;- R6Class(
+  classname = &quot;Consumer&quot;,
+
+  public = list(
+    
+    wealth = NULL,
+    initialize = function(wealth) {
+      self$wealth &lt;- wealth
+    },
+    earn = function(y) {
+      self$wealth = self$wealth + y
+      invisible(self)
+    },
+    spend = function(x) {
+      new_wealth = self$wealth - x
+      if (new_wealth &lt; 0) {
+        message(&quot;Insufficent funds&quot;)
+      }else{
+        self$wealth = self$wealth - x
+        invisible(self)
+      }
+    }
+  )
+)</code></pre>
+<p>Zanimljivo je sto se događa u <code>public</code> argumentu, koji se sastoji od polja (ne-funkcije) <code>wealth</code> i tri metode: <code>initialize</code> , koja inicira vrijednost bogatstva pri kreiranju novog objekta, te <code>earn</code> i <code>spend</code>, koje su razumljive same po sebi. Iz ovako definirane klase se mogu jednostavno “stvoriti” različiti “potrošači” (primjeri):</p>
+<pre class="r"><code># Here’s an example of usage
+c1 &lt;- Consumer$new(10)  # Create instance with initial wealth 10
+c1$spend(5)
+c1$wealth</code></pre>
+<pre><code>## [1] 5</code></pre>
+<pre class="r"><code>c1$earn(15)
+c1$spend(100)
+# We can of course create multiple instances each with its own data
+c1 &lt;- Consumer$new(10)
+c2 &lt;- Consumer$new(12)
+c2$spend(4)
+c2$wealth</code></pre>
+<pre><code>## [1] 8</code></pre>
+<pre class="r"><code>c1$wealth</code></pre>
+<pre><code>## [1] 10</code></pre>
+<p>c1 je potrošač jedan. Metoda <code>new</code> kreira novi <em>instance</em> na koji se potom primjenjuju metode <code>earn</code> i <code>spend</code>. Iako se ova klasa čini vrlo jednostavna, kompliciranije klase ustvari slijede isti princip! Primjerice, sljedeći model u tekstu je Solow-groth model (Python u predavanjima kod dolazi odmah nakon Consumer modela). Ovdje prikazujem R kod za Solow-growth model:</p>
+</div>
+<div id="solow-growth-model" class="section level3">
+<h3>SOLOW GROWTH MODEL</h3>
+<pre class="r"><code>library(ggplot2)   # za vizualizaciju
+
+Solow &lt;- R6Class(
+  &quot;Solow&quot;,
+  
+  public = list(
+    n = NULL,  # population growth rate
+    s = NULL,  # savings rate
+    delta = NULL,   # depreciation rate
+    alpha = NULL,   # share of labor
+    z = NULL,   # productivity
+    k = NULL,  # current capital stock
+    
+    initialize = function(n = 0.05, s = 0.25, delta = 0.1, alpha = 0.3, z = 2.0, k = 1.0) {
+      self$n &lt;- n
+      self$s &lt;- s
+      self$delta &lt;- delta
+      self$alpha &lt;- alpha
+      self$z &lt;- z
+      self$k &lt;- k
+    },
+    h = function(...) {
+      rhs &lt;- (self$s * self$z * self$k**self$alpha + (1 - self$delta) * self$k) / (1 + self$n)
+      rhs
+    },
+    update = function(...) {
+      self$k &lt;- self$h()
+    },
+    steady_state = function() {
+      ss &lt;- ((self$s * self$z) / (self$n + self$delta))**(1 / (1 - self$alpha))
+      ss
+    },
+    generate_sequence = function(t) {
+      path = vector(&quot;numeric&quot;, t)
+      for (i in 1:t) {
+        path[i] &lt;- self$k
+        self$update()
+      }
+      path
+    }
+  )
+)
+
+# plot
+s1 &lt;- Solow$new()
+s2 &lt;- Solow$new(k = 8.0)
+t = 60
+df &lt;- data.frame(s1 = s1$generate_sequence(t), s2 = s2$generate_sequence(t), 
+                 ss = s1$steady_state(), y = 1:t, stringsAsFactors = FALSE)
+df &lt;- tidyr::gather(df, key = &quot;variable&quot;, value = &quot;value&quot;, - y)
+ggplot(df[df$variable %in% c(&quot;s1&quot;, &quot;s2&quot;),], aes(x = y, y = value, color = variable)) +
+  geom_line() + geom_point() + 
+  geom_line(data = df[df$variable == &quot;ss&quot;,], aes(x = y, y = value), size = 1.2)</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Kod izgleda mnogo kompliciranije, ali ustvari je primijenjen isti princip kao i kod potrošača! Razlika je samo u više varijabli i više metoda koje se primjenjuju na svaki <em>instance</em>. Za razumjeti modela, potrebno je razumijeti jednadžbu za <code>h</code> i <code>steady state</code>, ali to je stvar teorije i matematičkog izvoda. Čitatelj može sam mijenjati vrijednost parametara kako bi vidio njihov utjecaj na ponašanje krivulja na grafikonu. Čitatelj također može provjeriti da je output isti kao i Quantecon predavanjima. Varijabla <code>ss</code> je <em>steady state</em>, <code>s1</code> je putanja kapitala uz početni stok kapitala 0, a <code>s2</code> putanja kapitala u početni stok kapitala jednk 0.8.</p>
+<p>Nakon što sam uspješno replicirao prva dva modela, bio sam dovoljno motiviran da repliciram <em>market model</em> i <em>chaos model</em>:</p>
+</div>
+<div id="market-model" class="section level3">
+<h3>MARKET MODEL</h3>
+<pre class="r"><code>Market &lt;- R6Class(
+  &quot;Market&quot;,
+  
+  public = list(
+    ad = NULL,
+    bd = NULL,
+    az = NULL,
+    bz = NULL,
+    tax = NULL,
+    initialize = function(ad, bd, az, bz, tax) {
+      self$ad &lt;- ad
+      self$bd &lt;- bd
+      self$az &lt;- az
+      self$bz &lt;- bz
+      self$tax &lt;- tax
+      assert_all_are_greater_than(ad, bz)
+    },
+    price = function() {
+      return((self$ad - self$az + self$bz * self$tax) / (self$bd + self$bz))
+    },
+    quantity = function() {
+      return(self$ad - self$bd * self$price())
+    },
+    consumer_surp = function() {
+      # == Compute area under inverse demand function == #
+      integrand &lt;- function(x) {
+        (self$ad / self$bd) - (1 / self$bd) * x
+        }
+      area &lt;- integrate(integrand, 0, self$quantity())
+      return(area$value - self$price() * self$quantity())
+    },
+    producer_surp = function() {
+      #  == Compute area above inverse supply curve, excluding tax == #
+      integrand &lt;- function(x) {
+        -(self$az / self$bz) + (1 / self$bz) * x
+      }
+      area &lt;- integrate(integrand, 0, self$quantity())
+      return((self$price() - self$tax) * self$quantity() - area$value)
+    },
+    taxrev = function() {
+      return(self$tax * self$quantity())
+    },
+    inverse_demand = function(x) {
+      return(self$ad / self$bd - (1 / self$bd)* x)
+    },
+    inverse_supply = function(x) {
+      return(-(self$az / self$bz) + (1 / self$bz) * x + self$tax)
+    },
+    inverse_supply_no_tax = function(x) {
+      return(-(self$az / self$bz) + (1 / self$bz) * x)
+    }
+  )
+)
+
+# usage
+m &lt;- Market$new(15.0, 0.5, -2.0, 0.5, 3.0)
+paste0(&quot;equilibrium price = &quot;, m$price())</code></pre>
+<pre><code>## [1] &quot;equilibrium price = 18.5&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;equilibrium quantity = &quot;, m$quantity())</code></pre>
+<pre><code>## [1] &quot;equilibrium quantity = 5.75&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;consumer surplus = &quot;, m$consumer_surp())</code></pre>
+<pre><code>## [1] &quot;consumer surplus = 33.0625&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;producer surplus = &quot;, m$producer_surp())</code></pre>
+<pre><code>## [1] &quot;producer surplus = 33.0625&quot;</code></pre>
+<pre class="r"><code>m &lt;- Market$new(15, .5, -2, .5, 3)
+q_max &lt;- m$quantity() * 2
+q_grid &lt;- seq(0, q_max, length.out = 100)
+pd = m$inverse_demand(q_grid)
+ps = m$inverse_supply(q_grid)
+psno = m$inverse_supply_no_tax(q_grid)
+
+df &lt;- data.frame(y = 1:length(pd), pd = pd, ps = ps, psno = psno, stringsAsFactors = FALSE)
+df &lt;- tidyr::gather(df, key = &quot;variable&quot;, value = &quot;value&quot;, - y)
+ggplot(df[df$variable %in% c(&quot;pd&quot;, &quot;ps&quot;),], aes(x = y, y = value, color = variable)) +
+  geom_line() +
+  geom_line(data = df[df$variable == &quot;psno&quot;,], aes(x = y, y = value), linetype = &quot;dashed&quot;) +
+  labs(x = &quot;quantity&quot;, y = &quot;price&quot;)</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code># computes dead weight loss from the imposition of the tax
+deadw &lt;- function(m) {
+  # == Create analogous market with no tax == #
+  m_no_tax &lt;- Market$new(m$ad, m$bd, m$az, m$bz, 0)
+  # == Compare surplus, return difference == #
+  surp1 &lt;- m_no_tax$consumer_surp() + m_no_tax$producer_surp()
+  surp2 &lt;- m$consumer_surp() + m$producer_surp() + m$taxrev()
+  return(surp1 - surp2)
+}
+m &lt;- Market$new(15, .5, -2, .5, 3)
+deadw(m)  # Show deadweight loss</code></pre>
+<pre><code>## [1] 1.125</code></pre>
+</div>
+<div id="chaos" class="section level3">
+<h3>CHAOS</h3>
+<pre class="r"><code>Chaos &lt;- R6Class(
+  &quot;Chaos&quot;,
+  
+  public = list(
+    x = NULL,
+    r = NULL,
+    initialize = function(x0, r) {
+      self$x &lt;- x0
+      self$r &lt;- r
+    },
+    update = function() {
+      self$x &lt;- self$r * self$x * (1 - self$x)
+    },
+    generate_sequence = function(n) {
+      path &lt;- vector(&quot;numeric&quot;, n)
+      for (i in 1:n) {
+        path[i] &lt;- self$x
+        self$update()
+      }
+      path
+    }
+  )
+)
+
+# Usage
+ch = Chaos$new(0.1, 4.0)
+ch$generate_sequence(5)</code></pre>
+<pre><code>## [1] 0.1000000 0.3600000 0.9216000 0.2890138 0.8219392</code></pre>
+<pre class="r"><code>ch &lt;- Chaos$new(0.1, 4.0)
+ts_length &lt;- 250
+df &lt;- data.frame(y = 1:ts_length, x_t = ch$generate_sequence(ts_length), stringsAsFactors = FALSE)
+ggplot(df, aes(x = y, y = x_t)) +
+  geom_line(color = &quot;blue&quot;) + geom_point(color = &quot;blue&quot;)</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>ch &lt;- Chaos$new(0.1, 4.0)
+r &lt;- 2.5
+result &lt;- NULL
+while (r &lt; 4) {
+  ch$r &lt;- r
+  t &lt;- ch$generate_sequence(1000)[950:1000]
+  x &lt;- cbind(r, t)
+  result &lt;- rbind(result, x)
+  r &lt;- r + 0.005
+}
+result &lt;- as.data.frame(result, stringsAsFactors = FALSE)
+ggplot(result, aes(x = r, y = t)) +
+  geom_point(color = &quot;blue&quot;, size = 0.5)</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<p>Ponovno se može provjeriti da su grafikoni isti kao i u QuantEcon predavanjima. Kako bi bio siguran da se svi modeli mogu primjeniti u R-u probao sam replicirati i model Samuelsonovog akceleratora i sljedećeg potpoglavlja:</p>
+</div>
+<div id="the-samuelson-accelerators" class="section level3">
+<h3>THE SAMUELSON ACCELERATORS</h3>
+<pre class="r"><code># graph
+p1 &lt;- seq(-2, 2, length.out = 100)
+p2 &lt;- -abs(p1) + 1
+p3 &lt;- rep(-1, length(p1))
+p4 &lt;- -(p1**2 / 4)
+df &lt;- cbind(p1, p2, p3, p4)
+df &lt;- as.data.frame(df, stringsAsFactors = FALSE)
+# df &lt;- tidyr::gather(df, key = &quot;var&quot;, value = &quot;value&quot;, - p1)
+ggplot(data = df, aes(x = p1, y = p2)) + 
+  geom_line() +
+  geom_line(aes(x = p1, y = p3)) +
+  geom_line(aes(x = p1, y = p4)) +
+  coord_cartesian(xlim = c(-3,3), ylim = c(-2,2)) +
+  geom_segment(aes(x = -3,y = 0, xend = 3, yend = 0), arrow = arrow(length = unit(0.3, &quot;cm&quot;), ends = &quot;both&quot;)) +
+  geom_segment(aes(x = 0,y = -2, xend = 0, yend = 2), arrow = arrow(length = unit(0.3, &quot;cm&quot;), ends = &quot;both&quot;)) + 
+  annotate(&quot;text&quot;, 1.6, 1, label = &quot;Expensive\ngrowth&quot;, size = 4.5) +
+  annotate(&quot;text&quot;, -1.5, 1, label = &quot;Expensive\noscillations&quot;, size = 4.5) +
+  annotate(&quot;text&quot;, 0.05, -1.5, label = &quot;Explosive oscillations&quot;, size = 4.5) +
+  annotate(&quot;text&quot;, 0.09, -0.5, label = &quot;Damped oscillations&quot;, size = 4.5) +
+  annotate(&quot;text&quot;, -0.12, -1.12, label = &quot;-1&quot;, size = 4) +
+  annotate(&quot;text&quot;, -0.12, 0.98, label = &quot;1&quot;, size = 4) +
+  annotate(&quot;text&quot;, 3.05, -0.1, label = expression(rho[1]), size = 4) +
+  annotate(&quot;text&quot;, 0, 2.1, label = expression(rho[2]), size = 4) +
+  annotate(&quot;text&quot;, 0.8, 0.6, label = expression(rho[1]+rho[2]&lt;1), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = 0.8,y = 0.5, xend = 0.5, yend = 0.3), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;)) +
+  annotate(&quot;text&quot;, 0.6, 0.8, label = expression(rho[1]+rho[2]==1), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = 0.6,y = 0.8, xend = 0.38, yend = 0.6), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;)) +
+  annotate(&quot;text&quot;, -1.3, 0.6, label = expression(rho[2]&lt;1+rho[1]), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = -0.8,y = 0.4, xend = -0.5, yend = 0.3), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;), 
+             curvature = -0.5) +
+  annotate(&quot;text&quot;, -1, 0.8, label = expression(rho[2]==1+rho[1]), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = -0.55,y = 0.6, xend = -0.4, yend = 0.6), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;), 
+             curvature = -0.5) +
+  annotate(&quot;text&quot;, 1.8, -1.3, label = expression(rho[2]==-1), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = 1.8,y = -1.3, xend = 1.5, yend = -1), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;), 
+             curvature = -0.5) +
+  annotate(&quot;text&quot;, 1.5, -0.3, label = expression(rho[1]^2+4*rho[2]==0), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = 1.5,y = -0.3, xend = 1.15, yend = -0.35), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;), 
+             curvature = 0.5) +
+  annotate(&quot;text&quot;, 1.8, -0.6, label = expression(rho[1]^2+4*rho[2]&lt;0), size = 4, hjust = -0.1) +
+  geom_curve(aes(x = 1.8,y = -0.6, xend = 1.4, yend = -0.7), arrow = arrow(length = unit(0.2, &quot;cm&quot;), ends = &quot;last&quot;), 
+             curvature = 0.5) +
+  theme(axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(),
+        axis.title = element_blank())</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code># Function to describe implications of characteristic polynomial
+categorize_solution &lt;- function(p1, p2) {
+  discriminant &lt;- p1 ** 2 + 4 * p2
+  if (p2 &gt; 1 + p1 | p2 &lt; -1) {
+    print(&#39;Explosive oscillations&#39;)
+  } else if (p1 + p2 &gt; 1) {
+    print(&#39;Explosive growth&#39;)
+  } else if (discriminant &lt; 0) {
+    print(&#39;Roots are complex with modulus less than one; therefore damped oscillations&#39;)
+  } else {
+    print(&#39;Roots are real and absolute values are less than zero; therefore get smooth convergence to a steady state&#39;)
+  }
+}
+### Test the categorize_solution function
+categorize_solution(1.3, -.4)</code></pre>
+<pre><code>## [1] &quot;Roots are real and absolute values are less than zero; therefore get smooth convergence to a steady state&quot;</code></pre>
+<pre class="r"><code># Manual or “by hand” root calculations
+y_nonstochastic &lt;- function(y_0=100, y_1=80, alpha=.92, beta=.5, gama=10, n=80) {
+  roots &lt;- vector(&quot;numeric&quot;)
+  
+  p1 &lt;- alpha + beta
+  p2 &lt;- -beta
+  
+  print(paste0(&#39;ρ_1 is &#39;, p1))
+  print(paste0(&#39;ρ_2 is &#39;, p2))
+  
+  discriminant &lt;- p1 ** 2 + 4 * p2
+  
+  if (discriminant == 0) {
+    roots &lt;- -p1 / 2
+    print(&#39;Single real root: &#39;)
+    print(paste0(roots))
+  } else if (discriminant &gt; 0) {
+    roots &lt;- c((-p1 + sqrt(discriminant)) / 2, (-p1 - sqrt(discriminant)) / 2)
+    print(&#39;Two real roots: &#39;)
+    print(paste0(roots))
+  } else {
+    roots &lt;- c((-p1 + sqrt(as.complex(discriminant))) / 2, (-p1 - sqrt(as.complex(discriminant))) / 2)
+    print(&#39;Two complex roots: &#39;)
+    print(paste0(roots))
+  }
+    if (all(abs(Re(roots)) &lt; 1)) {
+      print(&#39;Absolute values of roots are less than one&#39;)
+    } else {
+      print(&#39;Absolute values of roots are not less than one&#39;)
+    }
+  
+  transition &lt;- function(x, t) {
+    return(p1 * x[t - 1] + p2 * x[t - 2] + gama)
+  }
+  
+  y_t = c(y_0, y_1)
+  
+  for (t in 3:n) {
+    y_t[t] &lt;- transition(y_t, t)
+  }
+  return(y_t)
+}
+
+y_t &lt;- y_nonstochastic()</code></pre>
+<pre><code>## [1] &quot;&lt;U+03C1&gt;_1 is 1.42&quot;
+## [1] &quot;&lt;U+03C1&gt;_2 is -0.5&quot;
+## [1] &quot;Two real roots: &quot;
+## [1] &quot;-0.645968757625672&quot; &quot;-0.774031242374328&quot;
+## [1] &quot;Absolute values of roots are less than one&quot;</code></pre>
+<pre class="r"><code>y_t &lt;- data.frame(t = 1:length(y_t),y_t = y_t, stringsAsFactors = FALSE)
+ggplot(data = y_t, aes(x = t, y = y_t)) +
+  geom_line(color = &quot;blue&quot;) +
+  labs(x = &quot;Time t&quot;, y = expression(Y[t]))</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<pre class="r"><code># Reverse engineering parameters to generate damped cycles
+f &lt;- function(r, phi) {
+  g1 &lt;- complex(modulus = r, argument = phi)  # Generate two complex roots
+  g2 &lt;- complex(modulus = r, argument = -phi)
+  p1 &lt;- g1 + g2           # Implied ρ1, ρ2
+  p2 &lt;- -g1 * g2
+  b &lt;- -p2                # Reverse engineer a and b that validate these
+  a &lt;- p1 - b
+  list(p1, p2, a, b)
+}
+## Now let&#39;s use the function in an example
+## Here are the example paramters
+r = .95
+period = 10                # Length of cycle in units of time
+phi = 2 * pi/period
+## Apply the function
+f1 &lt;- f(r, phi)
+paste0(&quot;a, b = &quot;, f1[[3]], &quot;, &quot;, f1[[4]])</code></pre>
+<pre><code>## [1] &quot;a, b = 0.6346322893124+0i, 0.9025+0i&quot;</code></pre>
+<pre class="r"><code>paste0(&quot;p1, p2 = &quot;, f1[[1]], &quot;, &quot;, f1[[2]])</code></pre>
+<pre><code>## [1] &quot;p1, p2 = 1.5371322893124+0i, -0.9025+0i&quot;</code></pre>
+<pre class="r"><code>## Print the real components of ρ1 and ρ2
+p1 = Re(f1[[1]])
+p2 = Re(f1[[2]])
+p1; p2</code></pre>
+<pre><code>## [1] 1.537132</code></pre>
+<pre><code>## [1] -0.9025</code></pre>
+<pre class="r"><code># Reverse engineered complex roots: example
+r = 1   # generates undamped, nonexplosive cycles
+period = 10   #  length of cycle in units of time
+phi = 2 * pi/period
+## Apply the reverse engineering function f
+f1 &lt;- f(r, phi)
+a = Re(f1[[3]])   # drop the imaginary part so that it is a valid input into y_nonstochastic
+b = Re(f1[[4]])
+a; b</code></pre>
+<pre><code>## [1] 0.618034</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>ytemp &lt;- y_nonstochastic(alpha = a, beta = b, y_0 = 20, y_1 = 30)</code></pre>
+<pre><code>## [1] &quot;&lt;U+03C1&gt;_1 is 1.61803398874989&quot;
+## [1] &quot;&lt;U+03C1&gt;_2 is -1&quot;
+## [1] &quot;Two complex roots: &quot;
+## [1] &quot;-0.809016994374947+0.587785252292473i&quot;
+## [2] &quot;-0.809016994374947-0.587785252292473i&quot;
+## [1] &quot;Absolute values of roots are less than one&quot;</code></pre>
+<pre class="r"><code>y_t &lt;- data.frame(t = 1:length(ytemp),y_t = ytemp, stringsAsFactors = FALSE)
+ggplot(data = y_t, aes(x = t, y = y_t)) +
+  geom_line(color = &quot;blue&quot;) +
+  labs(x = &quot;Time t&quot;, y = expression(Y[t]))</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
+<pre class="r"><code># Stochastic shocks
+y_stochastic &lt;- function(y_0=0, y_1=0, alpha=0.8, beta=0.2, delta=10, n=100, sigma=5) {
+  # Useful constants
+  p1 = alpha + beta
+  p2 = -beta
+  
+  # Categorize solution
+  categorize_solution(p1, p2)
+  
+  # Find roots of polynomial
+  roots &lt;- polyroot(c(-p2, -p1, 1))
+  # Check if real or complex
+  if (all(is.complex(roots))) {
+    print(roots)
+    print(&#39;Roots are complex&#39;)
+    roots &lt;- Re(roots)
+  } else {
+    print(roots)
+    print(&#39;Roots are real&#39;)
+  }
+
+  # Check if roots are less than one
+  if (all(abs(roots) &lt; 1)) {
+    print(&#39;Roots are less than one&#39;)
+  } else {
+    print(&#39;Roots are not less than one&#39;)
+  }
+  
+  # Generate shocks
+  epsilon = rnorm(n, 0, 1)
+
+  # Define transition equation
+  transition &lt;- function(x, t) {
+    return(p1 * x[t - 1] + p2 * x[t - 2] + delta + sigma * epsilon[t])
+  }
+  
+  # Set initial conditions
+  y_t &lt;- c(y_0, y_1)
+  
+  # Generate y_t series
+  for (t in 1:n) {
+    y_t &lt;- c(y_t, transition(y_t, t))
+  }
+
+  return(y_t)
+}
+
+x &lt;- y_stochastic()</code></pre>
+<pre><code>## [1] &quot;Roots are real and absolute values are less than zero; therefore get smooth convergence to a steady state&quot;
+## [1] 0.2763932+0i 0.7236068-0i
+## [1] &quot;Roots are complex&quot;
+## [1] &quot;Roots are less than one&quot;</code></pre>
+<pre class="r"><code>df &lt;- data.frame(t = 1:length(x), y_t = x, stringsAsFactors = FALSE)
+ggplot(df, aes(x = t, y = y_t)) +
+  geom_line(color = &quot;blue&quot;)</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-6-4.png" width="672" /></p>
+<pre class="r"><code># simulation in which there are shocks and the characteristic polynomial has complex roots
+r &lt;- 0.97
+period &lt;- 10   #  length of cycle in units of time
+phi = 2 * pi/period
+
+### apply the  reverse engineering function f
+f1 &lt;- unlist(f(r, phi))
+p1 &lt;- f1[1]; p2 &lt;- f1[2]; a &lt;- f1[3]; b &lt;- f1[4] 
+a &lt;- Re(a)  # drop the imaginary part so that it is a valid input into y_nonstochastic
+b &lt;- Re(b)
+
+paste0(&quot;a, b = &quot;, a, &quot; &quot;, b)</code></pre>
+<pre><code>## [1] &quot;a, b = 0.628592969087398 0.9409&quot;</code></pre>
+<pre class="r"><code>x &lt;- y_stochastic(y_0 = 40, y_1 = 42, alpha = a, beta = b, sigma = 2, n = 100)</code></pre>
+<pre><code>## [1] &quot;Roots are complex with modulus less than one; therefore damped oscillations&quot;
+## [1] 0.7847465+0.5701517i 0.7847465-0.5701517i
+## [1] &quot;Roots are complex&quot;
+## [1] &quot;Roots are less than one&quot;</code></pre>
+<pre class="r"><code>df &lt;- data.frame(t = 1:length(x), y_t = x, stringsAsFactors = FALSE)
+ggplot(df, aes(x = t, y = y_t)) +
+  geom_line(color = &quot;blue&quot;)</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-6-5.png" width="672" /></p>
+<pre class="r"><code># SKIP Government spending !!!
+
+# Wrapping everything into a class
+Samuelson &lt;- R6Class(
+  &quot;Samuelson&quot;,
+  
+  public = list(
+    y_0 = NULL,
+    y_1 = NULL,
+    alpha = NULL,
+    beta = NULL,
+    gama = NULL,
+    n = NULL,
+    sigma = NULL,
+    g = NULL,
+    g_t = NULL,
+    duration = NA,
+    p1 = NA,
+    p2 = NA,
+    roots = NA,
+    initialize = function(y_0 = 100, y_1 = 50, alpha = 1.3, beta = 0.2, gama = 10, n = 100, sigma = 0, 
+                          g = 0, g_t = 0, duration = NA) {
+      self$y_0 &lt;- y_0; self$y_1 &lt;- y_1; self$alpha &lt;- alpha; self$beta &lt;- beta; self; self$gama &lt;- gama
+      self$n &lt;- n; self$sigma &lt;- sigma; self$g &lt;- g; self$g_t &lt;- g_t; self$duration &lt;- duration
+      self$p1 &lt;- alpha + beta; self$p2 &lt;- -beta
+      self$roots &lt;- polyroot(c(-self$p2, -self$p1, 1))
+      # if (all(is.complex(self$roots))) {
+      #   self$roots &lt;- Re(self$roots)
+      # }
+    },
+    root_type = function() {
+      if (all(is.complex(self$roots))) {
+        return(&#39;Complex conjugate&#39;)
+      } else if (length(self$roots &gt; 1)) {
+        &#39;Double real&#39;
+      } else {
+        &#39;Single real&#39;
+      }
+    },
+    root_less_than_one = function() {
+      if (all(abs(self$roots) &lt; 1)) {
+        return(TRUE)
+      }
+    },
+    solution_type = function() {
+      discriminant = self$p1 ** 2 + 4 * self$p2
+      if (self$p2 &gt;= 1 + self$p1 | self$p2 &lt;= -1) {
+        return(&#39;Explosive oscillations&#39;)
+      } else if ( self$p1 +  self$p2 &gt;= 1) {
+        return(&#39;Explosive growth&#39;)
+      } else if (discriminant &lt; 0) {
+        return(&#39;Damped oscillations&#39;)
+      } else {
+        return(&#39;Steady state&#39;)
+      }
+    },
+    transition_ = function(x, t, g) {
+      if (self$sigma == 0) {
+        return(self$p1 * x[t - 1] + self$p2 * x[t - 2] + self$gama + g)
+      } else {
+        epsilon &lt;- rnorm(self$n, 0, 1)
+        return(self$p1 * x[t - 1] + self$p2 * x[t - 2] + self$gama + g + self$sigma * epsilon[t])
+      }
+    },
+    generate_series = function() {
+      # Create list and set initial conditions
+      y_t = c(self$y_0, self$y_1)
+      # Generate y_t series
+      for (t in 3:self$n) {
+        # No government spending
+        if (self$g == 0) {
+          y_t &lt;- c(y_t, self$transition_(y_t, t, g = 0))
+        } else if (self$g != 0 &amp; !is.na(self$duration)) {
+          # Government spending (no shock)
+          y_t &lt;- c(y_t, self$transition_(y_t, t, self$g))
+        } else if (self$duration == &#39;permanent&#39;) {
+          # Permanent government spending shock
+          if (t &lt; self$g_t) {
+            y_t &lt;- c(y_t, self$transition_(y_t, t, g = 0))
+          } else {
+            y_t &lt;- c(y_t, self$transition_(y_t, t, g = self$g))
+          }
+        } else if (self$duration == &#39;one-off&#39;) {
+          # One-off government spending shock
+          if (t &lt; self$g_t) {
+            y_t &lt;- c(y_t, self$transition_(y_t, t, self$g))
+          } else {
+            y_t &lt;- c(y_t, self$transition_(y_t, t, g = 0))
+          }
+        }
+      }
+      return(y_t)
+    },
+    summary = function() {
+      cat(c(&#39;Summary\n&#39;, paste0(rep(&#39;-&#39;, 50), collapse = &quot;&quot;), &quot;\n&quot;))
+      print(paste0(&#39;Root type: &#39;, self$root_type()))
+      print(paste0(&#39;Solution type: &#39;, self$solution_type()))
+      print(paste0(&#39;Roots: &#39;, self$roots))
+      
+      if (self$root_less_than_one() == TRUE) {
+        print(&#39;Absolute value of roots is less than one&#39;)
+      } else {
+        print(&#39;Absolute value of roots is not less than one&#39;)
+      }
+      if (self$sigma &gt; 0) {
+        print(paste0(&#39;Stochastic series with σ = &#39;, self$sigma))
+      } else {
+        print(&#39;Non-stochastic series&#39;)
+      }
+      if (self$g != 0) {
+        print(paste0(&#39;Government spending equal to &#39;, self$g))
+      }
+      if (!is.na(self$duration)) {
+        print(paste0(toupper(substring(self$duration, 1, 1)), substring(self$duration, 2), 
+                     &#39; government spending shock at t = &#39;, self$g_t))
+      }
+    },
+    plot = function() {
+      x &lt;- self$generate_series()
+      df &lt;- data.frame(y_t = x, t = 1:length(x))
+      ggplot(df, aes(x = t, y = y_t)) + 
+        geom_line(color = &quot;blue&quot;) +
+        labs(x = &quot;Iteration&quot;, y = expression(y[t])) +
+        annotate(&quot;text&quot;, x = 95, y = c(50, 0.95 * 50, 0.9 * 50, 0.85 * 50, 0.8 * 50, 0.75 * 50), 
+                 label = c(paste0(&quot;alpha==&quot;, self$alpha), paste0(&quot;beta==&quot;, self$beta), paste0(&quot;gamma==&quot;, self$gama),
+                           paste0(&quot;sigma==&quot;, self$sigma), paste0(&quot;rho[1]==&quot;, self$p1), paste0(&quot;rho[2]==&quot;, self$p2)),
+                 size = 3, parse = TRUE)
+
+    }
+    
+  )
+)
+S1 &lt;- Samuelson$new(alpha = 0.8, beta = 0.5, sigma = 2, g = 10, g_t = 20, duration = &#39;permanent&#39;)
+S1$summary()</code></pre>
+<pre><code>## Summary
+##  -------------------------------------------------- 
+## [1] &quot;Root type: Complex conjugate&quot;
+## [1] &quot;Solution type: Damped oscillations&quot;
+## [1] &quot;Roots: 0.65+0.278388218141501i&quot; &quot;Roots: 0.65-0.278388218141501i&quot;
+## [1] &quot;Absolute value of roots is less than one&quot;
+## [1] &quot;Stochastic series with &lt;U+03C3&gt; = 2&quot;
+## [1] &quot;Government spending equal to 10&quot;
+## [1] &quot;Permanent government spending shock at t = 20&quot;</code></pre>
+<pre class="r"><code>S1$plot()</code></pre>
+<p><img src="/post/2019-02-20-quantecon-projekt-ili-kako-napraviti-cutting-edge-kolegij_files/figure-html/unnamed-chunk-6-6.png" width="672" /></p>
+<p>Rezultati u R-u su isti kao i QuantEcon Python kodovima. Ako je suditi prema uvodnim poglavljima, svi kodovi se ralativno jednostavno mogu pretoviriti u R kod. Zanimljivo je da sam za cijeli program koristio samo R6 klase i <code>ggplot</code> paket za vizualizacije. Bilo bi vrlo korisno i ostale modele pretvoriti u R kod, te prevesti tekst na Hrvatski. Ako bi netko pomogao u projektu, mogli bi zajdnički napraviti.</p>
+<p>Zaključno, smatram da bi sve više kolegija na fakultetima trebalo primjenjivati <em>QuantEcon</em> pristup jer omogućuje raspoloživost sadržaja (internet), dostupnost znanja svima (besplatno, <em>open source</em> programski jezici), ponovljivost rezultata (raspoloživi kodovi), eksperimentiranje sa rezultatima modela, cjelinu znanja (teorija, podaci, programiranje, poveznice na relevantne izvore) i, ne manje važno, mnogo je zabavnije od čitanja udžbenika :)</p>
+</div>

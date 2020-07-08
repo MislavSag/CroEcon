@@ -1,0 +1,550 @@
+---
+title: Productivity puzzle i digitalna ekonomija u RH
+author: Luka Šikić
+date: '2019-04-08'
+slug: productivity-puzzle-i-digitalna-ekonomija-u-rh
+categories:
+  - Ekonomika
+tags:
+  - produktivnost
+  - nefinancijska poduzeća
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r paketi, warning = FALSE, include = FALSE}
+
+rm(list = ls()) 
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(eurostat)
+library(tufte)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(grid)
+library(ggthemes)
+library(extrafont)
+library(purrr)
+library(gridExtra)
+library(tidyr)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(gridExtra)
+library(scales)
+library(ggpubr)
+library(prodest)
+library(ggplot2)
+library(knitr)
+library(huxtable)
+
+
+
+```
+
+
+```{r varijable, message = FALSE , include = FALSE}
+
+
+db <- dbConnect(MySQL(),
+                dbname = "odvjet12_gfi", 
+                host =  "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b372 AS Zaposleni,
+                     b084/1000000000 AS d_dug,
+                     b094/1000000000 AS k_dug,
+                     b010/1000000000 AS matimov, 
+                     b063/1000000000 AS kapital_rezerve,
+                     b064/1000000000 AS osnovni_kapital,
+                     b003/1000000000 AS nematimov,
+                     b110/1000000000 AS prihod,
+                     b120/1000000000 AS placa_net,
+                     b119/1000000000 AS placa_brutto,
+                     b123/1000000000 AS amortizacija,
+                     b136/1000000000 AS financijski_trosak,
+                     b159/1000000000 AS porez_dobit,
+                     b151/1000000000 AS nett,
+                     b115/1000000000 AS materijalni_trosak,
+                     b084/1000000000 AS d_obveze,
+                     b094/1000000000 AS k_obveze,
+                     b335/1000000000 AS Export,
+                     b370/1000000000 AS Import,
+                     b337/1000000000 AS energy,
+                     reportyear, subjectid, employeecounteop, foreigncontrol,
+             nacerev21, subjecttaxnoid, nacerev22, nacerev23, nacerev24
+             FROM gfi_all 
+             WHERE reportyear >= 2000;")  
+
+
+data <- dbGetQuery(db, q)
+dbDisconnect(db)
+
+
+```
+
+
+```{r identifikacija , message = FALSE, eval = TRUE, echo=FALSE , include = FALSE }
+
+
+data %>%
+  filter( nacerev23 %in% c(261:264, 465, 581:639, 951)) %>%
+  group_by(reportyear) %>%
+  summarise(n = n_distinct(subjectid),
+            prihod = sum(prihod, na.rm = TRUE),
+            izvoz = sum(Export, na.rm = TRUE),
+            uvoz = sum(Import, na.rm = TRUE),
+            k_dug = sum(k_dug, na.rm = TRUE),
+            d_dug = sum(d_dug, na.rm = TRUE),
+             rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             plata =  (sum (placa_brutto, na.rm = TRUE)/(sum (employeecounteop, na.rm = TRUE)))*1000000000/12)%>%
+    mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+           imov = mim + nim,
+           dug = k_dug + d_dug,
+           invest = (imov + amortizacija) - dplyr:: lag(imov)) -> de
+
+
+
+data %>%
+  group_by(reportyear) %>%
+  summarise(n = n_distinct(subjectid),
+            prihod = sum(prihod, na.rm = TRUE),
+            izvoz = sum(Export, na.rm = TRUE),
+            uvoz = sum(Import, na.rm = TRUE),
+            k_dug = sum(k_dug, na.rm = TRUE),
+            d_dug = sum(d_dug, na.rm = TRUE),
+             rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             plata =  (sum (placa_brutto, na.rm = TRUE)/(sum (employeecounteop, na.rm = TRUE)))*1000000000/12)%>%
+    mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+           imov = mim + nim, 
+           dug = k_dug + d_dug,
+           invest = (imov + amortizacija) - dplyr:: lag(imov)) -> ostali
+
+
+
+
+#ukupno: udjeli
+
+ostali %>%
+  left_join(., de, by = "reportyear") %>% 
+  group_by(reportyear)%>%
+  mutate("Broj poduzeća" = (n.y / n.x)*100,
+         "Prihodi" = (prihod.y / prihod.x)*100,
+         "Izvoz" = (izvoz.y / izvoz.x)*100,
+         "Uvoz" = (uvoz.y / uvoz.x)*100,
+         "Nematerijalna imovina" = (nim.y / nim.x)*100,
+         "Materijalna imovina" = (mim.y / mim.x)*100,
+         "Dodana vrijednost" = (dv.y / dv.x)*100,
+         "Broj zaposlenih" = (rad.y / rad.x)*100,
+         "Dobit" = (nett.y / nett.x)*100,
+         "Kapital" = (kapital.y / kapital.x)*100, 
+         "Investicije" = (invest.y / invest.x)*100,
+         "Dug" = (dug.y / dug.x)*100) %>%
+  select("Broj poduzeća","Prihodi", "Izvoz", "Uvoz", "Nematerijalna imovina","Materijalna imovina","Dodana vrijednost","Broj zaposlenih", "Dobit", "Kapital", "Investicije", "Dug")%>%
+  ungroup() %>%
+  summarise_all(list(function(x) mean(na.omit(x)))) %>%
+  select(-reportyear) %>%
+  gather("Pokazatelj", "Udio %") -> udjeli
+
+
+
+
+
+#pokazatelji po zaposlenom
+
+de %>%
+    group_by(reportyear) %>%
+    summarise(`Nematerijalna imovina` = (nim / rad)*1000000000,
+            `Ukupna imovina` = (imov / rad)*1000000000,
+            `Investicije` = (invest / rad)*1000000000,
+            `Dobit` = (nett / rad)*1000000000,
+            `Zaduženost` = ((k_dug + d_dug)/ rad)*1000000000,
+            `Dodana vrijednost` = (dv / rad)*1000000000,
+            `Izvoz`  = (izvoz / rad)*1000000000,
+            `Uvoz` = (uvoz / rad)*1000000000,
+            `Prihod` = (prihod / rad)*1000000000,
+            `Zaposlenost` = (rad / n),
+            `Koeficijent zaduženosti` = (k_dug + d_dug)/(mim + nim),
+            `ROE` = (nett/kapital)*100,
+            `ROA` = (nett/(mim + nim)*100),
+            plata,rad 
+            ) -> dez
+
+
+ostali %>%
+    group_by(reportyear) %>%
+    summarise(`Nematerijalna imovina` = (nim / rad)*1000000000,
+            `Ukupna imovina` = (imov / rad)*1000000000,
+            `Investicije` = (invest / rad)*1000000000,
+            `Dobit` = (nett / rad)*1000000000,
+            `Zaduženost` = ((k_dug + d_dug)/ rad)*1000000000,
+            `Dodana vrijednost` = (dv / rad)*1000000000,
+            `Izvoz` = (izvoz / rad)*1000000000,
+            `Uvoz` = (uvoz / rad)*1000000000,
+            `Prihod` = (prihod / rad)*1000000000,
+            `Zaposlenost` = (rad / n),
+            `Koeficijent zaduženosti` = (k_dug + d_dug)/(mim + nim),
+            `ROE` =(nett/kapital)*100,
+            `ROA` = (nett/(mim + nim)*100),
+            plata,rad
+            ) -> osz
+
+
+
+# ukupno : po zaposlenom
+
+
+
+dez %>%
+  select(`Nematerijalna imovina`,`Ukupna imovina` ,
+            `Investicije`,`Dobit`,`Zaduženost`,
+            `Dodana vrijednost`,`Izvoz` , `Uvoz`,
+            `Prihod`,`Zaposlenost`,`Koeficijent zaduženosti`,
+            `ROE`,`ROA`, reportyear) %>% 
+  ungroup() %>% 
+  summarise_all(list(function(x) mean(na.omit(x)))) %>% 
+  mutate(`ROE` = paste0(`ROE`, "%"),
+         `ROA` = paste0(`ROA`, "%")) %>%
+  select(-reportyear) %>% 
+  gather("Pokazatelj", "Digitalna ekonomija") -> dezukupno
+
+
+osz %>%
+  select(`Nematerijalna imovina`,`Ukupna imovina` ,
+            `Investicije`,`Dobit`,`Zaduženost`,
+            `Dodana vrijednost`,`Izvoz` , `Uvoz`,
+            `Prihod`,`Zaposlenost`,`Koeficijent zaduženosti`,
+            `ROE`,`ROA`, reportyear) %>%
+  ungroup() %>%
+  summarise_all(list(function(x) mean(na.omit(x)))) %>%
+  mutate(`ROE` = paste0(`ROE`, "%"),
+         `ROA` = paste0(`ROA`, "%")) %>%
+  select(-reportyear) %>%
+  gather("Pokazatelj", "Poslovni sektor") -> oszukupno
+
+
+tzapukupno <- left_join(dezukupno, oszukupno, by = "Pokazatelj")
+
+
+
+```
+
+Iako u ekonomskoj znanosti ne postoji konsenzus oko toga što točno jesu tehnologija i  [produktivnost](http://www.csls.ca/ipm/1/lipsey-carlaw-e.pdf), većinsko je uvjerenje ekonomista da je produktivnost ključni faktor ekonomskog rasta. U tom kontekstu trend [globalnog usporavanja produktivnosti](http://www.iea-world.org/wp-content/uploads/2017/07/Intereconomics.pdf) je zabrinjavajući. Taj je fenomen dodatno izražen u [europskim zemljama](https://www.ecb.europa.eu/pub/pdf/other/ebart201703_01.en.pdf), među kojima postoje znatne razlike u tehnološkim kapacitetima i kretanjima. [Tehnološke razlike](https://www.brookings.edu/blog/future-development/2018/03/30/technological-change-and-growing-divides-in-europe/) najizraženije su između novih i starih članica ali i sjevera naspram juga Europe. S obzirom na [ekspanziju digitalne ekonomije](https://ec.europa.eu/eurostat/documents/42577/3222224/Digital+economy+outlook+2015/dbdec3c6-ca38-432c-82f2-1e330d9d6a24) i njezinih očekivanih tehnoloških dobitaka, slab rast produktivnosti na globalnoj razini, svojevrsna je  [zagonetka](https://www.ddorn.net/papers/AADHP-SolowParadox.pdf) ali i razlog za zabrinutost. Ukoliko nema rasta produktivnosti na globalnoj razini, nema rasta niti u Europi, a to podržava postojeće unutarnje razlike među europskim zemljama. Za Hrvatsku to znači zaostajanje iza tehnološke granice i spor proces smanjenja razvojnog zaostajanja.
+
+[Objašnjenja](https://www.ecb.europa.eu/pub/pdf/other/ebart201703_01.en.pdf) koja se nude za fenomen usporavanja produktivnosti odnose se na široki spektar faktora. Međusektorska realokacija proizvodnje, smanjenje inovacija, smanjenje tehnološkog progresa i difuzije tehnologije, neki su od dugoročnih inhibitora produktivnosti i zahtijevaju strukturalne ekonomske politike. Dio objašnjenja naglašava utjecaj ekonomskog ciklusa poput globalne ekonomske krize i opadanja poslovnog dinamizma dok drugi ističu probleme mjerenja i metodologije analize. Iako razumijevanje razloga izravno utječe na izbor ekonomskih politika, politike investicija u informacijsku tehnologiju i digitalizacije u prvome su planu nositeljima strateških ekonomskih politika.
+
+Priključak na novu paradigmu ekonomskog rasta zasnovanoj na digitalnoj ekonomiji  [Hrvatskoj](https://digitalchallengers.mckinsey.com/files/Digital-Challengers-Perspective-on-Croatia.pdf) se nudi kao način smanjenja razvojnih razlika, prije svega u odnosu na Europu. Zbog toga sam analizirao podatke o sektoru digitalne ekonomije u Hrvatskoj i pokušao sagledati kakav potencijal ekonomskog rasta ona donosi. U [literaturi](https://pdfs.semanticscholar.org/1c85/219b3f962cb8f9884ec93a4c8e2556ed5fc7.pdf) se uglavnom predviđaju pozitivni efekti informacijskih tehnologija na rast, neovisno o načinu mjerenja tehnologije ali i produktivnosti. Kvantifikacija digitalne ekonomije na [osnovi industrijskih sektora](http://croecon.contentio.biz/post/pogled-na-hrvatsku-tehnolo-ku-granicu/) zapravo predstavlja (blago) prošireni sektor informacija i komunikacija (ICT) i smješta ovu temu u kontekst rasprave o utjecaju informacijskih tehnologija odnosno digitalizacije na ekonomski rast.
+
+
+```{r tablica_1, message = FALSE, eval = TRUE, echo=FALSE, include = TRUE }
+
+
+options(scipen = 999)
+
+
+#kable(udio)
+#kable(tabzap)
+#huxtable opcije
+
+tudio <- as_hux(udjeli, add_colnames = TRUE)
+bold(tudio)[1,] <- TRUE 
+bottom_border(tudio)[1,] <- 1
+caption(tudio) <- "Udio digitalne ekonomije u poslovnom sektoru"
+align(tudio)[2:13,] <- " "
+align(tudio)[2:13,1] <- "left"
+tudio <- add_footnote(tudio , "* Iznosi su prikazani kao (%) udjeli u agregatnoj vrijednosti svih nefinancijskih poduzeća u Hrtvatskoj")
+
+tudio
+
+#kable(tudio)
+
+```
+
+U sektoru digitalne ekonomije u 2017. godini poslovalo je 7.000 poduzeća koja su zapošljavala 48.000 radnika. Prihod sektora u toj godini iznosio je 40 mlrd kn, a ostvareno je 2,6 mlrd kn dobiti i 14 mlrd kn dodane nove vrijednosti. Vanjskotrgovinska bilanca sektora digitalne ekonomije bila je negativna u razdoblju od 2002. do 2015. godine, ali zadnje dvije godine izvoz je nešto veći od uvoza. Valja istaknuti i visok iznos nematerijalne imovine u sektoru digitalne ekonomije koja u 2017. godini iznosi 13,3 mlrd kn dok je materijalna imovina na razini od 3,8 mlrd kn. U tablici 1 prikazan je pregled prosječnih vrijednosti veličine udjela sektora digitalne ekonomije u ukupnom poslovnom sektoru u razdoblju od 2002. do 2017. godine. Sektor digitalne ekonomije u Hrvatskoj čini oko 6-7 % udjela prema većini kriterija. Nešto su viši udjeli nematerijalne imovine, dobiti, dodane vrijednosti i investicija što odražava značajne tehnološke kapacitete, profitabilnost i utjecaj sektora na (investicijski) ekonomski ciklus.
+
+```{r tablica_2, message = FALSE, eval = TRUE, echo=FALSE, include = TRUE }
+
+options(scipen = 999)
+
+zapt <- as_hux(tzapukupno, add_colnames = TRUE )
+bold(zapt)[1,] <- TRUE
+bottom_border(zapt)[1,] <- 1
+caption(zapt) <- "Poslovne performanse digitalne ekonomije i cjelokupnog poslovnog sektora" 
+number_format(zapt)[2:14,] <- list(
+        function(x)
+          prettyNum(x,
+                    big.mark = ",", 
+                    digits = 0,
+                    scientific = FALSE))
+align(zapt)[2:14,] <- " "  
+align(zapt)[2:14,1] <- "left"
+#zapt <- rbind(c("","Prije krize", "", "Nakon krize", ""), zapt)
+
+#zapt %>% 
+#  merge_cells(1,2:3) %>%
+#  merge_cells(1,4:5)
+
+#align(zapt)[1,] <- "right"
+  
+#zapt[2,2] <- "Digitalna ekonomija"
+#zapt[2,3] <- "Poslovni sektor"
+#zapt[2,4] <- "Digitalna ekonomija"
+#zapt[2,5] <- "Poslovni sektor"
+
+zapt <- add_footnote(zapt , "* Vrijednosti su korigirane za broj zaposlenih i prikazane su u kunama. Zaposlenost se odnosi na prosječni broj zaposlenika u tvrtki. Zaduženost je izračunata kao omjer ukupnog duga i imovine.")
+
+
+
+position(zapt) <- "center"
+
+#position(zapt)
+
+zapt
+
+#kable(zapt)
+             
+
+```
+Poslovne performanse tvrtki iz sektora digitalne ekonomije osjetno su bolje od ostatka domaćih tvrtki. Pokazatelji po zaposlenome u usporednom prikazu prikazani su u tablici 2. Prihodi po zaposlnenom iznose 806 tisuća kn i nešto su veći od prosjeka ostatka poslovnog sektora dok je prosječna dobit po zaposlenom na razini 67,5 tisuća kn i skoro pet puta je veća nego u ostatku ekonomije. Visoku efikasnost poslovanja tvrtki iz sektora digitalne ekonomije odražavaju visoki povrati na kapital i imovinu koji iznose 13 % i 17 %. Digitalni sektor investira 82 tisuća kn po zaposlenome što je osjetno više od ostatka ekonomije. Prosječna vrijednost izvoza po zaposlenome u sektoru digitalne ekonomije iznosi 113 tisuće kn i nešto je veća nego u ostatku poslovnog sektora dok je uvoz na razini 148 tisuća kn i skoro je 50 % viši nego u ostalim tvrtkama. Nematerijalna imovina po zaposleniku u sektoru digitalne ekonomije iznosi 53 tisuće kn i dvostruko je veća nego u ostatku poslovnog sektora. Sve to ukazuje da tvrtke iz sektora digitalne ekonomije karakterizira znatno veća poslovna efikasnost.
+
+```{r tfp_de , message = FALSE , include = FALSE , echo=FALSE, eval = TRUE }
+
+
+mtp <- function(x) x * 1000000000
+
+
+# broj zaposlenih kao rad
+
+data %>%
+  filter( nacerev23 %in% c(261:264, 465, 581:639, 951)) %>%
+  group_by( reportyear, subjectid) %>%
+  summarise (rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE),
+             nacerev21 = toString(nacerev21)) %>%
+  mutate_at(vars(mim, nim, placa, amortizacija, fin_rashod, tax_nett, nett, kapital, energy), funs(mtp)) %>%
+  mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+         kapital_ = mim + nim) %>%
+         #inv = ((mim + amortizacija) - dplyr::lag(mim)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0)  %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear),
+         subjectid = as.numeric(as.character(subjectid))) %>%
+  select(dv, kapital, rad, energy, subjectid, nacerev21, reportyear) %>%
+  rename(Y = dv  , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = subjectid,
+         timevar = reportyear) -> tfp_de
+
+
+WRDG <- prodestWRDG(tfp_de$Y, 
+                               tfp_de$fX,
+                               tfp_de$sX, 
+                               tfp_de$pX,
+                               tfp_de$idvar,
+                               tfp_de$timevar)
+
+omega(WRDG) -> tfp.wrdg
+
+dset_de <- tfp_de 
+  
+dset_de[,"tfp_wrdg"] <- tfp.wrdg
+
+dset_de_k <- dset_de 
+ 
+ 
+ dset_de %>%
+   mutate( tfp = as.numeric(tfp_wrdg)) %>%
+   group_by(timevar) %>%
+   summarise(tfp = sum(tfp, na.rm = TRUE)) %>%
+   mutate(tfp_ind = 1*tfp/tfp[1],
+          tfp_gr = c(0, diff(tfp))) -> tfp.de 
+ 
+ tfp.de%>%
+   ggplot(.,aes(timevar, tfp_ind)) +
+   geom_line() +
+   theme_bw()
+
+
+```
+
+```{r tfp_ostali, message = FALSE , include = FALSE,  echo = FALSE, eval = TRUE}
+
+data %>%
+  filter( nacerev23 != c(261:264, 465, 581:639, 951)) %>% 
+  group_by( reportyear, subjectid) %>%
+  summarise (rad = sum(employeecounteop, na.rm = TRUE),
+             mim = sum(matimov, na.rm = TRUE),
+             nim = sum (nematimov, na.rm = TRUE),
+             placa = sum(placa_brutto, na.rm = TRUE),
+             amortizacija = sum(amortizacija , na.rm = TRUE),
+             fin_rashod = sum(financijski_trosak , na.rm = TRUE),
+             tax_nett = sum(porez_dobit , na.rm = TRUE),
+             nett = sum(nett , na.rm = TRUE),
+             kapital = sum(kapital_rezerve , na.rm = TRUE),
+             energy = sum(energy , na.rm = TRUE),
+             nacerev21 = toString(nacerev21)) %>%
+  mutate_at(vars(mim, nim, placa, amortizacija, fin_rashod, tax_nett, nett, kapital, energy), funs(mtp)) %>%
+  mutate(dv = placa + amortizacija + fin_rashod + tax_nett + nett,
+         kapital_ = mim + nim) %>%
+         #inv = ((mim + amortizacija) - dplyr::lag(mim)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0 ) %>%
+  mutate_at(vars(dv, kapital, rad, energy), funs(log)) %>%
+  filter(dv > 0 & kapital > 0 & rad > 0 & energy > 0)  %>%
+  ungroup() %>%
+  mutate(reportyear = as.numeric(reportyear),
+         subjectid = as.numeric(as.character(subjectid))) %>%
+  select(dv, kapital, rad, energy, subjectid, nacerev21, reportyear) %>%
+  rename(Y = dv  , 
+         sX = kapital,
+         fX = rad , 
+         pX = energy, 
+         idvar = subjectid,
+         timevar = reportyear) -> tfp_ostali 
+
+
+WRDG <- prodestWRDG(tfp_ostali$Y, 
+                               tfp_ostali$fX,
+                               tfp_ostali$sX, 
+                               tfp_ostali$pX,
+                               tfp_ostali$idvar,
+                               tfp_ostali$timevar)
+
+
+omega(WRDG) -> ostali.wrdg
+
+dset_ostali <- tfp_ostali 
+  
+dset_ostali[,"tfp_wrdg_ost"] <- ostali.wrdg
+ 
+ 
+ dset_ostali %>%
+   mutate( tfp = as.numeric(tfp_wrdg_ost)) %>%
+   group_by(timevar) %>%
+   summarise(tfp = sum(tfp, na.rm = TRUE)) %>%
+   mutate(tfp_ind_ostali = 1*tfp/tfp[1],
+          tfp_gr_ostali = c(0, diff(tfp))) -> tfp.ostali
+ 
+ tfp.ostali%>%
+   ggplot(.,aes(timevar, tfp_ind_ostali)) +
+   geom_line() +
+   theme_bw()
+
+
+
+```
+
+```{r tfp_prontier_gg, message = FALSE , echo = FALSE, include = TRUE, eval = TRUE }
+
+
+tfp.de %>%
+  left_join(.,tfp.ostali, by = "timevar" ) %>%
+  select(timevar, tfp_ind, tfp_ind_ostali) %>%
+  ggplot(.,aes(timevar)) +
+  geom_line(aes(y = tfp_ind, linetype = "de"), size = 1.2) +
+  geom_line(aes(y = tfp_ind_ostali, linetype = "ostali"), size = 1) +
+  theme_bw() +
+  scale_linetype_manual(values = c(de = "solid",
+                                   ostali = "dotted"),
+                        labels = c("Digitalna ekonomija",
+                                   "Poslovni sektor")) + 
+  theme(legend.title = element_blank(),
+        legend.position = c(0.8, 0.9),
+        legend.background = element_rect(fill = alpha("white", 0.1))) +
+  labs(title = "Grafikon 1:\nTFP u sektoru digitalne ekonomije",
+       y = "TFP indeks: 2002 = 1",
+       x = "Godina") +
+  scale_x_continuous(breaks = c(2002, 2004, 2006 , 2008, 2010, 2012, 2014, 2016, 2017),
+                     labels =  c("2002", "2004", "2006" , "2008", "2010", "2012", "2014", "2016", "2017"))
+  
+
+
+```
+
+Veća efikasnost poslovanja odražava se i u kretanju produktivnosti sektora digitalne ekonomije. Na grafikonu 1 prikazana je usporedna dinamika produktivnosti u sektoru digitalne ekonomije i ostatka poslovnog sektora. Vremenske serije kreću se jednako do ekonomske krize kada nastaje jaz, pri čemu sektor digitalne ekonomije formira tehnološku granicu u odnosu na poslovni sektor. Osim potvrđivanja uloge u podizanju tehnološke granice, to upućuje i na dobru otpornost tvrtki iz sektora digitalne ekonomije na šok ekonomske krize.   
+
+```{r konvergencija , message = FALSE , echo = FALSE , include = TRUE}
+
+dset_de_k %>%
+  filter(tfp_wrdg > quantile(tfp_wrdg, 0.95) & timevar == "2002" ) -> start_h
+
+dset_de_k %>%
+  filter(tfp_wrdg < quantile(tfp_wrdg, 0.95) & timevar == "2002" ) -> start_l
+
+
+
+dset_de_k %>%
+  filter(idvar %in% start_h$idvar) %>%
+  mutate(tfp = as.numeric(tfp_wrdg)) %>%
+  group_by(timevar) %>%
+  summarise(tfp_sh = median(tfp, na.rm = TRUE)) %>%
+  mutate( tfp_shi = 1*tfp_sh/tfp_sh[1]) ->conv 
+  
+ dset_de_k %>%
+  filter(idvar %in% start_l$idvar) %>%
+  mutate(tfp = as.numeric(tfp_wrdg)) %>%
+  group_by(timevar) %>%
+  summarise(tfp_sl = median(tfp, na.rm = TRUE)) %>%
+  mutate( tfp_sli = 1*tfp_sl/tfp_sl[1]) -> conv_  
+  
+conv %>%
+  left_join(., conv_, by = "timevar") %>%
+  ggplot(., aes( timevar)) +
+  geom_line(aes(y = tfp_shi, linetype = "high"), size = 1.2) +
+  geom_line(aes(y = tfp_sli, linetype = "low"), size = 1) +
+  theme_bw() +
+  scale_linetype_manual(values = c(high = "solid",
+                                   low = "dotted"),
+                        labels = c("5% najproduktivnijih u 2002. godini",
+                                   "95% najproduktivnijih u 2002. godini")) + 
+  theme(legend.title = element_blank(),
+        legend.position = c(0.8, 0.5),
+        legend.background = element_rect(fill = alpha("white", 0.1))) +
+  labs(title = "Grafikon 2:\nKonvergencija TFP u sektoru digitalne ekonomije",
+       y = "Indeks prosječnog TFP: 2002 = 1",
+       x = "Godina") +
+  scale_x_continuous(breaks = c(2002, 2004, 2006 , 2008, 2010, 2012, 2014, 2016, 2017),
+                     labels =  c("2002", "2004", "2006" , "2008", "2010", "2012", "2014", "2016", "2017"))
+
+
+
+```
+
+Grafikon 2 prikazuje kretanje prosječne produktivnosti 5 % najproduktivnijih tvrtki u 2002. godini u usporedbi s ostalih 95 % tvrtki u istoj godini. Prikaz se, dakle, odnosi na kretanje produktivnosti istih tvrtki iz 2002. godine kroz vrijeme i kao takav ne uključuje ulaske novih kompanija. Dvije zanimljive implikacije proizlaze iz toga. Prvo, produktivnost najproduktivnijih tvrtki opada dok ostale stagniraju, što upućuje na smanjenje tehnoloških razlika u sektoru, a potencijalno zbog transfera tehnologije. Drugo, s obzirom da ukupna produktivnost (graf 1) svih tvrtki u pojedinoj godini s vremenom raste dok 95 % tvrtki iz 2002. godine pretežito stagnira, jasno je da je veliki dio nove produktivnosti stvoren na osnovi ulazaka novih tvrtki na tržište. To ne čudi budući da broj ulazaka novih tvrtki na tržište bilježi znatno povećanje, s nešto više od 2 tisuće u 2002. godini na skoro 7 tisuća u 2017. godini. Taj bi nalaz mogao biti koristan i za nove ekonomske politike!
+
+Prethodna analiza pokazuje da digitalna ekonomija uistinu ima pozitivne efekte na povećanje efikasnosti poslovanja i tehnološko napredovanje u hrvatskim tvrtkama. Investicije u informacijske tehnologije dovode do rasta produktivnosti u sektorskom kontekstu i povećavaju tehnološku granicu. Globalno usporavanje produktivnosti prema tome možda i nije problem za Hrvatsku, posebice stoga što postoji dosta prostora za smanjenje domaćeg jaza u odnosu na postojeću tehnološku granicu i iskorištavanja povezanog potencijala ekonomskog rasta.  
+
+

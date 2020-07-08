@@ -1,0 +1,119 @@
+---
+title: Najveće plaće u RH po djelatnostima
+author: Luka Šikić
+date: '2019-01-07'
+slug: najve-e-pla-e-u-rh
+categories:
+  - Ekonomika
+tags:
+  - plaće
+  - nefinancijska poduzeća
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r , include=FALSE}
+library(pander)
+library(eurostat)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(cowplot)
+library(grid)
+library(gtable)
+library(RMySQL)
+library(RODBC)
+library(kableExtra)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(jsonlite)
+library(lfe)
+library(gridExtra)
+library(httr)
+```
+
+
+
+```{r, include = FALSE}
+
+db <- dbConnect(MySQL(), dbname = "odvjet12_gfi", host = "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b110/1000000000 AS Prihodi, 
+             b120/1000000000 AS Place,
+             subjectsizelocalrev3id AS Velicina,
+             employeecounteop AS Zaposleni_,
+             b372 AS Zaposleni,
+             b010/1000000000 AS MaterijalnaImovina, 
+             b003/1000000000 AS NematerijalnaImovina,
+             b335/1000000000 AS Izvoz, 
+             b370/1000000000 AS Uvoz,
+             b004/1000000000 AS Razvoj,
+             b005/1000000000 AS Tech,
+             b006/1000000000 AS Goodwill,
+             b119/1000000000 AS Trošakrada,
+             b123/1000000000 AS Amortizacija,
+             b136/1000000000 AS Finrashod,
+             b147/1000000000 Nett,
+             reportyear, subjectid, nacerev21, nacerev22, nacerev23, nacerev24
+             FROM gfi_all 
+             WHERE reportyear >= 2000;") 
+
+
+data <- dbGetQuery(db, q)
+
+j <- data %>% group_by(reportyear) %>% filter (nacerev21 == "J")
+
+j %>%
+    group_by(reportyear) %>%
+    summarise(Prihodi = sum (Prihodi, na.rm = TRUE),
+              Zaposleni_ = sum (Zaposleni, na.rm = TRUE),
+              Place = sum (Place, na.rm = TRUE),
+              MatI = sum (MaterijalnaImovina, na.rm = TRUE),
+              NematI = sum (NematerijalnaImovina, na.rm = TRUE),
+              Izvoz = sum (Izvoz, na.rm = TRUE),
+              Uvoz = sum (Uvoz, na.rm = TRUE),
+              Razvoj = sum (Razvoj, na.rm = TRUE), 
+              Tech = sum (Tech, na.rm = TRUE),
+              Goodwill = sum (Goodwill, na.rm = TRUE),
+              Trošakrada_ = sum (Trošakrada, na.rm = TRUE),
+              Amortizacija = sum (Amortizacija, na.rm = TRUE),
+              Finrashod = sum (Finrashod, na.rm = TRUE),
+              Nett = sum (Nett, na.rm = TRUE),
+              nopod = n_distinct(subjectid),
+              Placa = ((sum(Place, na.rm = TRUE))/(sum(Zaposleni, na.rm = TRUE))*1000000)/12)  %>%                 
+  mutate(pct_change = (Placa/lag(Placa) - 1) * 100) %>% View()
+ 
+
+
+```
+
+U ovom osvrtu ćemo pogledati  koje djelatnosti i sektori u Hrvatskoj isplaćuju najveće plaće. Tradicionalno  djelatnosti Informacija i komunikacija (J), Opskrbe energijom(D), Rudarstva i vađenja (B), Financije (K) i Javna uprava (O) isplaćuju najviše prosječne place. Teško je izdvojiti "najbolju" djelatnost jer se plaće kreću ciklički i ovise o nizu različitih faktora, kako globalnim i europskim kretanjima u gospodarstvu i tehnologiji,tako i o domaćem tržištu rada, migracijskim trendovima i političkim prilikama. 
+
+Ipak, vidljivo je da djelatnost Informacija i komunikacija (uglavnom) postojano isplaćuje  višu prosječnu plaću nego druge djelatnosti. U periodu od 2000. godine do izbijanja krize 2008. godine su plaće najbrže rasle i bile apsolutno najviše u toj djelatnosti. Dodatno, u  tom razdoblju je rast plaća u djelatnosti Informacija i komunikacija bio vrlo postojan i bez naglašenih cikličkih oscilacija. Neposredno nakon ekonomske krize trend kretanja plaća u tehnološkim djelatnostima raste prvi put više od dugoročnog trenda rasta, a od 2012 do 2016 godine se ponovno vraća na svoju dugoročnu putanju. U 2016. godini djelatnost Informacija i komunikacija je tako u prosjeku isplaćivala 7,2 tis kn mjesečne plaće.
+
+```{r, echo = FALSE}
+
+data %>% 
+  group_by (reportyear, nacerev21) %>% 
+  filter (nacerev21 %in% c("J", "D", "K", "B", "O")) %>%
+  summarise(Placa = ((sum(Place, na.rm = TRUE))/(sum(Zaposleni, na.rm = TRUE))*1000000)/12) %>%
+  ggplot(., aes(reportyear, Placa, color = nacerev21)) +
+  geom_line()+
+  labs(y = "Placa, tis kn",
+       x = "Time",
+       colour = "Djelatnosti", 
+       title = "Prosječne plaće u RH djelatnostima")
+
+```
+
+Zanimljivo je da su u trenutku izbijanja ekonomske krize prosječne plaće u promatranim djelatnostima konvergirale, a nakon 2010. godine se ponovno povećava sektorska disperzija plaća. U razdoblju 2012 - 2015 djelatnosti Opskrbe energijom te Rudarstva i vađenja isplaćuju nešto veće prosječne plaće od Informatičkih i komunikacijskih djelatnosti no vidljiv je trend bržeg rasta plaća u tehnološkim djelatnostima i ponovni povratak informatičkih tehnoloških djelatnosti prema prvom mjestu. Podatci Državnog zavoda za statistiku za 2018. godinu pokazuju da su Informatičke i komunikacijske djelatnosti ponovno najisplativiji (najproduktivniji!?) sektor za raditi sa prosječnom isplaćenom plaćom od oko 8,5 tis kn.
+
+Također valja primijetiti kako je djelatnost Financija i osiguranja blisko pratila Informatičke i komunikacijske djelatnosti u desetogodišnjem periodu od 2000. godine i isplaćivala skoro jednako visoke plaće. Nakon krize dolazi (od 2010. godine) do promjene trenda i pada prosječne isplaćene plaće u Financijama pa ovaj sektor počinje gubiti na atraktivnosti. To je moguće povezati sa sve većom razinom financijske regulacije, manjom potražnjom za kreditima i općenitim padom popularnosti Financija koji se nastavio do 2018. godine.
+
+Zaključno, u domaćem gospodarstvu Informatičke i komunikacijske djelatnosti isplaćuju najviše plaće i imaju najstabilniji (najmanje ciklički) trend rasta u razdoblju od 2000. do 2016. godine, a podatci Državnog zavoda za statistiku pokazuju da se taj trend nastavio i do 2018. godine. Razdoblje nakon krize (2012-2015 godine) predstavlja period konsolidacije u tehnološkom sektoru te su plaće rasle nešto sporije nego u Distribuciji energije i Rudarstvu no pod utjecajem politika digitalizacije na europskoj ali i nacionalnoj razini te intenziviranja globalne tehnološke revolucije, Informatičke i komunikacijske djelatnosti ponovno dolaze na prvo mjesto i pokazuju se kao, dugoročno promatrano, najisplativiji sektor za rad. 

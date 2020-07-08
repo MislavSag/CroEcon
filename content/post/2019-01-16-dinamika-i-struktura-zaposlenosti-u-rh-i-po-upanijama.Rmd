@@ -1,0 +1,233 @@
+---
+title: Dinamika i struktura zaposlenosti (RH, županije, gradovi)
+author: Mislav Sagovac
+date: '2019-01-16'
+slug: dinamika-i-struktura-zaposlenosti-u-rh-i-po-upanijama
+categories:
+  - Ekonomika
+  - Tržište rada
+tags:
+  - zaposlenost
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+```{r message=FALSE, echo=FALSE}
+library(DBI)
+library(RODBC)
+library(tidyverse)
+library(RMySQL)
+library(plotly)
+library(knitr)
+library(kableExtra)
+library(magick)
+
+
+options(mysql = list(
+  "host" = "91.234.46.219",
+  "port" = 3306,
+  "user" = "odvjet12_mislav",
+  "password" = "Theanswer0207"
+))
+
+zaposleniKolone <- c("Radnici kod pravnih osoba - muškarci", "Radnici kod pravnih osoba - žene",
+                     "Radnici kod pravnih osoba - ukupno",
+                     "Obrtnici - muškarci", "Obrtnici - žene", "Obrtnici - ukupno",
+                     "Poljoprivrednici - muškarci", "Poljoprivrednici - žene", "Poljoprivrednici - ukupno",
+                     "Samostalne profesionalne djelatnosti- muškarci", "Samostalne profesionalne djelatnosti- žene",
+                     "Samostalne profesionalne djelatnosti- ukupno",
+                     "Radnici kod fizičkih osoba - muškarci", "Radnici kod fizičkih osoba - žene",
+                     "Radnici kod fizičkih osoba - ukupno",
+                     "Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - muškarci",
+                     "Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - žene",
+                     "Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno",
+                     "Osiguranici produženo osiguranje - muškarci", "Osiguranici produženo osiguranje - žene",
+                     "Osiguranici produženo osiguranje - ukupno",
+                     "Ukupno - muškarci", "Ukupno - žene", "SVEUKUPNO")
+
+# my_theme <- theme(
+#   legend.key = element_blank(),
+#   legend.position = "bottom",
+#   legend.direction = "horizontal",
+#   legend.title = element_blank()
+# )
+
+mysqlHzmo <- function(queryHzmo) {
+  db <- dbConnect(MySQL(), dbname = "odvjet12_croecon",
+                  host = options()$mysql$host, 
+                  port = options()$mysql$port,
+                  user = options()$mysql$user, 
+                  password = options()$mysql$password)
+  tmp <- dbListFields(db, "hzmo")
+  sumQuery <- paste0("SUM(", tmp[4:27], ") AS ", tmp[4:27], collapse = " , ")
+  dbSendQuery(db, 'set character set "utf8"')
+  dbSendQuery(db, 'SET NAMES utf8')
+  hzmo <- dbGetQuery(db, paste0("SELECT ", sumQuery, ", mjesec_godina ",
+                                queryHzmo))
+  dbDisconnect(db)
+  hzmo$date <- as.Date(paste0(hzmo$mjesec_godina, "01"), "%Y%m%d")
+  hzmo <- hzmo %>% 
+    select(-mjesec_godina) %>%
+    gather(Opis, Vrijednost, -c(date)) %>%
+    mutate(Opis = factor(Opis, levels = names(hzmo))) %>%
+    spread(date, Vrijednost) %>%
+    mutate(Opis = zaposleniKolone)
+  colnames(hzmo) <- substring(colnames(hzmo), 1, 7)
+  return(hzmo)
+}
+
+hzmoSVE <- mysqlHzmo(paste0("FROM hzmo
+                               GROUP BY mjesec_godina;"))
+
+```
+
+
+U jednom od prijašnjih [postova](http://croecon.contentio.biz/post/strukturirani-podaci-o-zaposlenosti-hzmo-a/) analizirao sam dinamiku zaposlenosti u RH. Rezultati analize su bili prezentirani na [CroEcon aplikaciji](https://forensis.shinyapps.io/CroEcon/). S obzirom da su podaci o zaposlenima javno dostupni na [stranicama HZMO-a](http://www.mirovinsko.hr/default.aspx?id=13674), odlučio sam prikupiti podatke o zaposlenima na mjesečnoj razini za razdoblje 2014-2018 na razini županija i gradova/općina. Na stranicama HZMO-a nisu dostupni podaci za ranije razdoblje. Podaci omogućuju i raščlanjivanje podataka s obzirom na tip osiguranja (postoji 7 tipova osiguranja) i spol. Ovi novoprikupljeni podaci nalaze se na CroEcon [apliakciji](http://www.mirovinsko.hr/default.aspx?id=13674) pod modulom "Tržište rada"> "Dinamika radne snage".
+
+Kako se kretala dinamika zaposlenih od analize u posljednjem postu (prosinac 2017.)? Prvo ćemo analizirati podatke za cijelu RH. Na grafu 1. je prikazana dinamika ukupnog broja zaposlenih. U aplikaciji ovaj grafikon dobijete ako za županiju i grad/općinu izaberete vrijednost "SVE" (zadano u aplikaciji). Na grafikonu je vidljiv jasan trend rasta od 2014 godine sa naglašenom sezonskom komponentom. Broj zaposlenih se kreće kao sinusoida oko blago rastućeg trenda. Točne stope rasta po mjesecima za 2018. u odnosu na 2017 dane su u tablici 1. Kolone pokazuju stope rasta zaposlenosti u odnosu na isti mjesec prethodne godine. Prosječna stopa rasta po mjesecima iznosi 2.3%. Apsolutno, broj zaposlenih narastao je za cca 30.000. Prema makro teoriji, rast broj zaposlenih, uz konstantan pad radne snage, trebalo bi dovesti do rasta plaća zbog veće pregovaračke moći radnika. To je upravno situacija koja se primjećuje u podacima (prema podacima DZS-a plaće su u 2018. rasle za 5%). 
+
+```{r message=FALSE, echo=FALSE}
+
+p <- hzmoSVE %>%
+        slice(24) %>%
+        gather(mjesec, Vrijednosti, - Opis) %>%
+        mutate(mjesec = as.Date(paste0(mjesec, "-01"), "%Y-%m-%d")) %>%
+        ggplot(aes(x = mjesec, y = Vrijednosti, col = Opis)) + 
+        geom_line(size = 1.2) + guides(col = guide_legend(ncol = 1, byrow = TRUE)) + 
+        labs(title = "Dinamika radne snage RH", x = NULL, y = NULL,
+             caption = "Izvor: HZMO") +
+        theme_bw()
+ggplotly(p) %>% layout(legend = list(orientation  = "h", y = -0.15))
+
+```
+
+```{r message=FALSE, echo=FALSE}
+hzmoSVE %>%
+  dplyr::slice(n()) %>%
+  gather(Time, Value, -Opis) %>%
+  dplyr::mutate(gr = ((Value - dplyr::lag(Value, 12))/dplyr::lag(Value, 12)) * 100) %>%
+  dplyr::filter(grepl("2018", Time)) %>%
+  dplyr::mutate(Time = gsub("2018-", "", Time)) %>%
+  dplyr::mutate(gr = round(gr, 2)) %>%
+  # dplyr::summarise(mean(as.numeric(gr)))   # zaracunanje prosjecne stop rasta
+  dplyr::select(Opis, Time, gr) %>%
+  spread(Time, gr) %>%
+  kable(caption = "Stope rasta zaposlenosti") %>%
+  kable_styling()
+
+
+```
+Osim ukupnog boja zaposlenih poželjno je proučiti kretanje zaposlenih prema dva dodatna kriterija: vrsti osiguranja i spolu. Distribucija prema vrsti osiguranja dana je na slici 2. i u tablici 2. Slika otkriva relativno stabilnu distribuciju kroz cijelo promatrano razdoblje. Većima ljudi (1.3 mil) radi kod pravnih osoba (d.o.o., d.d.), slijede radnici kod fizičkih osoba (100 tisuća) i obrtnici, kojih je oko 50 tisuća. Tablica pokazuje da je u u 2018- godini porastao broj obrtnika i radnika kod pravnih osoba, a smanjio se broj svih ostalih tipova osiguranja. Ovakvo kretanje je rezultat dugog trenda. U aplikaciji CroEcon se se može brzo provjeriti kretanje pojedinih vrsta osiguranja. U zadnje 4 godine je pao je sa 23.5 tisuće na 19 tisuća, samostalne profesionalne djelatnosti sa 22.5 na 19 tisuća, broj obrtnika se smanjio za cca 1000. Analiza po spolu pokazuje da muškarci i žene pokazuju istu dinamiku zaposlenosti s jedinom razlikom što žene imaju konzistentno niže stope zaposlenosti. Primjerice u zadnje mjesecu 2018. u RH je radilo 793 tisuće žena i 713 tisuća muškaraca. Jaz se tek neznatno smanjio u posljednjih 5 godina.
+
+```{r message=FALSE, echo=FALSE}
+
+p <- hzmoSVE %>%
+  filter(grepl("- ukupno", Opis)) %>%
+  gather(mjesec, Vrijednosti, - Opis) %>%
+  mutate(mjesec = as.Date(paste0(mjesec, "-01"), "%Y-%m-%d")) %>%
+  ggplot(aes(mjesec)) + 
+    geom_bar(aes(weight = (Vrijednosti / 1000000), fill = Opis)) + 
+    # guides(col = guide_legend(ncol = 1, byrow = TRUE)) + 
+    labs(title = "Struktura zaposlenih prema tipu osiguranja", x = NULL, y = NULL,
+       caption = "Izvor: HZMO") +
+    theme_bw()
+ggplotly(p) %>%  layout(showlegend = FALSE)
+
+```
+
+```{r message=FALSE, echo=FALSE}
+
+hzmoSVE %>%
+  filter(grepl("- ukupno", Opis)) %>%
+  gather(Time, Value, -Opis) %>%
+  group_by(Opis) %>%
+  dplyr::mutate(gr = ((Value - dplyr::lag(Value, 12))/dplyr::lag(Value, 12)) * 100) %>%
+  # dplyr::mutate(Prosjek = mean(gr, na.rm = TRUE)) %>%
+  dplyr::ungroup() %>%
+  dplyr::filter(grepl("2018", Time)) %>%
+  dplyr::mutate(Time = gsub("2018-", "", Time)) %>%
+  dplyr::mutate(gr = round(gr, 2)) %>%
+  dplyr::select(Opis, Time, gr) %>%
+  spread(Time, gr) %>%
+  dplyr::mutate(Prosjek = rowMeans(x = select(., 2:ncol(.)), na.rm = TRUE)) %>%
+  dplyr::mutate(Prosjek = round(Prosjek, 2)) %>%
+  kable(caption = "Stope rasta zaposlenosti") %>%
+  kable_styling()
+
+```
+
+Za kraj ćemo promotriti stope rasta zaposlenosti po županijama, te pogledati koji gradovi su imali najveći rast/pad zaposlenosti u 2018. godini. U tablici 3 su prikazane stope rasta zaposlenosti po županijama. Čak 4 županije su ostvarile stopu rasta zaposlenosti iznad 4%. Zanimljivo je da su dvije županije, koje se smatraju vodećim po pitanju razvoja u RH (Grad Zagreb i Varaždinska županija), među posljednjima po stopi rasta zaposlenih. Zanimljivo je također da nijedna županija nije ostvarila negativan rast zaposlenih, pa se može zaključiti da je rast zaposlenih u 2018 bio relativno uravnotežen. Za kraj prikazujemo 5 gradova s najmanjim i najvećim rastom u 2018. Popis je dan u tablici 4. Među gradovima postoji mnogo veća razlika nego među županijama. Razlika između najvećeg i najmanjeg grada iznosi 18 postotnih bodova. 
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+mysqlHzmoZupanije <- function(queryHzmo) {
+  db <- dbConnect(MySQL(), dbname = "odvjet12_croecon",
+                  host = options()$mysql$host, 
+                  port = options()$mysql$port,
+                  user = options()$mysql$user, 
+                  password = options()$mysql$password)
+  dbSendQuery(db, 'set character set "utf8"')
+  dbSendQuery(db, 'SET NAMES utf8')
+  hzmo <- dbGetQuery(db, paste0("SELECT mjesec_godina, naziv_zup, SUM(ukupno_u) AS ukupno ",
+                                "FROM hzmo ",
+                                "GROUP BY naziv_zup, mjesec_godina;"))
+  Encoding(hzmo[, 2]) <- "UTF-8"
+  dbDisconnect(db)
+  return(hzmo)
+}
+mysqlHzmoZupanije() %>%
+  dplyr::group_by(naziv_zup) %>%
+  dplyr::mutate(gr = ((ukupno - dplyr::lag(ukupno, 12L)) / dplyr::lag(ukupno, 12L)) * 100) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::filter(grepl("2018", mjesec_godina)) %>%
+  dplyr::mutate(mjesec_godina = gsub("2018", "", mjesec_godina)) %>%
+  select(-ukupno) %>%
+  spread(mjesec_godina, gr) %>%
+  mutate(Prosjek = rowMeans(x = select(., 2:ncol(.)), na.rm = TRUE)) %>%
+  dplyr::arrange(desc(Prosjek)) %>%
+  dplyr::mutate_at(vars(-naziv_zup), round, 2) %>%
+  kable(caption = "Stope rasta zaposlenosti po županijama") %>%
+  kable_styling()
+  
+  
+```
+
+
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+mysqlHzmoOpcine <- function(queryHzmo) {
+  db <- dbConnect(MySQL(), dbname = "odvjet12_croecon",
+                  host = options()$mysql$host, 
+                  port = options()$mysql$port,
+                  user = options()$mysql$user, 
+                  password = options()$mysql$password)
+  dbSendQuery(db, 'set character set "utf8"')
+  dbSendQuery(db, 'SET NAMES utf8')
+  hzmo <- dbGetQuery(db, paste0("SELECT mjesec_godina, naziv_opc, SUM(ukupno_u) AS ukupno, vrsta ",
+                                "FROM hzmo ",
+                                "WHERE vrsta = 2 ",
+                                "GROUP BY naziv_opc, mjesec_godina;"))
+  Encoding(hzmo[, 2]) <- "UTF-8"
+  dbDisconnect(db)
+  return(hzmo)
+}
+mysqlHzmoOpcine() %>%
+  dplyr::group_by(naziv_opc) %>%
+  dplyr::mutate(gr = ((ukupno - dplyr::lag(ukupno, 12L)) / dplyr::lag(ukupno, 12L)) * 100) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::filter(grepl("2018", mjesec_godina)) %>%
+  dplyr::mutate(mjesec_godina = gsub("2018", "", mjesec_godina)) %>%
+  select(-c(ukupno, vrsta)) %>%
+  spread(mjesec_godina, gr) %>%
+  mutate(Prosjek = rowMeans(x = select(., 2:ncol(.)), na.rm = TRUE)) %>%
+  dplyr::arrange(desc(Prosjek)) %>%
+  dplyr::slice(c(1:5, (n()-5):n())) %>%
+  dplyr::mutate_at(vars(-naziv_opc), round, 2) %>%
+  kable(caption = "Stope rasta zaposlenosti po gradovima") %>%
+  kable_styling()
+  
+  
+```
+
+Cilj ovog posta bio je upoznati čitatelja s izmjenama u aplikaciji i prikazati neke opće trendove u zaposlenosti. Pomoću aplikacije možete posebno analizirati strukturu po obliku osiguranja i spolu za svaku županiju/grad/općinu. Čitatelji slobodno mogu dati ideje za unapređenje apliakacije i dodavanja podataka.

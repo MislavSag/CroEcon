@@ -1,0 +1,100 @@
+---
+title: Zašto je smanjenje stope PDV-a na usluge restorana loša porezna mjera?
+author: Mislav Sagovac
+date: '2019-07-28'
+slug: za-to-je-smanjenje-stope-pdv-a-na-usluge-restorana-lo-a-porezna-mjera
+categories:
+  - Porezi
+tags:
+  - PDV
+  - Politička ekonomija
+type: ''
+subtitle: ''
+image: ''
+bigimg: 
+  - {src: "/img/post_pdv_restorani.jpg", desc: "Web"}
+---
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+library(tidyverse)
+library(RMySQL)
+library(DBI)
+library(kableExtra)
+
+# funkcija za povlacenje podataka iz gfi_all
+load_gfi <- function(query) {
+  
+  db <- dbConnect(MySQL(),
+                dbname = "odvjet12_gfi", 
+                host =  "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+  dbSendQuery(db, 'set character set "utf8"')
+  dbSendQuery(db, 'SET NAMES utf8')
+  data <- dbGetQuery(db, query)
+  dbDisconnect(db)
+
+  return(data)
+}
+
+
+
+```
+
+Vlada je [najavila]( https://www.jutarnji.hr/vijesti/hrvatska/analiza-porezne-reforme-plenkovicev-paket-od-37-milijardi-ugostiteljima-pdv-13-posto-olaksice-mladima-skuplji-sokovi-alkohol-i-cigarete/9170717/) novi paket „poreznih reformi“. Jedna od značajnijih izmjena je uvođenje snižene stope PDV-a na „pripremu i dostavu hrane u ugostiteljskim objektima“ s 25% na 13%. Prema pisanju medija, ministar Marić je bio protiv ove mjere, ali je ona ipak donesena zbog snažnog lobija ministarstva turizma i ugostiteljskog ceha. 
+
+Prije razmatranja ove mjere valja podsjetiti na osnovne karakteristike sustava PDV-a u EU. Sve zemlje EU imaju osnovnu stopu PDV-a, koja, prema direktivama EU, ne bi trebala biti niža o d 15%. Postoji snažna heterogenost među zemljama u visini osnovne stope PDV-a. Najnižu stopu ima Luksemburg (17%), a najvišu Mađarska (27%). Hrvatska poslije Mađarske ima najvišu stopu PDV-a u EU. Osim osnovne stope, zemlje članice mogu uvoditi snižene stope PDV-a do najniže 5% i *supersnižene* stope PDV-a do najniže 0%. Prema direktivama EU, članice EU ne bi trebale imati više od dvije snižene stope PDV-a. Primjerice, Hrvatska zadovoljava ovaj uvjet jer ima dvije snižene stope (5% i 13%) i nema *supersnižene* stope. Sve zemlje osim Danske koriste snižene stope PDV-a, a iznosi variraju od 5% do 18%. Supersnižene stope PDV-a imaju samo Irska, Estonija, Francuska, Italija i Litva.
+
+Detaljni podaci o visini, strukturi i povijesti promjena svih stopa PDV-a u EU dostupni su na sljedećoj [poveznici](https://ec.europa.eu/taxation_customs/sites/taxation/files/resources/documents/taxation/vat/how_vat_works/rates/vat_rates_en.pdf). Tablica na stranici 4 dokumenta pokazuje kategorije dobara i usluga na koje se primjenjuje snižena stopa PDV-a. Primjerice, prvi red pokazuje da gotovo sve zemlje imaju sniženu stopu PDV-a na hranu. Neke imaju isključivo snižene stope, dok druge koriste kombinaciju sniženih i osnovnih stopa. Razlog za snižene stope na hranu je umanjenje degresivnog utjecaja PDV-a. 
+
+Od brojnih podataka u dokumentu, orijentirat ću se na podatke o sniženim stopama za restorane i jer se na njih odnosi zadnja promjena u poreznoj reformi. Redovi 12 i 13 iste tablice pokazuju snižene stope PDV-a na usluge smještaja u hotelima i usluge restorana i *cateringa*. Ponovno postoji snažna heterogenost u visini stopa PDV-a. Primjerice, kod usluga restorana, najnižu stopu ima Rumunjska (5%), a najvišu stopu ima Hrvatska (25%). Od 28 zemalja, 10 zemalja ima snižene stope PDV-a na usluge restorana (Irska uvjetno), 10 ih ima osnovne stope, a 8 ih ima kombinaciju osnovnih i sniženih stopa. Iz svega se može zaključiti da upotreba sniženih stopa na usluge restorana nije pravilo (kao kod primjerice hrane), ali nije ni rijetkost (poput recimo snižene stope na pivo, koju ima samo Rumunjska). 
+
+Osnovni razlog korištenja snižene stope PDV-a je pomoć određenim industrijama ili smanjivanje degresivnog utjecaja PDV-a. Efekt smanjenja stope PDV-a ovisi o kategoriji proizvoda ili usluge na koje se smanjenje odnosi. U ovoj analizi je naglasak na sniženoj stopi za usluge restorana, pa  valja pogledati istraživanja iz ovog područja. Jedno takvo istraživanje je [rad Harjua i Kosonena]( https://www.iipf.org/papers/Harju-The_inefficiency_of_reduced_VAT_rates-105.pdf?db_name=IIPF69&paper_id=270) koji analizira utjecaj smanjenja stope PDV-a u sektoru usluga i restorana na cijene, potražnju i plaće u djelatnosti restorana. Osnova analize je sniženje stope PDV-a u Finskoj sa 22% na 13% u srpnju 2010. godini, a u Švedskoj sa 25% na 12% početkom 2012. godine. Autori su koristili *difference-in-differences* metodologiju koja je postao standard u kauzalnim modelima. Rezultati istraživanja su sljedeći:
+
+-	U Finskoj, više od pola restorana iz uzorka imalo je iste cijene prije i nakon tretmana (smanjenja stope PDV-a). U Švedskoj su restorani gotovo u potpunosti ignorirali reformu (cijene su ostale iste). Ako se promatra prosječna promjena cijena, rezultati pokazuju da su u Finskoj cijene pale za 2.2% (smanjenje koje uzima u obzir kompletno smanjenje PDV-a iznosilo bi 7.4%), a u Švedskoj 4.7% (smanjenje koje uzima u obzir kompletno smanjenje PDV-a iznosilo bi 10.4%). U obje zemlje su veći restorani smanjili cijene za veći iznos nego manji restorani.
+-	Potražnja za uslugama restorana nije se mijenjala. Drugim riječima potražnja za uslugama restorana je neelastična s obzirom na cijene u kratkom roku.
+-	Plaće se nisu mijenjale nakon reforme, kako u Finskoj, tako i u Švedskoj.
+-	Profitne marže su rasle nakon reforme, kako u Finskoj, tako i u Švedskoj.
+-	Broj firmi u industriji je ostao isti, to jest, broj novih firmi je bio jednak broju zatvorenih firmi.
+
+Na žalost, osim rada Harjua i Kosonena nisam pronašao nijedan drugi rad koji se bavio istraživanjem utjecaja snižene stope PDV-a u djelatnosti restorana i *cateringa*.  Slično istraživanje je napravio [Kosonen]( https://www.researchgate.net/publication/228280616_What_Was_Actually_Cut_in_the_Barbers'_VAT_Cut) za djelatnost šišanja. Ova usluga je slična uslugama restorana jer obje predstavljaju radno intenzivne djelatnosti. Autor je pokazao da je smanjenje cijena u prosjeku iznosilo 50% punog mogućeg smanjenja cijena, a utjecaj na potražnju bio je vrlo malen. Posljedično, utjecaj smanjenja stopa PDV-a na povećanje potražnje za radom bio je također vrlo mali.
+
+Može se zaključiti da istraživanja pokazuju vrlo mali ili nikakav utjecaj na smanjenje cijena,  povećanje potražnje i povećanje plaća. Iako je Hrvatska već imala sniženu stopu PDV-a na usluge restorana i smještaja, u Hrvatskoj, koliko mi je poznato, ne postoji istraživanje koje je analiziralo utjecaj ove mjere na cijene, plaće i potražnu u sektoru restorana. Kako bi dobili barem okvirnu predodžbu o utjecaju prijašnjeg smanjenja stope PDV-a na rezultate poslovanja, pogledajmo tablicu 1. Tablica pokazuje zbroj prihoda, neto plaća, dobiti, broja zaposlenih, neto vrijednosti prijevoznih sredstava i investicija za razdoblje od 2011. do 2015. godine. Mjera o smanjenju stope PDV-a donesena je 1.1.2013. godine.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+query <- paste("SELECT subjecttaxnoid AS oib, b110 AS Prihodi, reportyear AS Godina, b120 AS Place, b151 AS Dobit, employeecounteop AS Zaposleni, ", 
+               "b275 AS PrijevoznaSredstva, b369 AS Investicije ",
+               "FROM gfi_all WHERE reportyear BETWEEN 2011 AND 2015 AND nacerev24 = '5610'")
+restorani <- load_gfi(query)
+
+restorani %>%
+  # dplyr::filter(zaposleni < 40) %>%
+  dplyr::select(-oib) %>%
+  dplyr::group_by(Godina) %>%
+  dplyr::summarise_all(list(sum)) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(Godina = as.character(Godina)) %>% 
+  kable(., format = "markdown",
+        format.args = list( big.mark = "." ),
+        caption = "Pregled poslovnih pokazatelja sektora restorana i smještaja",
+        col.names = c("Godina", "Prihodi", "Neto plaće", "Dobit", "Zaposleni", "Prijevozna sredstva", "Investicije"),
+        digits = 1) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+# restorani[restorani$Prihodi == max(restorani$Prihodi), ]
+# restorani[restorani$oib == "97492131626", ]
+
+  
+```
+
+Tablica pokazuje povećanje vrijednosti svih varijabli nakon donesene mjere. Najzanimljivije je promatrati promjene između 2012. i 2013. godine. U prvoj koloni se vidi snažan rast prihoda nakon smanjenja stope PDV-a. Teško je utvrditi koliko je ovom rastu doprinio smanjenje PDV-a, ali teško je očekivati i da je cijeli rast rezultat turističke sezone. U svakom slučaju je vidljiv rast potražnje. Suma neto plaća je rasla, kao i broj zaposlenih. Teško je utvrditi prosjek plaće jer podaci pokazuju broj zaposlenih na zadnji dan godine, dok se suma plaća odnosi na cjelogodišnji period. Očekivano, dobit je snažno porasla, s minusa od 115 milijuna kuna na dobit od 183 milijuna kuna. Dakle, dobit je ukupno porasla za 300 milijuna kuna! Plaće su rasle za 108 milijuna kuna, pri čemu se rast plaća vjerojatno odnosi i na rast plaća vlasnika, a ne samo radnika. Broj zaposlenih je rastao sa 12.192 radnika na 13.919 radnika odnosno za 14%. Tablica otkriva i rast neto vrijednosti prijevoznih sredstava s vremenskim odmakom s 60 na 80 milijuna kuna. U svakom slučaju je uvjerljivo najveći rast zabilježen na stavci dobiti, dok su plaće i investicije u novu dugotrajnu imovinu rasle znatno manje. Valja upozoriti da je ovo samo prvi pogled na podatke, a detaljno znanstveno istraživanje bi zahtijevalo dodatne podatke (cijene i sl.) i ozbiljniju statističku metodologiju (spomenuti difference-in-differences).
+
+Podaci pokazuju da smanjenje stope PDV-a dovodi do snažnog rasta profitnih stopa i do malog ili nikakvog rasta ostalih ciljanih varijabli. No čak i da je utjecaj drugačiji, postoji li opravdanost uvođenja smanjene stope PDV-a?
+
+Kao prvo, smanjenja stopa PDV-a ugostitelje stavlja u povlašteni položaj u odnosu na druge industrije. Drugim riječima, država potiče razvoj usluga posluživanja hrane. Teško je zapravo razumjeti zašto bi država poticala ovaj sektor, a gotovo je nemoguće od ovog sektora očekivati rast produktivnosti kao temelj za ekonomski rast. Ako bi se neki sektor trebao poticati (a ne bi trebao nijedan), onda su to puno prije IT industrija, robotika, umjetna inteligencija i slično. To su industrije u kojima se mogu očekivati snažni tehnološki skokovi i snažan utjecaj na budući rast. Iz tablice 1 je vidljivo da je rast investicija bio izrazito skroman, i pojavio se tek 3 godine nakon donesene mjere. Još od [Solowa](http://piketty.pse.ens.fr/files/Solow1956.pdf) znamo da su osnovni faktori rasta investicije i rast produktivnosti. Ekonomisti koji se bave ekonomikom rasta često kažu da u kratkom produktivnost nije sve, u dugom roku je sve. Od restorana se teško može očekivati rast na temelju produktivnosti.
+
+Kao razlog smanjenja PDV navodi se i rast turizma. Međutim, ljudi s Jadrana su već samom činjenicom da žive na moru u povlaštenom položaju jer mogu iskoristiti prirodni resurs Mediterana. Usporedite početnu poziciju nezaposlene osobe u Dubrovniku ili Splitu sa nezaposlenom osobom iz Virovitice. Teško je razumjeti zašto bi osoba iz Virovitice trebala poticati razvoj turizma u Dubrovniku kada je potonji u znatno boljem početnom položaju (jasno je da se smanjenje odnosi na sve restorane, ali je očito tko više zarađuje od restorana). Nadalje, država je već uložila ogromne novce u turizam. Turizam ima svoje ministarstvo, ima HTZ, ceste, koje predstavljaju 10% svih investicija u RH u 15 godina rađene su radi turizma, malim iznajmljivačima je omogućeno da plaćaju vrlo niske paušale itd. Odokativno se može zaključiti da je turizam sektor u koji se najviše ulaže. Svi analiziraju samo prihode od turizma, međutim pitanje je koliki je prinos turizma nakon oduzimanja svih ovih troškova. Uobičajeno se na prirodni resurs plaća renta, a ne korisnike resursa dodatno pomaže.
+Često se kao korist ističe povećanje kupovne moći potrošača jer će se cijene na hranu u restoranima smanjiti. Iz istraživanja proizlazi da je utjecaj smanjenja PDV-a na smanjenje cijena vrlo nizak, a u većini slučajeva ga uopće nema. Ali čak i da se cijene smanje, pitanje je tko će imati koristi od smanjenja cijena? Siromašni građani sigurno neće jer oni ne odlaze u restorane. Upravo zato sve zemlje smanjuju PDV na kruh jer njega konzumiraju svi, a kod siromašnih građana ima znatno veći udio u potrošačkoj košarici.
+
+Zaključno, slijedeći dosadašnja iskustva i istraživanja, smanjenje stope PDV-a na uslugu posluživanja hrane imat će vrlo mali utjecaj na smanjenje cijena, potražnja će rasti malo ili ništa, a najveći će se efekt očitovati u povećanju dobiti poduzeća. Mjera neće doprinijeti dugoročnom rastu turizma, a još manje dugoročnom rastu hrvatskog gospodarstva jer se neće odraziti u rastu investicija i produktivnosti. Prema organizaciji institucija, ulaganjima i poreznoj politici, čini se da Hrvatska sve karte stavlja na turizam, te time u povlašteni položaj stavlja građane koji u startu imaju bolju početnu poziciju od drugih građana (Slavonija) zbog prirodnih resursa.

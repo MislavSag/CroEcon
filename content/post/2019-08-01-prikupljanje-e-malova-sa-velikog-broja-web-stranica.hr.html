@@ -1,0 +1,100 @@
+---
+title: Prikupljanje e-malova sa velikog broja web stranica
+author: Mislav Šagovac
+date: '2019-08-01'
+slug: prikupljanje-e-malova-sa-velikog-broja-web-stranica
+categories:
+  - R
+  - Web scraping
+tags:
+  - web scraping
+  - email
+type: ''
+subtitle: ''
+image: ''
+---
+
+
+
+<p>U predzadnjem <a href="http://croecon.contentio.biz/post/kako-preuzeti-e-mailove-sa-web-stranice-pomo-u-r-a/">postu</a> sam prikazao kako preuzeti e-mail adrese sadržane <strong>unutar slike</strong> (.img) sa web stranice. Međutim, mnogo češće se email-ovi nalaze unutar <strong><code>&lt;a&gt;</code> html taga</strong> ili kao <strong>čisti tekst</strong>. U ovom postu ću prikazati kako preuzeti e-mail adrese sa web stranica u tom slučaju. Post može biti zanimljiv svima koje žele raditi ciljane e-mail kampanje programski i tako zaobići ručno preuzimanje podataka sa web stranica.</p>
+<p>Nedavno sam htio preuzeti e-mail adrese leasing kuća u Hrvatskoj. Nakon upisivanja pojma „leasing kuće“, google je vratio sljedeću <a href="https://www.hanfa.hr/leasing-i-faktoring/registri/leasing-drustva/">stranicu</a>. Na stranici su pobrojana sva leasing društva u RH (16 ukupno). Uz to su dostupni i osnovni podaci poput sjedišta društva i brojeva telefona, ali ne i e-mail adrese. Ipak, dostupna je službena web stranica društva na kojoj se nalazi i e-mail adresa. Za početak je dakle potrebno preuzeti sve poveznice sa web stranice leasing društava. Nakon toga je potrebno provjeriti jesu li sve web stranice još uvijek aktivne jer moguće je da se početni <em>url</em> promijenio. Opisani postupak je kodiran na sljedeći način:</p>
+<pre class="r"><code>library(tidyverse)
+library(rvest)
+library(Rcrawler)
+library(jsonlite)
+library(httr)
+
+
+# izvlacenje web stranica s stranice
+p &lt;- read_html(&quot;https://www.hanfa.hr/leasing-i-faktoring/registri/leasing-drustva/&quot;)
+webLinks &lt;- p %&gt;% 
+  html_nodes(&quot;a&quot;) %&gt;% # izvlacenje dijela html-a gdje je tag &lt;a&gt;
+  html_attr(&quot;href&quot;) %&gt;% # izvlacenje sadrzaja href atributa
+  .[str_detect(., &quot;http.*www&quot;)] %&gt;%  # filtriranje onih poveznica kod kojih se pojavljuje http
+  map(., GET) %&gt;% # slanje GET zahtjeva na svaku web stranicu
+  map(., `[[`, &quot;url&quot;) %&gt;% # izvlacenje url elementa iz prethodnog koraka kako bi se dobila aktualna adresa
+  unlist(.) # pretvaranje liste u vektor</code></pre>
+<p>Prvi red koda preuzima sadržaj web stranice u html obliku pomoću <a href="http://croecon.contentio.biz/post/kako-preuzeti-e-mailove-sa-web-stranice-pomo-u-r-a/">otprije</a> poznate funkcije <code>read_html</code>. Sljedeća ugniježdena naredba preuzima web stranice leasing društava i provjerava njihovu aktualnost. Prvo su preuzete sve poveznice pomoću funkcija <code>html_nodes</code> i <code>html_attr</code>. Nakon toga su iz vektora poveznica filtrirane poveznice koje sadrže „http“ i „www“ i bilo što između. Konačno, na svaku poveznicu je poslan <code>GET</code> zahtjev, te je iz outputa <code>GET</code> zahtjeva izvučen <em>url</em> element.</p>
+<p>Raspolaganje web stranicama je nužan korak ali moguće je da već posjedujete bazu web stranica pa Vam ovaj korak nije potreban. Pitanje ovog posta je: kako izvući e-mail adrese sa dostupnih web stranica? Za to ćemo koristiti paket za <em>web crawling</em> u R-u o kojem sam <a href="http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/">već pisao</a>: <code>Rcrawler</code>. Paket sadrži samo jednu ključnu funkciju koja ima isti naziv kao i naziv paketa. Pogledajmo prvo tu funkciju na primjeru jednog <em>url-a</em>:</p>
+<pre class="r"><code># jedan link - primjer
+Rcrawler(webLinks[1], 
+         no_cores = 4,
+         MaxDepth = 3,
+         ExtractXpathPat = c(&quot;//title&quot;, &quot;//*//a[starts-with(@href, &#39;mailto&#39;)]/text()&quot;, &quot;//*[contains(text(), &#39;@&#39;)]&quot;),
+         PatternsNames = c(&quot;title&quot;, &quot;e-mail-href&quot;, &quot;e-mail-sign&quot;),
+         ManyPerPattern = TRUE,
+         saveOnDisk = FALSE
+)</code></pre>
+<p>Više o argumentima funkcije možete vidjeti davanjem naredbe <code>? Rcrawler</code> u R konzolu. U našem slučaju, prvi argument je <em>url</em> s kojeg želimo preuzeti podatke. Drugi argument je broj jezgri koje želimo koristiti prilikom <em>scrapanja</em>. Treći argument je maksimalna dubina <em>scrapanja</em>. Primjerice, domena www.vecernji.hr ima dubinu 0, <em>url</em> „www.vecernji.hr/vijesti“ ima dubinu 1, <em>url</em> „www.vecernji.hr/vijesti/hrvatska“ ima dubinu 2 itd. Ako želite brže preuzimanje adresa možete koristiti manju dubinu, a ako želite provjeriti veliki broj stranica određene domene, koristit ćete veću dubinu. Slijedeći argument, <code>ExtractXpathPat</code> je vrlo važan i pokazuje <em>xpath</em> koji identificira dio <em>HTML-a</em> koji želimo izvući. Prvi je <em>\title</em>, odnosno naslov sa web stranice. Ovaj element nije potreban, ali često sadrži naziv tvrtke pa može biti koristan. Druga dva elementa su mnogo važnija. <em>Xpath</em> <code>//*//a[starts-with(@href, 'mailto')]/text()</code> jednostavno kaže: vrati dio HTML-a (točnije, tekst), koji sadrži tag <code>&lt;a&gt;</code>, pri čemu atribut „href“ počinje sa „mailto“. Treći <em>xpath</em>, <code>//*[contains(text(), '@')]</code>, najjednostavniji je <em>xpath</em> za izvlačenje mail-adresa kaže: vrati dio HTML-a koji sadrži znak „@“. Sljedeći argument, <code>PatternsNames</code> definira nazive za svaki prethodno definirani <em>xpath</em>. Argument <code>ManyPerPattern</code> zahtijeva izvlačenje svih identificiranih elemenata po <em>xpath-u</em>. Konačno, zadnji argument <code>saveOnDisk</code> ima vrijednost<code>„FALSE</code>, što znači da ne želimo spremiti kompletne HTML-ove svih stranica sa domene jer nas zanimaju samo e-mail adrese.</p>
+<p>Rezultat funkcije je objekt DATA, lista koja sadrži 4 elementa: id i tri prethodno definirana HTML elementa prema <em>xpathu</em>. U nastavku opisujemo kako “očistiti” dobivene rezultate. Prvo se izdvoji svaki element, eliminiraju suvišni razmaci prije i nakon e-mail adrese, a potom te e-mailove izdvojene iz dva različita xpatha spajamo u jedan vektor:</p>
+<pre class="r"><code>title &lt;- unlist(lapply(DATA, `[[`, 2))
+emails_href &lt;- unlist(lapply(DATA, `[[`, 3))
+emails_sign &lt;- unlist(lapply(DATA, `[[`, 4))
+title &lt;- trimws(unique(title)[1])
+emails &lt;- c(emails_href, emails_sign)
+emails &lt;- trimws(unique(emails))  # ostaviti jedinstvene emailove i maknuti suvišne razmake sa lijeve i desne strane</code></pre>
+<p>Rezultati pokazuju sve dijelove texta na web stranicama koji unutar teksta sadrže „@“ i kojima atribut poveznice sadrži „mailto“. Budući da sam koristio vrlo jednostavan obrazac za identificiranje e-maila („@“), potrebno je dodatno iz tekstova izvući e-mail adrese. Ako u google upišete”regex e-mail", dobit ćete mnogo različitih prijedloga <em>regexa</em> za identificiranje e-mailova. Primjenit ćemo jedan od dostupnih:</p>
+<pre class="r"><code>emailRegex &lt;- &quot;([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)&quot;
+
+emails &lt;- emails[!str_detect(emails, &quot;\\{&quot;)]  # maknuti emailove koji se nalaze unutar Javascript koda
+emailst &lt;- str_extract(emails, emailRegex)</code></pre>
+<p>To je to. Izdvojili smo sve e-mailove sa zadanog <em>url-a</em>. Na kraju ćemo sve korake spojiti i napraviti funkciju <strong>email_crawler</strong>:
+Funkcija sadrži samo dva argumenta: <em>url</em> s kojeg želite preuzimati podatke i output koji očekjete (tablica ili json format). S ovom funkcijom, preuzimanje e-malova leasing društava zahtijeva samo jedan red koda (vidi dolje). Drugi red je nužan samo ako koristite tablicu kao output i želite sve rezultate spojiti u jednu tablicu:</p>
+<pre class="r"><code>email_crawler &lt;- function(url, save = c(&quot;df&quot;, &quot;json&quot;)) {
+  Rcrawler(url, no_cores = 4,
+           MaxDepth = 2,
+           ExtractXpathPat = c(&quot;//title&quot;, &quot;//*//a[starts-with(@href, &#39;mailto&#39;)]/text()&quot;, &quot;//*[contains(text(), &#39;@&#39;)]&quot;),
+           PatternsNames = c(&quot;title&quot;, &quot;e-mail-href&quot;, &quot;e-mail-sign&quot;),
+           ManyPerPattern = TRUE,
+           saveOnDisk = FALSE
+  )
+  title &lt;- unlist(lapply(DATA, `[[`, 2))
+  emails_href &lt;- unlist(lapply(DATA, `[[`, 3))
+  emails_sign &lt;- unlist(lapply(DATA, `[[`, 4))
+  title &lt;- trimws(unique(title)[1])
+  emails &lt;- c(emails_href, emails_sign)
+  emails &lt;- trimws(unique(emails))  # ostaviti jedinstvene emailove i maknuti suvišne razmake sa lijeve i desne strane
+  emails &lt;- emails[!str_detect(emails, &quot;\\{&quot;)]  # maknuti emailove koji se nalaze unutar Javascript koda
+  emailRegex &lt;- &quot;([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)&quot;
+  emails &lt;- str_extract(emails, emailRegex)
+  if (save == &quot;df&quot;) {
+    emails_df &lt;- cbind.data.frame(title, emails, domena = url,stringsAsFactors = FALSE)  # spojiti sve u df 
+    return(emails_df)
+  } else if (save == &quot;json&quot;) {
+    emails_json &lt;- jsonlite::toJSON(  # spojiti sve u json
+      list(tvrtka = title,
+           emails = emails)
+    )
+    return(emails_json)
+  }
+}
+
+leasing_emails &lt;- lapply(webLinks, email_crawler, save = &quot;df&quot;)
+scraped_emails &lt;- do.call(rbind, leasing_emails)</code></pre>
+<pre class="r"><code>glimpse(scraped_emails)</code></pre>
+<pre><code>## Observations: 174
+## Variables: 3
+## $ title  &lt;chr&gt; &quot;ALD Automotive d.o.o.&quot;, &quot;ALD Automotive d.o.o.&quot;, &quot;ALD ...
+## $ emails &lt;chr&gt; &quot;prodaja.hr@aldautomotive.com&quot;, &quot;human-resources.hr@ald...
+## $ domena &lt;chr&gt; &quot;https://www.aldautomotive.hr/&quot;, &quot;https://www.aldautomo...</code></pre>
+<p>U budućnosti, ako želite preuzeti e-mal adrese sa određenih stranica, instalirajte R, potrebne pakete i primjenite ove funkcije na željene domene. Sretno <em>scrapanje</em>.</p>

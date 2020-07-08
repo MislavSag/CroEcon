@@ -1,0 +1,214 @@
+---
+title: R&D hrvatskih poduzeća
+author: Luka Šikić
+date: '2019-01-03'
+slug: r-d-hrvatskih-poduze-a
+categories:
+  - Ekonomika
+  - Firme
+tags:
+  - R&D
+  - prduktivnost
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r,  message = FALSE, warning =FALSE, include=FALSE}
+
+library(pander)
+library(eurostat)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(cowplot)
+library(gridExtra)
+library(grid)
+library(gtable)
+library(RMySQL)
+library(RODBC)
+library(kableExtra)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(jsonlite)
+library(lfe)
+library(gridExtra)
+library(httr)
+
+
+
+```
+
+Izdatci za istraživanje i razvoj (RnD) nisu posebno bitna tema u Hrvatskoj. Pokazatelj toga je izrazito malen broj novinarskih članaka, rasprava ali i znanstvenih radova koji se bave tom temom. Sa druge strane, ekonomska teorija jasno pokazuje kako ulaganje u RnD ima ključnu ulogu u formiranju vlastitih tehnoloških ali i apsorpcijskih (bitnih za uspješno usvajanje tehnologije iz inozemstva) kapaciteta zemlje pa je tako opravdano pretpostaviti da je ulaganje u RnD od velike važnosti za smanjenje tehnološkog i razvojnog jaza u Hrvatskoj. Praktičnu važnost tehnoloških ulaganja potvrđuje pozicija ulaganja u RnD kao  prioriteta  [EU 2020 strategije](https://ec.europa.eu/info/business-economy-euro/economic-and-fiscal-policy-coordination/eu-economic-governance-monitoring-prevention-correction/european-semester/framework/europe-2020-strategy_en). Uzevši u obzir ekonomsku teoriju ali i praktičnu ekonomsko-razvojnu politiku (EU), čudi što se tema RnD nalazi na marginama domaćeg javnog, stručnog i znanstvenog interesa. 
+
+Jedno od mogućih objašnjenja malog interesa za tehnologiju u Hrvatskoj možda je i sama niska razina RnD. Naime, Na grafikonu je vidljivo da su ukupni RnD izdatci u Hrvatskoj za razdoblje od 2002 do 2017 godine ispod 1% BDP i uglavnom stagniraju, odnosno izmjenjuju se u ciklusima blagog rasta i pada u rasponu od 0,6% do 0,9% BDP. U usporedbi sa EU prosjekom, Hrvatska ima otprilike dvostruko manji udio RnD u BDP-u. Ovdje je korisno istaknuti kako globalni tehnološki lideri poput SAD i Japana ulažu i preko 3,5% BDP u RnD. Iako su mala domaća ulaganja u RnD zabrinjavajuća, još više razloga za brigu daje pogled u strukturu tih ulaganja. Naime, u EU je poslovni sektor glavni ulagač u RnD dok javni i sektor obrazovanja ulažu ispod 0,5% BDP-a u RnD. U Hrvatskoj pak poslovni i javni sektor ulažu vrlo slične iznose u RnD, a zbroj RnD ulaganja javnog i sektora obrazovanja je veći nego u poslovnom sektoru. 
+
+
+```{r, include = FALSE}
+bd <- get_eurostat("rd_e_gerdtot", time_format = "date", type = "label" )
+
+crornd <- bd %>% 
+  filter(geo == "Croatia",
+         unit == "Percentage of gross domestic product (GDP)")
+
+crnd <- crornd %>% 
+  group_by (time,sectperf)  %>% 
+  filter(sectperf != "Private non-profit sector") 
+
+euavg <- bd %>% 
+  filter(geo =="European Union (current composition)",
+         unit == "Percentage of gross domestic product (GDP)")    
+
+eurnd <- euavg %>% 
+  group_by (time,sectperf)  %>% 
+  filter(sectperf != "Private non-profit sector")
+
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+
+a <-  ggplot(crnd, aes( time, values, colour = sectperf)) + 
+  geom_line() + 
+  labs(y = "Percentage of GDP",
+       x = "Year",
+       colour = "Sectors", 
+       title = "RnD size RH") +
+  scale_x_date(date_breaks = "2 year", date_labels = "%y") +
+   theme(legend.position = "bottom",
+         legend.text = element_text(size = 8),
+         legend.title = element_text(size = 8,face = "bold"))
+
+
+b <-  ggplot(eurnd, aes( time, values, colour = sectperf)) + 
+  geom_line(show.legend = FALSE) + 
+  labs(y = NULL,
+       x = "Year",
+       colour = "Sectors", 
+       title = "RnD size EU") +
+  scale_x_date(date_breaks = "2 year", date_labels = "%y") 
+
+ 
+```
+
+```{r, echo = FALSE}
+
+mylegend <- g_legend(a)
+
+gr <- grid.arrange(arrangeGrob(a + theme(legend.position="none"),
+                               b + theme(legend.position="none"),
+                               nrow = 1 ),
+                   mylegend,nrow = 2, heights=c(10, 1))
+```
+
+Prema službenim informacijama [Državnog zavoda za statistiku](https://www.dzs.hr/Hrv_Eng/publication/2017/08-02-02_01_2017.htm), u Hrvatskoj je prošle godine potrošeno 3,2 mlrd kn za RnD,a 50% tog novca se odnosi na poslovni sektor, 30% na sektor obrazovanja i ostatak na državni sektor. Podatci pokazuju da je na poslovima RnD bilo zaposleno oko 20 tis ljudi, od čega je 11,4 tis u sektoru visokog obrazovanja, 4,2 tis u državnom sektoru i 4 tis u privatnom. Od ukupnog broja zaposlenika na RnD poslovima, broj istraživača je oko 14 tis. Pogledom u strukturu (ciljeve) hrvatskih RnD izdataka, ponovno je vidljivo odstupanje od EU prosjeka. Hrvatska ulaže (znatno) više od EU prosjeka u obrazovanje i znanje dok u svim drugim RnD ciljevima znatno zaostaje. Razlike su najveće u sektoru zdravstva, industrijske proizvodnje, energije i obrane gdje Hrvatska ulaže znatno manji dio RnD sredstva od EU prosjeka. 
+
+Nakon pregleda standardnih podataka Eurostat-a i DZS-a, valja pogledati i u financijske izvještaje domaćeg poslovnog sektora. Primarno treba naglasiti da tek mali broj domaćih tvrtki ulaže u RnD. Ovisno o tome kako se definiraju izdatci za RnD na temelju bilanci poduzeća, broj tvrtki koje ulažu u razvoj novih tehnologija varira od oko 300 (ulaganje u razvoj) do oko 14 tis (ulaganje u patente, licence, koncesije i software) tvrtki. Presjek ove dvije  skupine (tvrtke koje ulažu u obje tehnološke kategorije) čini pak izrazito mali broj od oko 330 tvrtki za koje se može reći da u punom smislu ulažu u RnD. Te tvrtke čine 0.27% ukupnog broja hrvatskih tvrtki. 
+
+
+
+```{r, include = FALSE}
+
+db <- dbConnect(MySQL(), dbname = "odvjet12_gfi", host = "91.234.46.219", 
+                port = 3306L, user ="odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b110/1000000000 AS Prihodi, 
+             b120/1000000000 AS Place,
+             subjectsizelocalrev3id AS Velicina,
+             b372 AS Zaposleni,
+             b010/1000000000 AS MaterijalnaImovina, 
+             b003/1000000000 AS NematerijalnaImovina,
+             b335/1000000000 AS Izvoz, 
+             b370/1000000000 AS Uvoz,
+             b004/1000000000 AS Razvoj,
+             b005/1000000000 AS Tech,
+             b006/1000000000 AS Goodwill,
+             b119/1000000000 AS Trošakrada,
+             b123/1000000000 AS Amortizacija,
+             b136/1000000000 AS Finrashod,
+             b147/1000000000 Nett,
+             reportyear, subjectid, nacerev21, nacerev22, nacerev23, nacerev24
+             FROM gfi_all 
+             WHERE reportyear >= 2002;") 
+
+
+data <- dbGetQuery(db, q)
+
+rd <- data %>%
+  group_by(reportyear) %>%
+  filter(Razvoj > 0 & Tech > 0)
+  
+rd %>% 
+  group_by(reportyear) %>%
+  summarise(n = n_distinct(subjectid),
+            Razvoj_ = sum(Razvoj, na.rm = TRUE),
+            Tech_ = sum(Tech, na.rm = TRUE),
+            RnD = Razvoj_ + Tech_,
+            NematerijalnaImovina_ = sum(NematerijalnaImovina, na.rm = TRUE),
+            Zaposleni = sum(Zaposleni, na.rm = TRUE),
+            Prihodi = sum(Prihodi, na.rm = TRUE),
+            Place = sum(Place, na.rm = TRUE),
+            Nett = sum(Nett, na.rm = TRUE),
+            Uvoz_ = sum(Uvoz, na.rm = TRUE),
+            Izvoz_ = sum(Izvoz, na.rm = TRUE),
+            NI = Izvoz_ - Uvoz_,
+            Placa = ((sum(Place, na.rm = TRUE))/(sum(Zaposleni, na.rm = TRUE))*1000000)/12,
+            Placa2 = ((sum(Trošakrada, na.rm = TRUE))/(sum(Zaposleni, na.rm = TRUE))*1000000)/12)
+
+```
+
+
+Hrvatske su RnD tvrtke zabilježile oko 1.5 mlrd kn RnD ulaganja godišnje u periodu zadnje četiri godine, od kada traje ciklus pojačanih tehnoloških investicija u hrvatskim tvrtkama. To predstavlja znatno poboljšanje u odnosu na razdoblje od izbijanja ekonomske krize 2008 godine pa do 2013 kada su ulaganja domaćih tvrtki u RnD bila na izrazito niskoj razini u rasponu od 400 do 550 mil kn godišnje. 
+
+Tvrtke koje ulažu u RnD karakteriziraju dobri poslovni pokazatelji i visoka produktivnost poslovanja. Dobro poslovanje se očituje u rastućem trendu povećanja prihoda koji su sa 15 mlrd kn u 2015 godini porasli na 23 mlrd kn u 2017 godini i rastućoj dobiti koja na razini od oko 1.2 mlrd kn godišnje u zadnje dvije godine. RnD tvrtke pozitivno pridonose i vanjskotrgovinskoj bilanci na agregatnoj razini od oko 4.5 mlrd kn godišnje u zadnje 4 godine, a ujedno su i znatno poboljšale vanjskotrgovinsku bilancu u tom periodu (neto izvoz u prethodnom periodu 2002-2013 rijetko je bio veći od 2 mlrd kn) jer je trend u potpunosti povezan sa povećanjem izvoza (ne smanjenjem uvoza). 
+
+Produktivnost poslovanja se očituje u visokoj prosječnoj plaći koja je znatno iznad prosjeka i iznosi oko 10 tis kn. Zanimljivo je da se prosječna isplaćena plaća u RnD poduzećima kreće u rasponu od 9-10 tis kn u razdoblju od 2008 -2017 godine i očito je tek indirektno povezana sa poslovnim rezultatima tih poduzeća. Naime, RnD poduzeća su više nego prepolovila broj radnika od 2007 godine do danas.
+
+```{r, include = FALSE}
+
+top <- data %>%
+  group_by(reportyear) %>%
+  filter(Razvoj > 0 & Tech > 0) %>%
+  mutate (Rnd = Razvoj + Tech) 
+  
+
+
+ nazivi <- fromJSON(toJSON(content(POST(url = "https://api.data-api.io/v1/subjekti",
+                                        add_headers('x-dataapi-key' = "59dd75a6525e",
+                                                    'content-type'= "application/json"),
+                                        body = list(oib = top$subjectid), encode = "json",                                          verbose()),
+                                   type = "application/json"), null = "null"), flatten = TRUE)
+ 
+ top_x <- merge(top, nazivi[,c("naziv", "mb")], by.x = "subjectid", by.y = "mb", 
+                all.x = TRUE, all.y = FALSE)
+ 
+ 
+
+```
+
+```{r,echo= FALSE}
+top_x %>% 
+   filter(reportyear == 2017) %>%
+   top_n(.,10, Rnd) %>%
+   select(naziv, Rnd, Prihodi, Dobit = Nett) %>%
+   arrange(desc(Rnd)) -> tabelica
+
+   kable(tabelica) %>%
+     kable_styling(full_width = F) %>%
+     footnote(general = "Izraženo u mlrd kn.")
+
+```
+
+Tablica pokazuje 10 najvećih tvrtki po RnD izdatcima u 2017 godini. Zanimljivo je da su u razdoblju od 2012 do 2017 10 najvećih RnD ulagača uglavnom iste tvrtke pri čemu njihova relativna pozicija na toj ljestvici ponešto varira. U svakom slučaju kao najveće domaće investitore u tehnologiju valja izdvojiti AD plastik, Edison, Vodeni tok, Belupo i Rimac Automobile.
+
+Zaključno, Hrvatska ulaže malo u RnD u usporedbi sa EU prosjekom. Tehnološke investicije su usmjerene pretežno u obrazovanje što je netipično s obzirom na strukturu RnD izdataka u EU. Poseban problem predstavlja relativno malen udio RnD investicija poslovnog sektora u ukupnim RnD ulaganjima na razini države. Iako RnD tvrtke imaju dobre poslovne pokazatelje, mali izdatci za tehnologiju upućuju na niske povrate od takvih investicija, a pošto su društveni povrati na tehnološke investicije uglavnom viši od privatnih, ekonomske politike bi poželjno trebale ići u smjeru osiguranja većih privatnih povrata. To bi nedvojbeno rezultiralo povećanjem općih tehnoloških kapaciteta u Hrvatskoj i smanjenjem razvojnog jaza u odnosu na EU.  
+
+
+

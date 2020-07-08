@@ -1,0 +1,1433 @@
+---
+title: Koncentriranost izvoza i uvoza u RH
+author: Mislav Sagovac
+date: '2018-12-06'
+slug: izvoz-i-uvoz-su-visokokoncentrirane-aktivnosti
+categories:
+  - Međunarodna razmjena
+  - Ekonomika
+  - Firme
+  - R
+tags:
+  - Izvoz
+  - Uvoz
+subtitle: ''
+header-includes:
+    - \usepackage{caption}
+---
+
+
+
+
+
+<pre><code>## Warning in .local(conn, statement, ...): Decimal MySQL column 28 imported
+## as numeric</code></pre>
+<p>Fokus literature iz područja međunarodne razmjene u posljednjih 20-ak godina prešao je s analize makroekonomskih agregatnih tokova roba i usluga na analizu obilježja međunarodne razmjene nefinancijskih poduzeća. Mikroekonomska analiza međunarodne trgovine naglašava važnost stupnja participacije poduzeća u međunarodnoj razmjeni,a rezultati nedvojbeno pokazuju da postoji vrlo mali broj uvoznih i izvoznih firmi među proizvodnim poduzećima, kako u razvijenim, tako i u nerazvijenim zemljama. Istraživanja također pokazuju da su izvoznici produktivniji, kapitalno intenzivniji te isplaćuju veće plaće. Ukratko izvoznici ostvaruju u prosjeku znatno bolje performanse od poduzeća koja nisu uključena u međunarodnu razmjenu. U ovom postu ću analizirati kako se međunarodna trgovina hrvatskih firmi uklapa u stilizirane činjenice iz moderne literature o međunarodnoj trgovini.</p>
+<p>Analizu koncentriranosti uvozne i izvozne aktivnosti započet ću s mjerenjem udjela izvoznika i uvoznika u ukupnom broju nefinancijskih poduzeća. Udio izvoznika u ukupnoj populaciji poduzeća prikazani su u tablici 1. Tvrtka je definirana kao izvozna, ako je vrijednosti prihoda iz inozemstva (izvoza) veća od nula. U prosjeku u periodu 2002-2017, oko 15% poduzeća u RH pripada grupi izvoznika. U SAD-u ovaj broj iznosi oko 4% (Bernard et al, 2007) pa se može činiti da je udio izvoznika u RH relativno visok. Jasno, ova razlika je rezultat veličine zemlje. Hrvatska je mala otvorena ekonomija, dok su SAD velika svjetska ekonomija. Zanimljiva je i dinamika kretanja udjela izvoza. Tijekom krize, udio je pao s 16% 2008. godine na 11% 2009. godine, čak pet postotnih bodova. Međutim, udio se ponovno vratio na prosječnu vrijednost.</p>
+<table>
+<caption><span id="tab:unnamed-chunk-2">Table 1: </span>Tablica 1: Udio izvoznih poduzeća u ukupnom broju nefinancijskih poduzeća</caption>
+<thead>
+<tr class="header">
+<th align="left">2002</th>
+<th align="left">2003</th>
+<th align="left">2004</th>
+<th align="left">2005</th>
+<th align="left">2006</th>
+<th align="left">2007</th>
+<th align="left">2008</th>
+<th align="left">2009</th>
+<th align="left">2010</th>
+<th align="left">2011</th>
+<th align="left">2012</th>
+<th align="left">2013</th>
+<th align="left">2014</th>
+<th align="left">2015</th>
+<th align="left">2016</th>
+<th align="left">2017</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">16%</td>
+<td align="left">16%</td>
+<td align="left">17%</td>
+<td align="left">17%</td>
+<td align="left">17%</td>
+<td align="left">16%</td>
+<td align="left">12%</td>
+<td align="left">11%</td>
+<td align="left">12%</td>
+<td align="left">11%</td>
+<td align="left">12%</td>
+<td align="left">13%</td>
+<td align="left">14%</td>
+<td align="left">14%</td>
+<td align="left">15%</td>
+<td align="left">15%</td>
+</tr>
+</tbody>
+</table>
+<p>Mala participacija izvoza može se preslikati i na uvoz. Tablica 2. pokazuje udio uvoznih poduzeća u ukupnom broju nefinancijskih poduzeća tijekom razdoblja 2002-2017. Prosječni udio uvoza je identičan udjelu izvoza – 15%. Međutim, promjene udjela tijekom promatranog razdoblja su znatno volatilnije. U pretkriznom razdoblju udio uvoznika je bio oko 19%, da bi nakon krize pao na 13%, pad od 5 postotnih poena. Može se zaključiti da većina poduzeća u Hrvatskoj (oko 85%) ne uvozi niti izvozi.</p>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 2: </span>Tablica 2: Udio uvoznih poduzeća u ukupnom broju nefinancijskih poduzeća</caption>
+<thead>
+<tr class="header">
+<th align="left">2002</th>
+<th align="left">2003</th>
+<th align="left">2004</th>
+<th align="left">2005</th>
+<th align="left">2006</th>
+<th align="left">2007</th>
+<th align="left">2008</th>
+<th align="left">2009</th>
+<th align="left">2010</th>
+<th align="left">2011</th>
+<th align="left">2012</th>
+<th align="left">2013</th>
+<th align="left">2014</th>
+<th align="left">2015</th>
+<th align="left">2016</th>
+<th align="left">2017</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">19%</td>
+<td align="left">20%</td>
+<td align="left">20%</td>
+<td align="left">19%</td>
+<td align="left">19%</td>
+<td align="left">17%</td>
+<td align="left">15%</td>
+<td align="left">13%</td>
+<td align="left">13%</td>
+<td align="left">12%</td>
+<td align="left">12%</td>
+<td align="left">12%</td>
+<td align="left">13%</td>
+<td align="left">13%</td>
+<td align="left">13%</td>
+<td align="left">14%</td>
+</tr>
+</tbody>
+</table>
+<p>Ograničena participacija izvoznih poduzeća ne odnosi se samo na njihov broj, već i na izvoznu koncentraciju. Kako bi dobili uvid o veličini koncentracije, u nastavku se analizira udio izvoza najvećih izvoznika u ukupnom izvozu. Za početak, u tablici 3 je prikazano 5 najvećih izvoznika u Hrvatskoj za svaku promatranu godinu (razdoblje 2002-2017). U svakoj godini, najveći izvoznik je INA d.d., koja uključuje otprilike 8 % ukupnog izvoza svih nefinancijskih poduzeća u Hrvatskoj. Drugi najveći izvoznik je Pliva d.d., s otprilike 2.5% ukupnog izvoza svih poduzeća. Zanimljivo je primijetiti da je veliki udio najvećih izvoznika bio ili je u vlasništvu države (Croatia airlines d.d., Pretokemija d.d., HT d.d., Pliva Hrvatska…).</p>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 3: </span>Tablica 3: Top izvoznici po godinama</caption>
+<thead>
+<tr class="header">
+<th align="right">Godina</th>
+<th align="right">Izvoz</th>
+<th align="right">Uvoz</th>
+<th align="right">Neto izvoz</th>
+<th align="right">Udio izvoza</th>
+<th align="left">Naziv</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="right">3187569203</td>
+<td align="right">8679927348</td>
+<td align="right">-5492358145</td>
+<td align="right">6.20</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2002</td>
+<td align="right">1900031700</td>
+<td align="right">1090078809</td>
+<td align="right">809952891</td>
+<td align="right">3.69</td>
+<td align="left">PLIVA FARMACEUTIKA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="right">1154455936</td>
+<td align="right">883661030</td>
+<td align="right">270794906</td>
+<td align="right">2.24</td>
+<td align="left">BRODOSPLIT-BRODOGRADILIŠTE d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2002</td>
+<td align="right">1112049525</td>
+<td align="right">416771528</td>
+<td align="right">695277997</td>
+<td align="right">2.16</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="right">1096436540</td>
+<td align="right">969926558</td>
+<td align="right">126509982</td>
+<td align="right">2.13</td>
+<td align="left">ERICSSON NIKOLA TESLA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="right">3424902635</td>
+<td align="right">9666761959</td>
+<td align="right">-6241859324</td>
+<td align="right">6.17</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2003</td>
+<td align="right">1572766568</td>
+<td align="right">1017776226</td>
+<td align="right">554990342</td>
+<td align="right">2.83</td>
+<td align="left">PLIVA FARMACEUTIKA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="right">1127355200</td>
+<td align="right">899559116</td>
+<td align="right">227796084</td>
+<td align="right">2.03</td>
+<td align="left">ERICSSON NIKOLA TESLA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2003</td>
+<td align="right">1077607451</td>
+<td align="right">435022797</td>
+<td align="right">642584654</td>
+<td align="right">1.94</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="right">988866374</td>
+<td align="right">174294866</td>
+<td align="right">814571508</td>
+<td align="right">1.78</td>
+<td align="left">BENETTON CROATIA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2004</td>
+<td align="right">4643173353</td>
+<td align="right">9648933572</td>
+<td align="right">-5005760219</td>
+<td align="right">7.52</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="right">1737382501</td>
+<td align="right">1068209513</td>
+<td align="right">669172988</td>
+<td align="right">2.81</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2004</td>
+<td align="right">1151808016</td>
+<td align="right">980688614</td>
+<td align="right">171119402</td>
+<td align="right">1.87</td>
+<td align="left">ERICSSON NIKOLA TESLA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="right">1104802141</td>
+<td align="right">55340</td>
+<td align="right">1104746801</td>
+<td align="right">1.79</td>
+<td align="left">TANKERSKA PLOVIDBA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2004</td>
+<td align="right">1044449459</td>
+<td align="right">538052847</td>
+<td align="right">506396612</td>
+<td align="right">1.69</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="right">5748814929</td>
+<td align="right">13995869855</td>
+<td align="right">-8247054926</td>
+<td align="right">8.05</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2005</td>
+<td align="right">2034240164</td>
+<td align="right">978680871</td>
+<td align="right">1055559293</td>
+<td align="right">2.85</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="right">1269739517</td>
+<td align="right">674463251</td>
+<td align="right">595276266</td>
+<td align="right">1.78</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2005</td>
+<td align="right">1194259817</td>
+<td align="right">867066291</td>
+<td align="right">327193526</td>
+<td align="right">1.67</td>
+<td align="left">DIOKI d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="right">1148568211</td>
+<td align="right">1081266271</td>
+<td align="right">67301940</td>
+<td align="right">1.61</td>
+<td align="left">ERICSSON NIKOLA TESLA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="right">6973837986</td>
+<td align="right">17180646903</td>
+<td align="right">-10206808917</td>
+<td align="right">8.45</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2006</td>
+<td align="right">1942959836</td>
+<td align="right">1206827843</td>
+<td align="right">736131993</td>
+<td align="right">2.35</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="right">1346788354</td>
+<td align="right">513558681</td>
+<td align="right">833229673</td>
+<td align="right">1.63</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2006</td>
+<td align="right">1335850239</td>
+<td align="right">713754837</td>
+<td align="right">622095402</td>
+<td align="right">1.62</td>
+<td align="left">BRODOSPLIT-BRODOGRADILIŠTE d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="right">1255877494</td>
+<td align="right">978079064</td>
+<td align="right">277798430</td>
+<td align="right">1.52</td>
+<td align="left">DIOKI d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="right">7675427398</td>
+<td align="right">16028247684</td>
+<td align="right">-8352820286</td>
+<td align="right">8.38</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="right">1740404295</td>
+<td align="right">1312594103</td>
+<td align="right">427810192</td>
+<td align="right">1.90</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="right">1411845544</td>
+<td align="right">1115038782</td>
+<td align="right">296806762</td>
+<td align="right">1.54</td>
+<td align="left">DIOKI d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="right">1310942045</td>
+<td align="right">660995144</td>
+<td align="right">649946901</td>
+<td align="right">1.43</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="right">1305785281</td>
+<td align="right">397406309</td>
+<td align="right">908378972</td>
+<td align="right">1.43</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="right">7673417417</td>
+<td align="right">2236920228</td>
+<td align="right">5436497189</td>
+<td align="right">8.22</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2008</td>
+<td align="right">1678297967</td>
+<td align="right">858260583</td>
+<td align="right">820037384</td>
+<td align="right">1.80</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="right">1580043311</td>
+<td align="right">1141436142</td>
+<td align="right">438607169</td>
+<td align="right">1.69</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2008</td>
+<td align="right">1557044297</td>
+<td align="right">678714834</td>
+<td align="right">878329463</td>
+<td align="right">1.67</td>
+<td align="left">BRODOSPLIT-BRODOGRADILIŠTE d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="right">1489661705</td>
+<td align="right">1133486517</td>
+<td align="right">356175188</td>
+<td align="right">1.60</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="right">5831970767</td>
+<td align="right">3124073605</td>
+<td align="right">2707897162</td>
+<td align="right">7.36</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2009</td>
+<td align="right">2126200061</td>
+<td align="right">1287450788</td>
+<td align="right">838749273</td>
+<td align="right">2.68</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="right">2021901704</td>
+<td align="right">945343836</td>
+<td align="right">1076557868</td>
+<td align="right">2.55</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2009</td>
+<td align="right">1519422208</td>
+<td align="right">1874</td>
+<td align="right">1519420334</td>
+<td align="right">1.92</td>
+<td align="left">INA Adria B.V.</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="right">1222146308</td>
+<td align="right">437606556</td>
+<td align="right">784539752</td>
+<td align="right">1.54</td>
+<td align="left">BRODOSPLIT-BRODOGRADILIŠTE d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="right">8561063979</td>
+<td align="right">1731663572</td>
+<td align="right">6829400407</td>
+<td align="right">9.50</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2010</td>
+<td align="right">2423051744</td>
+<td align="right">1113947949</td>
+<td align="right">1309103795</td>
+<td align="right">2.69</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="right">1911703953</td>
+<td align="right">917405396</td>
+<td align="right">994298557</td>
+<td align="right">2.12</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2010</td>
+<td align="right">1581657299</td>
+<td align="right">817183676</td>
+<td align="right">764473623</td>
+<td align="right">1.75</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="right">1389130999</td>
+<td align="right">742661484</td>
+<td align="right">646469515</td>
+<td align="right">1.54</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="right">10471077854</td>
+<td align="right">639365342</td>
+<td align="right">9831712512</td>
+<td align="right">10.94</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="right">1911564334</td>
+<td align="right">812004140</td>
+<td align="right">1099560194</td>
+<td align="right">2.00</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="right">1877567011</td>
+<td align="right">1349410399</td>
+<td align="right">528156612</td>
+<td align="right">1.96</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="right">1807190156</td>
+<td align="right">1435753317</td>
+<td align="right">371436839</td>
+<td align="right">1.89</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="right">1502522964</td>
+<td align="right">667794203</td>
+<td align="right">834728761</td>
+<td align="right">1.57</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="right">9216306064</td>
+<td align="right">243194500</td>
+<td align="right">8973111564</td>
+<td align="right">9.35</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2012</td>
+<td align="right">2369369127</td>
+<td align="right">1705214215</td>
+<td align="right">664154912</td>
+<td align="right">2.40</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="right">1946106747</td>
+<td align="right">1691843570</td>
+<td align="right">254263177</td>
+<td align="right">1.97</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2012</td>
+<td align="right">1923669979</td>
+<td align="right">848036436</td>
+<td align="right">1075633543</td>
+<td align="right">1.95</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="right">1633774257</td>
+<td align="right">1144268611</td>
+<td align="right">489505646</td>
+<td align="right">1.66</td>
+<td align="left">ERICSSON NIKOLA TESLA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="right">8324125844</td>
+<td align="right">423129758</td>
+<td align="right">7900996086</td>
+<td align="right">8.57</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2013</td>
+<td align="right">2193811319</td>
+<td align="right">1558424783</td>
+<td align="right">635386536</td>
+<td align="right">2.26</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="right">1922608530</td>
+<td align="right">1505040026</td>
+<td align="right">417568504</td>
+<td align="right">1.98</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2013</td>
+<td align="right">1625713704</td>
+<td align="right">448273218</td>
+<td align="right">1177440486</td>
+<td align="right">1.67</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="right">1015274998</td>
+<td align="right">17480204</td>
+<td align="right">997794794</td>
+<td align="right">1.04</td>
+<td align="left">Croatia Airlines d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="right">7685525922</td>
+<td align="right">13502798064</td>
+<td align="right">-5817272142</td>
+<td align="right">7.24</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="right">2861272270</td>
+<td align="right">1732016236</td>
+<td align="right">1129256034</td>
+<td align="right">2.70</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="right">2541083555</td>
+<td align="right">999223798</td>
+<td align="right">1541859757</td>
+<td align="right">2.40</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="right">1553777994</td>
+<td align="right">457661151</td>
+<td align="right">1096116843</td>
+<td align="right">1.46</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="right">1001621164</td>
+<td align="right">61876785</td>
+<td align="right">939744379</td>
+<td align="right">0.94</td>
+<td align="left">Croatia Airlines d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2015</td>
+<td align="right">6290765002</td>
+<td align="right">10510889586</td>
+<td align="right">-4220124584</td>
+<td align="right">5.46</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2015</td>
+<td align="right">3054016939</td>
+<td align="right">2265450953</td>
+<td align="right">788565986</td>
+<td align="right">2.65</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2015</td>
+<td align="right">2654559768</td>
+<td align="right">1314979307</td>
+<td align="right">1339580461</td>
+<td align="right">2.30</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2015</td>
+<td align="right">1799986307</td>
+<td align="right">486184513</td>
+<td align="right">1313801794</td>
+<td align="right">1.56</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2015</td>
+<td align="right">1086803986</td>
+<td align="right">85742905</td>
+<td align="right">1001061081</td>
+<td align="right">0.94</td>
+<td align="left">Valamar Riviera d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="right">5461284352</td>
+<td align="right">8769441792</td>
+<td align="right">-3308157440</td>
+<td align="right">4.57</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2016</td>
+<td align="right">2742367744</td>
+<td align="right">2731846144</td>
+<td align="right">10521600</td>
+<td align="right">2.30</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="right">2217148928</td>
+<td align="right">1971400960</td>
+<td align="right">245747968</td>
+<td align="right">1.86</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2016</td>
+<td align="right">1323018624</td>
+<td align="right">85812992</td>
+<td align="right">1237205632</td>
+<td align="right">1.11</td>
+<td align="left">Valamar Riviera d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="right">1264646272</td>
+<td align="right">421592544</td>
+<td align="right">843053728</td>
+<td align="right">1.06</td>
+<td align="left">PETROKEMIJA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="right">7321791488</td>
+<td align="right">10663714816</td>
+<td align="right">-3341923328</td>
+<td align="right">5.31</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2017</td>
+<td align="right">5238063616</td>
+<td align="right">0</td>
+<td align="right">5238063616</td>
+<td align="right">3.80</td>
+<td align="left">PRVO PLINARSKO DRUŠTVO d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="right">3104989184</td>
+<td align="right">2626521344</td>
+<td align="right">478467840</td>
+<td align="right">2.25</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2017</td>
+<td align="right">1918320512</td>
+<td align="right">1631404672</td>
+<td align="right">286915840</td>
+<td align="right">1.39</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="right">1645482240</td>
+<td align="right">783778176</td>
+<td align="right">861704064</td>
+<td align="right">1.19</td>
+<td align="left">ULJANIK d.d. u stečaju</td>
+</tr>
+</tbody>
+</table>
+<p>U tablici 4 su prikazani najveći uvoznici u RH. Tablica pokazuje da je koncentracija uvoznika još veća od koncentracije izvoznika . Primjerice, tri najveća uvoznika u 2017. Godini (Ina d.d., Pliva d.d. i HEP d.o.o.) čine oko 14% ukupnog uvoza u RH. Dvadeset najvećih uvoznika čini 24.25% ukupnog uvoza.</p>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 4: </span>Tablica 4: Top uvoznici po godinama</caption>
+<thead>
+<tr class="header">
+<th align="right">Godina</th>
+<th align="right">Izvoz</th>
+<th align="right">Uvoz</th>
+<th align="right">Neto izvoz</th>
+<th align="right">Udio izvoza</th>
+<th align="left">Naziv</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="right">3187569203</td>
+<td align="right">8679927348</td>
+<td align="right">-5492358145</td>
+<td align="right">11.14</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2002</td>
+<td align="right">839315573</td>
+<td align="right">1711018218</td>
+<td align="right">-871702645</td>
+<td align="right">2.20</td>
+<td align="left">HT d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="right">32963366</td>
+<td align="right">1357121907</td>
+<td align="right">-1324158541</td>
+<td align="right">1.74</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2002</td>
+<td align="right">1900031700</td>
+<td align="right">1090078809</td>
+<td align="right">809952891</td>
+<td align="right">1.40</td>
+<td align="left">PLIVA FARMACEUTIKA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2002</td>
+<td align="right">32926445</td>
+<td align="right">1079312604</td>
+<td align="right">-1046386159</td>
+<td align="right">1.39</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="right">3424902635</td>
+<td align="right">9666761959</td>
+<td align="right">-6241859324</td>
+<td align="right">10.92</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2003</td>
+<td align="right">37546768</td>
+<td align="right">1517015267</td>
+<td align="right">-1479468499</td>
+<td align="right">1.71</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="right">106196469</td>
+<td align="right">1476666692</td>
+<td align="right">-1370470223</td>
+<td align="right">1.67</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2003</td>
+<td align="right">168968914</td>
+<td align="right">1051784368</td>
+<td align="right">-882815454</td>
+<td align="right">1.19</td>
+<td align="left">RENAULT NISSAN HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2003</td>
+<td align="right">1572766568</td>
+<td align="right">1017776226</td>
+<td align="right">554990342</td>
+<td align="right">1.15</td>
+<td align="left">PLIVA FARMACEUTIKA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2004</td>
+<td align="right">4643173353</td>
+<td align="right">9648933572</td>
+<td align="right">-5005760219</td>
+<td align="right">10.14</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="right">269556954</td>
+<td align="right">2027891933</td>
+<td align="right">-1758334979</td>
+<td align="right">2.13</td>
+<td align="left">RENAULT NISSAN HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2004</td>
+<td align="right">6248996</td>
+<td align="right">1610885492</td>
+<td align="right">-1604636496</td>
+<td align="right">1.69</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2004</td>
+<td align="right">360853209</td>
+<td align="right">1268727598</td>
+<td align="right">-907874389</td>
+<td align="right">1.33</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2004</td>
+<td align="right">955547688</td>
+<td align="right">1134978358</td>
+<td align="right">-179430670</td>
+<td align="right">1.19</td>
+<td align="left">BRODOSPLIT-BRODOGRADILIŠTE d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="right">5748814929</td>
+<td align="right">13995869855</td>
+<td align="right">-8247054926</td>
+<td align="right">13.02</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2005</td>
+<td align="right">941178332</td>
+<td align="right">2127477154</td>
+<td align="right">-1186298822</td>
+<td align="right">1.98</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="right">313018095</td>
+<td align="right">1129961747</td>
+<td align="right">-816943652</td>
+<td align="right">1.05</td>
+<td align="left">RENAULT NISSAN HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2005</td>
+<td align="right">0</td>
+<td align="right">1121313557</td>
+<td align="right">-1121313557</td>
+<td align="right">1.04</td>
+<td align="left">EHTP Konsulting d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2005</td>
+<td align="right">1148568211</td>
+<td align="right">1081266271</td>
+<td align="right">67301940</td>
+<td align="right">1.01</td>
+<td align="left">ERICSSON NIKOLA TESLA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="right">6973837986</td>
+<td align="right">17180646903</td>
+<td align="right">-10206808917</td>
+<td align="right">12.77</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2006</td>
+<td align="right">111360887</td>
+<td align="right">7520604140</td>
+<td align="right">-7409243253</td>
+<td align="right">5.59</td>
+<td align="left">H Š d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="right">373803103</td>
+<td align="right">4004048251</td>
+<td align="right">-3630245148</td>
+<td align="right">2.98</td>
+<td align="left">M SAN GRUPA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2006</td>
+<td align="right">909174993</td>
+<td align="right">2251222145</td>
+<td align="right">-1342047152</td>
+<td align="right">1.67</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2006</td>
+<td align="right">2314440</td>
+<td align="right">1694203075</td>
+<td align="right">-1691888635</td>
+<td align="right">1.26</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="right">7675427398</td>
+<td align="right">16028247684</td>
+<td align="right">-8352820286</td>
+<td align="right">11.94</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="right">332294648</td>
+<td align="right">2692290942</td>
+<td align="right">-2359996294</td>
+<td align="right">2.01</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="right">3519014</td>
+<td align="right">2068544966</td>
+<td align="right">-2065025952</td>
+<td align="right">1.54</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2007</td>
+<td align="right">356898392</td>
+<td align="right">1657251557</td>
+<td align="right">-1300353165</td>
+<td align="right">1.23</td>
+<td align="left">CRODUX DERIVATI DVA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2007</td>
+<td align="right">648449785</td>
+<td align="right">1573333405</td>
+<td align="right">-924883620</td>
+<td align="right">1.17</td>
+<td align="left">M SAN GRUPA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="right">133015438</td>
+<td align="right">3054845676</td>
+<td align="right">-2921830238</td>
+<td align="right">2.54</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2008</td>
+<td align="right">761207134</td>
+<td align="right">2334934936</td>
+<td align="right">-1573727802</td>
+<td align="right">1.94</td>
+<td align="left">CRODUX DERIVATI DVA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="right">7673417417</td>
+<td align="right">2236920228</td>
+<td align="right">5436497189</td>
+<td align="right">1.86</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2008</td>
+<td align="right">11649351</td>
+<td align="right">2128481495</td>
+<td align="right">-2116832144</td>
+<td align="right">1.77</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2008</td>
+<td align="right">734971745</td>
+<td align="right">1638722273</td>
+<td align="right">-903750528</td>
+<td align="right">1.36</td>
+<td align="left">M SAN GRUPA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="right">51923167</td>
+<td align="right">3153855841</td>
+<td align="right">-3101932674</td>
+<td align="right">3.48</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2009</td>
+<td align="right">5831970767</td>
+<td align="right">3124073605</td>
+<td align="right">2707897162</td>
+<td align="right">3.45</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="right">0</td>
+<td align="right">2128629972</td>
+<td align="right">-2128629972</td>
+<td align="right">2.35</td>
+<td align="left">bauMax Zagreb d.o.o. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2009</td>
+<td align="right">142988011</td>
+<td align="right">1498859183</td>
+<td align="right">-1355871172</td>
+<td align="right">1.65</td>
+<td align="left">KONZUM d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2009</td>
+<td align="right">2126200061</td>
+<td align="right">1287450788</td>
+<td align="right">838749273</td>
+<td align="right">1.42</td>
+<td align="left">ULJANIK Brodogradilište d.d. u stečaju</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="right">257446361</td>
+<td align="right">2338974612</td>
+<td align="right">-2081528251</td>
+<td align="right">2.64</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2010</td>
+<td align="right">169198980</td>
+<td align="right">2044665288</td>
+<td align="right">-1875466308</td>
+<td align="right">2.30</td>
+<td align="left">KONZUM d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="right">97338526</td>
+<td align="right">1884483424</td>
+<td align="right">-1787144898</td>
+<td align="right">2.12</td>
+<td align="left">CRODUX DERIVATI DVA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2010</td>
+<td align="right">8561063979</td>
+<td align="right">1731663572</td>
+<td align="right">6829400407</td>
+<td align="right">1.95</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2010</td>
+<td align="right">490994104</td>
+<td align="right">1519810723</td>
+<td align="right">-1028816619</td>
+<td align="right">1.71</td>
+<td align="left">M SAN GRUPA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="right">49879258</td>
+<td align="right">3534317515</td>
+<td align="right">-3484438257</td>
+<td align="right">3.82</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="right">231807200</td>
+<td align="right">2699752717</td>
+<td align="right">-2467945517</td>
+<td align="right">2.92</td>
+<td align="left">CRODUX DERIVATI DVA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="right">1003</td>
+<td align="right">1467112087</td>
+<td align="right">-1467111084</td>
+<td align="right">1.59</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2011</td>
+<td align="right">1807190156</td>
+<td align="right">1435753317</td>
+<td align="right">371436839</td>
+<td align="right">1.55</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2011</td>
+<td align="right">1877567011</td>
+<td align="right">1349410399</td>
+<td align="right">528156612</td>
+<td align="right">1.46</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="right">117890626</td>
+<td align="right">3889614282</td>
+<td align="right">-3771723656</td>
+<td align="right">4.24</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2012</td>
+<td align="right">226309042</td>
+<td align="right">2492817376</td>
+<td align="right">-2266508334</td>
+<td align="right">2.72</td>
+<td align="left">CRODUX DERIVATI DVA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="right">2369369127</td>
+<td align="right">1705214215</td>
+<td align="right">664154912</td>
+<td align="right">1.86</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2012</td>
+<td align="right">1946106747</td>
+<td align="right">1691843570</td>
+<td align="right">254263177</td>
+<td align="right">1.84</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2012</td>
+<td align="right">2688293</td>
+<td align="right">1323524877</td>
+<td align="right">-1320836584</td>
+<td align="right">1.44</td>
+<td align="left">PETROL d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="right">2193811319</td>
+<td align="right">1558424783</td>
+<td align="right">635386536</td>
+<td align="right">1.76</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2013</td>
+<td align="right">239371237</td>
+<td align="right">1524113186</td>
+<td align="right">-1284741949</td>
+<td align="right">1.72</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="right">1922608530</td>
+<td align="right">1505040026</td>
+<td align="right">417568504</td>
+<td align="right">1.70</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2013</td>
+<td align="right">445747487</td>
+<td align="right">1503438251</td>
+<td align="right">-1057690764</td>
+<td align="right">1.69</td>
+<td align="left">M SAN GRUPA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2013</td>
+<td align="right">196333989</td>
+<td align="right">1285807241</td>
+<td align="right">-1089473252</td>
+<td align="right">1.45</td>
+<td align="left">KONZUM d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="right">7685525922</td>
+<td align="right">13502798064</td>
+<td align="right">-5817272142</td>
+<td align="right">13.66</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="right">723250692</td>
+<td align="right">1765981353</td>
+<td align="right">-1042730661</td>
+<td align="right">1.79</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="right">2861272270</td>
+<td align="right">1732016236</td>
+<td align="right">1129256034</td>
+<td align="right">1.75</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2014</td>
+<td align="right">0</td>
+<td align="right">1478413371</td>
+<td align="right">-1478413371</td>
+<td align="right">1.50</td>
+<td align="left">LIDL HRVATSKA d.o.o. k.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2014</td>
+<td align="right">179104043</td>
+<td align="right">1338997528</td>
+<td align="right">-1159893485</td>
+<td align="right">1.35</td>
+<td align="left">KONZUM d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2015</td>
+<td align="right">6290765002</td>
+<td align="right">10510889586</td>
+<td align="right">-4220124584</td>
+<td align="right">10.06</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2015</td>
+<td align="right">733581003</td>
+<td align="right">2405619038</td>
+<td align="right">-1672038035</td>
+<td align="right">2.30</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2015</td>
+<td align="right">3054016939</td>
+<td align="right">2265450953</td>
+<td align="right">788565986</td>
+<td align="right">2.17</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2015</td>
+<td align="right">579592408</td>
+<td align="right">1696871710</td>
+<td align="right">-1117279302</td>
+<td align="right">1.62</td>
+<td align="left">PETROL d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2015</td>
+<td align="right">233087310</td>
+<td align="right">1415530163</td>
+<td align="right">-1182442853</td>
+<td align="right">1.36</td>
+<td align="left">KONZUM d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="right">5461284352</td>
+<td align="right">8769441792</td>
+<td align="right">-3308157440</td>
+<td align="right">8.73</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2016</td>
+<td align="right">2742367744</td>
+<td align="right">2731846144</td>
+<td align="right">10521600</td>
+<td align="right">2.72</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="right">908858560</td>
+<td align="right">2218799872</td>
+<td align="right">-1309941312</td>
+<td align="right">2.21</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2016</td>
+<td align="right">830536832</td>
+<td align="right">2112438400</td>
+<td align="right">-1281901568</td>
+<td align="right">2.10</td>
+<td align="left">PRVO PLINARSKO DRUŠTVO d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2016</td>
+<td align="right">2217148928</td>
+<td align="right">1971400960</td>
+<td align="right">245747968</td>
+<td align="right">1.96</td>
+<td align="left">BOXMARK LEATHER d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="right">7321791488</td>
+<td align="right">10663714816</td>
+<td align="right">-3341923328</td>
+<td align="right">9.02</td>
+<td align="left">INA d.d.</td>
+</tr>
+<tr class="odd">
+<td align="right">2017</td>
+<td align="right">1164305664</td>
+<td align="right">2874327296</td>
+<td align="right">-1710021632</td>
+<td align="right">2.43</td>
+<td align="left">HEP d.d.</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="right">3104989184</td>
+<td align="right">2626521344</td>
+<td align="right">478467840</td>
+<td align="right">2.22</td>
+<td align="left">PLIVA HRVATSKA d.o.o.</td>
+</tr>
+<tr class="odd">
+<td align="right">2017</td>
+<td align="right">15905450</td>
+<td align="right">2046302976</td>
+<td align="right">-2030397526</td>
+<td align="right">1.73</td>
+<td align="left">PORSCHE CROATIA d.o.o.</td>
+</tr>
+<tr class="even">
+<td align="right">2017</td>
+<td align="right">0</td>
+<td align="right">1919735424</td>
+<td align="right">-1919735424</td>
+<td align="right">1.62</td>
+<td align="left">LIDL HRVATSKA d.o.o. k.d.</td>
+</tr>
+</tbody>
+</table>
+<p>Kao sljedeću mjeru koncentracije koristim udio 1%, 5% i 10% najvećih izvoznika u ukupnom izvozu. Brojke su sljedeće:</p>
+<ul>
+<li>1% najvećih izvoznika čini 87.8% ukupnog izvoza.</li>
+<li>5% najvećih izvoznika čini 97.9% ukupnog izvoza</li>
+<li>10% najvećih izvoznika čini 99.5% ukupnog izvoza.</li>
+</ul>
+<p>Rezultati pokazuju da izvoznu aktivnost karakterizira visok stupanj koncentracije među domaćim firmama. Ako bi se promatrao samo prerađivački sektor, brojke su slične: 81.1%, 96.6% i 99.0%. Valja podsjetiti da promatramo samo 1% najvećih izvoznika. Zanimljivo je da u cijeloj populaciji hrvatskih poduzeća,manje od 1% poduzeća čini kompletni hrvatski izvoz/uvoz.</p>
+<p>Na kraju se može zaključiti da mikroekonomski aspekti međunarodne trgovine u uzorku hrvatskih firmi odgovaraju predviđanjima empirijske literature iz područja međunarodne trgovine: izvozna i uvozna aktivnost su snažno koncentrirane. Naime, tek mali broj domaćih poduzeća je uključen u međunarodnu razmjenu, a agregatna razina razmjene je pod snažnim utjecajem nekoliko velikih poduzeća.</p>

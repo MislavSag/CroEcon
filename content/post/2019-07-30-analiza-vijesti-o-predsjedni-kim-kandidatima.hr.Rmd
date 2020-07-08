@@ -1,0 +1,562 @@
+---
+title: Analiza vijesti o predsjedničkim kandidatima
+author: Luka Šikić
+date: '2019-07-30'
+slug: analiza-vijesti-o-predsjedni-kim-kandidatima
+categories:
+  - Tekst
+tags:
+  - analiza teksta
+  - Politička ekonomija
+  - izbori
+type: ''
+subtitle: ''
+image: ''
+bigimg: 
+  - {src: "/img/post_predsjednici.jpg", desc: "Web"}
+---
+
+
+
+```{r setup, include=FALSE}
+
+# setwd("E:/Luka/CroEcon/Lukini_postovi/Predsjednicki_kandidati")
+
+library(tidyverse)
+library(httr)
+library(jsonlite)
+library(lubridate)
+library(tidytext)
+library(data.table)
+library(wordcloud)
+library(knitr)
+library(gridExtra)
+library(grid)
+library(topicmodels)
+library(rvest)
+
+
+# M-files funkcije ---------------------------------------------------------------
+
+# function to parse JSON from http conenctiion
+parseJSON <- function(x) {
+  xCon <- content(x, as = "text", type = "aplication/json", encoding = "UTF-8")
+  xCon <- jsonlite::fromJSON(xCon, flatten = TRUE)
+  xCon
+}
+
+# GET REST API function M-Files
+mfiles_get <- function(token, resource){
+  req <- GET(url = paste0('http://server.contentio.biz/REST', resource),
+             add_headers('X-Authentication' = token, 'content-type' = "application/json"))
+  result <- parseJSON(req)
+  return(result)
+}
+
+# GET token M-Files
+req <- POST(url = 'http://server.contentio.biz/REST/server/authenticationtokens.aspx', 
+            config = add_headers('content-type' = "application/json"),
+            body = list(Username = "msagovac", Password = "Wc8O10TaHz40",
+                        VaultGuid = "{7145BCEB-8FE2-4278-AD3B-7AE70374FF8A}",
+                        ComputerName  = "CT-VM-01"),
+            encode = "json", verbose())
+token <- parseJSON(req)[[1]]
+
+# M-FILES DOWNLOAD FILES
+mfiles_downlaod <- function(objType, objId, fileId) {
+  req <- GET(url = paste0('http://server.contentio.biz/REST/objects/', objType, '/', 
+                          objId, '/latest/files/',fileId , '/content'),
+             add_headers('X-Authentication' = token))
+  reqCon <- content(req, as = "text", encoding = "UTF-8")
+  if (is.na(reqCon)) {
+    reqCon <- content(req, as = "raw", encoding = "UTF-8")
+    reqCon <- rawToChar(reqCon, multiple = FALSE)
+    reqCon <- iconv(reqCon, "", "UTF-8")
+  }
+  reqCon
+}
+mfiles_downlaod_txt <- function(objType, objId, fileId, ext = ".csv") {
+  req <- GET(url = paste0('http://server.contentio.biz/REST/objects/', objType, '/', 
+                          objId, '/latest/files/',fileId , '/content'),
+             add_headers('X-Authentication' = token))
+  reqCon <- httr::content(req)
+  tempFileSave <- paste0(tempfile(), ext)
+  writeBin(reqCon, tempFileSave)
+  return(tempFileSave)
+}
+
+
+# GET classess, props and others
+prop <- mfiles_get(token, "/structure/properties")
+prop <- prop %>% 
+  select(DataType, ID, Name, ObjectType) %>% 
+  dplyr::arrange(Name)
+objs <- mfiles_get(token, "/structure/objecttypes")
+mfilesClass <- mfiles_get(token, "/structure/classes")
+
+
+# povlacenje podataka ----------------------------------------------------------------
+
+kandidatiLista <- c("Kolinda Grabar Kitarović", "Zoran Milanović", "Miroslav Škoro", "Mislav Kolakušić", "Ivan Pernar")
+kandidatiLista <- enc2utf8(kandidatiLista)
+datumOd <- "2019-01-01"
+datumDo <- Sys.Date() - 1
+
+# quick search
+kandidat_i <- list()
+for (i in 1:length(kandidatiLista)) {
+  kandidatUrlencode <- RCurl::curlEscape(kandidatiLista[i])
+  x <- mfiles_get(token, paste0("/objects.aspx?q=", kandidatUrlencode, "&p1022>>=", datumOd, "&limit=50000"))[[1]] # "&p1030=vecernji"
+  kandidat_i[[i]] <- cbind.data.frame(x, kandidat = kandidatiLista[i])
+}
+kandidatDocs <- do.call(rbind, kandidat_i)
+Sys.sleep(1L)
+
+# get metadata
+clanciProp <- list()
+for (i in 1:length(kandidatDocs$Title)) {
+  x <- mfiles_get(token, paste0("/objects/0/", kandidatDocs$DisplayID[i], "/latest/properties"))
+  clanciProp[[i]]  <- t(x[x$PropertyDef %in% c("0", "1020", "1022", "1023", "1021", "1028", 
+                                               "1027", "1026", "1031", "1024", "1025", "1030"),
+                          c("TypedValue.DisplayValue")])
+}
+metadata <- do.call(rbind, clanciProp)
+metadata <- as.data.frame(metadata, stringsAsFactors = FALSE)
+colnames(metadata) <- c("naziv", "id", "naslov", "datum", "vrijeme", "pogledi", "label", "brojKomentara",
+                        "linkKomentari", "autor", "domena", "poveznica")
+metadata <- cbind.data.frame(metadata, kandidat = as.character(kandidatDocs$kandidat), stringsAsFactors = FALSE)
+
+# povuci txt fileove
+txtVector <- vector("character", nrow(metadata))
+for (i in 1:nrow(metadata)) {
+  txtVector[i] <- mfiles_downlaod("0", kandidatDocs$DisplayID[i], kandidatDocs$Files[[i]]$ID)
+}
+kandidati <- cbind.data.frame(metadata, txtVector, stringsAsFactors = FALSE)
+kandidati$datum <- as.Date(kandidati$datum, "%m/%d/%Y")
+kandidati$kandidat <- enc2utf8(kandidati$kandidat)  # staviti encoding u UTF-8 jer se str_extract čudno ponaša ako nema encodinga
+# tekstSadrziPrezimeKandidata <- mapply(grepl, str_extract(kandidati$kandidat, "\\w+$"), kandidati$txtVector)
+# head(kandidati[!tekstSadrziPrezimeKandidata, "poveznica"])  # uvjeri se da ne sadže
+# kandidati <- kandidati[tekstSadrziPrezimeKandidata, ]
+
+# pozitivne i negativne rijeci
+CroSentilex_n <- read.delim(mfiles_downlaod_txt("0", 136679, 136711, ext = ".txt"),
+                            header = FALSE,
+                            sep = " ",
+                            stringsAsFactors = FALSE) %>% 
+  rename(word = "V1", sentiment = "V2" ) %>%
+  mutate(brija = "NEG")
+
+CroSentilex_p <- read.delim(mfiles_downlaod_txt("0", 136681, 136713, ext = ".txt"),
+                            header = FALSE,
+                            sep = " ",
+                            stringsAsFactors = FALSE) %>% 
+  rename(word = "V1", sentiment = "V2" ) %>%
+  mutate(brija = "POZ")
+Crosentilex_sve <- rbind(setDT(CroSentilex_n), setDT(CroSentilex_p))
+head(Crosentilex_sve)
+
+CroSentilex_Gold  <- read.delim2(mfiles_downlaod_txt("0", 136680, 136712, ext = ".txt"),
+                                 header = FALSE,
+                                 sep = " ",
+                                 stringsAsFactors = FALSE) %>%
+  rename(word = "V1", sentiment = "V2" ) 
+
+CroSentilex_Gold[1,1] <- "dati"
+CroSentilex_Gold$sentiment <- str_replace(CroSentilex_Gold$sentiment , "-", "1")
+CroSentilex_Gold$sentiment <- str_replace(CroSentilex_Gold$sentiment , "\\+", "2")
+CroSentilex_Gold$sentiment <- as.numeric(unlist(CroSentilex_Gold$sentiment))
+head(CroSentilex_Gold)
+
+# leksikoni
+stopwords_cro <- get_stopwords(language = "hr", source = "stopwords-iso")
+my_stop_words <- tibble(
+  word = c(
+    "jedan",
+    "e","prvi", "dva","dvije","drugi",
+    "tri","treći","pet","kod",
+    "ove","ova",  "ovo","bez",
+    "evo","oko",  "om", "ek",
+    "mil","tko","šest", "sedam",
+    "osam",   "čim", "zbog",
+    "prema", "dok","zato", "koji", 
+    "im", "čak","među", "tek",
+    "koliko", "tko","kod","poput", 
+    "baš", "dakle", "osim", "svih", 
+    "svoju", "odnosno", "gdje",
+    "kojoj", "ovi", "toga"
+  ),
+  lexicon = "lux"
+)
+stop_corpus <- my_stop_words %>%
+  bind_rows(stopwords_cro)
+
+
+# sredi podatke
+
+
+kandidat <- kandidati %>% 
+  mutate(id = row_number(),
+         brojKomentara = as.numeric(as.character(brojKomentara)),
+         brojPogleda = as.numeric(as.character(pogledi))) %>%
+  filter(datum > "2019-06-01")
+
+kandidati <- kandidat
+
+
+```
+
+Pred kraj 2019. godine će se u Hrvatskoj održati sedmi predsjednički izbori, a neslužbena izborna kampanja već je započela. Iako se još ne zna tko točno sudjeluje u predsjedničkoj utrci, Ante Simonić, Dalija Orešković, Vlaho Orepić, Tomislav Panenić, Katarina Peović, Mislav Kolakušić, Miroslav Škoro, Ivan Pernar i Zoran Milanović se spominju u medijima kao kandidati. Pošto su svi Hrvatski predsjednici do sada, osim Ive Josipovića, zadržali predsjedničku poziciju u trajanju od dva mandata, za očekivati je da će se i aktualna predsjednica, uz statističku prednost, također uključiti u utrku. Osim velikog broja različitih kandidata, želim istaknuti dva bitna globalna (politička) trenda za koje držim da će značajno utjecati i na nadolazeće izbore u Hrvatskoj: prvi se trend odnosi na razočaranost biračkog tijela političkim elitama i priklanjanje sve većeg broja birača  **alternativnim** političkim opcijama i predstavnicima, a drugi trend na premiještanje velikog dijela političke komunikacije i kampanje u digitalnu sferu. Sve veća otuđenost birača od etabliranih političkih stranaka i razočaranost stranačkim elitama se u Hrvatskoj očituju se u izvrsnom rezultatu Ivana Vilibora Sinčića na [prošlim predsjedničkim izborima](https://hrcak.srce.hr/147470) i sjajnim rezultatima Mislava Kolakušića na nedavnim izborima za Europski Parlament. Trend rasta važnosti digitalne kampanje na važnosti dobiva u SADu za vrijeme kampanje Baracka Obame, a vrhunac doseže u političkoj mitologiji Donalda Trumpa. U Hrvatskoj je rast značaja digitalnog političkog prostora uočljiv još od prethodnih parlamentarnih izbora kada je [više od 45% sadržaja na temu bilo objavljeno na internetskim portalima](https://hrcak.srce.hr/205084). Ostatak se odnosi na tiskovine (40%) i TV (oko 15%). Također valja napomenuti da su premiještanje kampanje u digitalnu sferu i rast popularnosti **altenativnih** političkih opcija i ideja usko povezani procesi. 
+
+U ovom postu ćemo pogledati koliko i što o predsjedničkim kandidatima pišu najvažniji domaći internetski portali. Analiza se odnosi na korpus tekstova o pet kandidata *(Kolinda Grabar Kitarović, Zoran Milanović, Miroslav Škoro, Mislav Kolakušići i Ivan Pernar)* koji su objavljeni na šest najvažnijih portala *(jutarnji, vecernji, 24sata, tportal, index, net.hr)* u zadnja dva mjeseca. Iako je vremenska dimenzija uzorka kratka, prostorna dimenzija nadomješta taj manjak reprezentativnosti uzorka; analiza uključuje oko 2500 članaka. Uzorak bi se mogao pojačati i drugim pretendentima na predsjedničku funkciju poput Dalije Orešković, Vlahe Orepića, Tomislava Panenića, a u medijima se spominju još Ante Simonić i Katarina Peović. Razlog za ograničavanje uzorka je što smatram da su Škoro, Milanović i Kolinda najozbiljniji kandidati, a Kolakušić i Pernar su zanimljivi kao **politički alternativci** koji se vješto snalaze u digitalnom prostoru. Ostali potencijalni kandidati su i znatno manje zastupljeni u digitalnom prostoru. 
+
+U donjoj tablici je prikazan broj članaka, pripadajući komentari i pogledi za pet kandidata. U broju objavljenih članaka (komentara i pogleda) prednjači Kolinda, duplo manje imaju Milanović i Škoro, a najmanje se piše o Kolakušiću. Uvjerljivo najviše pogleda ima Kolinda, a iza nje su Škoro i Milanović. Ovdje valja primjetiti da, iako Kolinda ima apsolutno najviše pogleda, svi ostali kandidati su (znatno) efikasniji pa po članku ostvaruju više pogleda i komentara. Kolakušić i Škoro ovdje prednjače, a Milanović i Pernar imaju međusobno sličan i veći broj pogleda po članku od Kolinde. Najviše komentara (apsolutno) imaju Kolinda i Milanović, znatno više od ostalih kandidata, no zanimljivo je da Kolinda ima (relativno) ispodprosječan broj komentara po članku, osjetno manji od Milanovića, Kolakušića i Škore. Pernar ima najmanje komentara po članku!
+
+
+
+```{r po_kandidatu , message = FALSE, warning = FALSE,  echo = FALSE}
+
+
+
+#broj članaka, pogleda i komentara po kandidatu
+options(scipen = 999)
+
+nazivi_kolona_k = c("Kandidat","Broj članaka","Broj komentara", "Broj pogleda", "Pogledi po članku", "Komentari po članku" )
+
+kandidati %>% 
+  unique(.) %>%
+  group_by(kandidat) %>%
+  summarise(broj_clanaka = n_distinct(id),
+            broj_komentara = sum(brojPogleda),
+            broj_pogleda = sum(brojKomentara),
+            udio_pogleda = sum(brojKomentara) / n_distinct(id),
+            udio_komentara = sum(brojPogleda) / n_distinct(id)) %>%
+#  ungroup() %>%
+  rbind(c("Ukupno/prosjek po članku",  sum(.$broj_clanaka),
+          sum(.$broj_komentara), sum(.$broj_pogleda),
+          mean(.$udio_pogleda), mean(.$udio_komentara))) %>% 
+  mutate_at(vars(-kandidat), as.numeric) %>%
+  arrange(desc(broj_clanaka)) %>% 
+  kable(., format = "pandoc",
+        format.args = list(decimal.mark = ".",
+                           big.mark = "," ),
+        col.names = nazivi_kolona_k,
+        digits = 0)
+
+
+
+
+```
+
+Sljedeća tablica prikazuje broj objavljenih članaka po portalima i relativni udio članaka (udio se odnosi na pojedinačne portale, a ne na ukupni broj članaka sa svih portala!) po kandidatima. O predsjedničkoj kampanji najviše pišu *večernji* i *index.hr*, a najmanje *tportal* i *24sata*. Iz tablice se također vidi da svi portali preferiraju Kolindu (otprilike ~50% članaka) te da su svi ostali kanditati, osim Kolakušića koji dobiva najmanje pažnje, podjednako zastupljeni u presjeku portala na razini od oko ~20% članaka po kandidatu.
+
+
+``` {r po_domeni , message = FALSE, warning = FALSE,  echo = FALSE}
+  
+#broj članaka, pogleda i komentara po domeni
+
+options(scipen = 999)
+
+
+
+kandidati %>% 
+  unique(.) %>%
+  group_by(domena, kandidat) %>%
+  summarise(broj_clanaka = n_distinct(id)) %>% 
+  ungroup() %>%
+  group_by(domena) %>%
+  mutate(Udio = broj_clanaka / sum(broj_clanaka)) %>%
+  mutate_at(vars(Udio), list(~ round(.,2))) %>%
+  mutate(Udio = paste(Udio*100,"%")) %>% 
+  ungroup() %>%
+  select(- broj_clanaka) %>%
+  arrange(desc(Udio)) %>%
+  spread(kandidat, Udio) %>% 
+  mutate_if(is.integer, list(~round(.,2)))-> domena_udjeli
+
+
+kandidati %>% 
+  unique(.) %>%
+  group_by(domena, kandidat) %>%
+  summarise(broj_clanaka = n_distinct(id)) %>% 
+  ungroup() %>%
+  arrange(desc(broj_clanaka)) %>%
+  spread(kandidat, broj_clanaka) -> domena_ukupno
+
+  
+rowSums(domena_ukupno[,c(2:6)]) -> ukupno 
+domena_udjeli$Ukupno <- ukupno
+
+domena_udjeli  %>%
+  select(domena, Ukupno, everything()) %>%
+  rename(Domena = domena) %>%
+  arrange(desc(Ukupno)) %>%
+  kable(, format = "markdown",
+        format.args = list(decimal.mark = ".",
+                           big.mark = "," ),
+        caption = "Pregled po portalu",
+        digits = 2)
+
+#broj članaka po mjesecima-DOMENA
+  
+kandidati %>% 
+  mutate(Datum = floor_date(datum, "week")) %>% 
+  group_by(Datum, domena) %>% 
+  summarise(Broj_clanaka = sum(n_distinct(id))) %>% 
+  ggplot(.,aes(Datum, Broj_clanaka, group = domena, colour = domena)) +
+  geom_line(size = 1.1) +
+  ggtitle("po domenama") +
+  ylab("Broj članaka") -> gg_domena
+
+#broj članaka po mjesecima-KANDITATI
+  
+kandidati %>% 
+  mutate(Datum = floor_date(datum, "week")) %>% 
+  group_by(Datum, kandidat) %>% 
+  summarise(Broj_clanaka = sum(n_distinct(id))) %>% 
+  ggplot(.,aes(Datum, Broj_clanaka, group = kandidat, colour = kandidat)) +
+  geom_line(size = 1.1) +
+  ggtitle("po kandidatima") +
+  ylab("Broj članaka")-> gg_kandidat
+
+#grid.arrange(gg_domena, gg_kandidat, nrow = 2, top = "Broj članaka kroz vrijeme:")
+
+
+```
+
+Naredni grafikon prikazuje kretanje broja članaka po domeni i kandidatu kroz vrijeme (na tjednoj razini). *Večernji* u cijelom razdoblju ima najviše članaka o kandidatima, otprilike ~50-ak tjedno, a slijede *index* i *jutarnji* dok *tportal* ima manje interesa za predsjedničke izbore. Promatrano po kandidatima, na prvom mjestu po broju članaka u cijelom razdoblju je Kolinda, a na drugom se izmjenjuju Škoro i Milanović dok se najmanje piše o Pernaru i Kolakušiću.  Vidljiv je i oštar pad broja članaka o Pernaru na početku razdoblja. 
+
+
+```{r gg_kroz_vrijeme, echo=FALSE,  message = FALSE, warning = FALSE}
+
+grid.arrange(gg_domena, gg_kandidat, nrow = 2, top = "Broj članaka kroz vrijeme:")
+
+
+```
+
+Osim pregleda osnovnih pokazatelja digitalne zastupljenosti, još ćemo proanalizirati i korpus tekstova sa šest portala o kandidatima, koji kao što je spomenuto uključuje oko ~2500 članaka. Korpus se odnosi na članke u kojima se u tekstu pojavljuje ime nekog od kandidata, a analiza je (uglavnom) napravljena u [**tidytext paketu**](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). Na sljedećem prikazu se vidi 50 najčešćih riječi u korpusu tekstova. Najviše se piše o aktualnoj predsjednici, SDP-u i Milanoviću te temama vezanima uz Živi zid, a znatno manje o Kolakušiću i Pernaru. Zanimljivo je primjetiti da iako se o Kolakušiću i Pernaru naprosto ne piše mnogo na portalima, oni dobro koriste društvene mreže, odnosno Facebook.   
+
+```{r drustvene_mreze, , echo=FALSE,  message = FALSE, warning = FALSE}
+
+
+url <- "https://direktno.hr/direkt/istrazili-smo-kako-stoje-predsjednicki-kandidati-po-broju-pratitelja-na-drustvenim-mrezama-159902/"
+ 
+ mreze <- read_html("https://direktno.hr/direkt/istrazili-smo-kako-stoje-predsjednicki-kandidati-po-broju-pratitelja-na-drustvenim-mrezama-159902/") %>%
+   html_nodes("p") %>%
+   html_text() %>%
+   .[53:74] %>%
+   unlist()
+ 
+#izvuci varijable 
+ Domena <- mreze %>%
+   .[str_detect(.,"^[[:digit:]]{1}\\.")] %>%
+    gsub("^[[:digit:]]{1}\\.", "",.) %>%
+    trimws()
+ 
+ Facebook <- mreze %>%
+    .[str_detect(.,"Face")] %>%
+    str_extract(., "[[:digit:]]+\\.[[:digit:]]+") %>%
+     gsub("\\.\\d{3}", "k",.)
+ 
+ 
+ Instagram <- mreze %>%
+    .[str_detect(.,"Insta")] %>%
+    #gsub("k","",.) %>%
+    str_extract(., "\\s(.*)") %>%
+     trimws()
+ 
+ Instagram[7] <- NA   
+
+ Twitter <- mreze %>%
+    .[str_detect(., "Tw")] %>%
+    str_extract(., "\\s(.*)") %>%
+    trimws() %>%
+     gsub("\\.\\d{3}", "k",.)
+ 
+ Twitter[3:7] <- NA
+ 
+#poveži u df i uredi
+ 
+ 
+ soc_mreze <- rbind(Domena, Facebook, Instagram, Twitter)
+ soc_mreze_df_ <- as.data.frame(soc_mreze, stringsAsFactors = FALSE)
+ colnames(soc_mreze_df_) <- NULL
+ soc_mreze_df_[, -c(6,7)] -> soc_mreze_df_
+ 
+ 
+ #napravi tablicu
+ 
+ soc_mreze_df_ %>%
+     kable(., format = "pandoc", caption = "Zastupljenost kandidata na društvenim mrežama") #%>%
+   #  kable_styling(.,format = "HTML")
+   #  add_footnote("k označava tisuću (1.000)")
+
+```
+
+
+Treba također napomenuti da Pernar dosta popularnosti postiže i na YouTube-u i Facebook-u (280k pratitelja) dok Kolakušić na Facebook-u ne stoji loše iako ima duplo manje (160k) pratitelja od Pernara. Na Facebook-u također uvjerljivo vodi Kolinda (750k), a njena prednost je i znatno veća na Instagramu (350k) i Twitteru (115k). Škoro i Milanović imaju svaki oko 50k pratitelja na Facebook-u. Iz wordClouda se također vidi da tekstovi često spominju Plenkovića, Milanovića i SDP što ne opovrgava pretpostavku da predsjednički izbori  odražavaju događanja na stranačkoj političkoj sceni, više nego kvalitetu programa i autentičnost kandidata.
+
+
+```{r rijeci,  message = FALSE, warning = FALSE,  echo = FALSE}
+
+kandidati %>%
+  unnest_tokens(word, txtVector) %>%
+  anti_join(stop_corpus, by = "word") %>%
+  group_by(word) %>%
+  tally() %>%
+  arrange(desc(n)) -> wcl
+
+wcl %>%
+  group_by(word) %>%
+  tally %>%
+  with(wordcloud(word, n, max.words = 100, colors =  c("#56B4E9", "#E69F00"))) 
+
+
+```
+
+Naredni grafikon prikazuje sentiment korpusa tekstova o predsjedničkim kandidatima. Sentiment oko predsjedničkih kandidata je pozitivan u cijelom razdoblju! **Sentiment score** na gornjem grafikonu je izračunat tako da je vrijednost ( [iz Crosentilex leksikona](http://meta-share.ffzg.hr/repository/browse/croatian-sentiment-lexicon/940fe19e6c6d11e28a985ef2e4e6c59eff8b12d75f284d58aacfa8d732467509/)  ) pripisana pojedinačnoj riječi pomnožena sa brojem pojavljivanja te riječi na tjednoj razini ( [vidi detalje oko izračuna](http://croecon.contentio.biz/post/analiza-teksta-poslovni-dnevnik/) ). Donji grafikon prikazuje doprinos 10 najbitnijih riječi pozitivnom, negativnom i neutralnom sentimentu. Negativni sentiment je vezan uz riječi poput rata, borbe i sukoba što je blisko [tezi o izbornoj kampanji kao "mjestu sjećanja"](https://hrcak.srce.hr/205084). Doprinos pozitivnom sentimentu daju riječi koje simboliziraju život, mogućnost, optimizam oko budućnosti i kojih ima više nego negativnih. Predsjednička kampanje nije samo mjesto sjećanja nego i **mjesto nade**! 
+
+
+```{r sentiment, echo=FALSE,  message = FALSE, warning = FALSE}
+
+#GOLD
+
+kandidati %>%
+  unnest_tokens(word, txtVector) %>%
+  anti_join(stop_corpus, by = "word") %>%
+  inner_join(CroSentilex_Gold, by = "word") %>%
+  count(word, sentiment, sort = TRUE) -> sg
+
+sg %>%
+    group_by(sentiment) %>%
+    top_n(10) %>%
+    ungroup() %>%
+    mutate(sentiment = case_when(sentiment == 0 ~ "NEUTRALNO",
+                                 sentiment == 1 ~ "NEGATIVNO",
+                                 sentiment == 2 ~ "POZITIVNO")) %>%
+    mutate(word = reorder(word, n)) %>%
+    ggplot(aes(word, n, fill = sentiment)) +
+    geom_col(show.legend = FALSE) +
+    ggtitle( "Doprinos sentimentu") +
+    labs( x = "Riječ", y = "Broj riječi") +
+    facet_wrap(~ sentiment, scales = "free_y") +
+    coord_flip() -> gg_doprinos_sentimentu
+
+#MACHINE
+
+kandidati %>%
+    unnest_tokens(word, txtVector) %>%
+    anti_join( stop_corpus, by = "word") %>%
+    inner_join( Crosentilex_sve, by = "word") %>%
+    select(word, brija, datum, sentiment) %>% 
+    unique() %>%
+    spread(. , brija, sentiment) %>%
+    mutate(sentiment = POZ - NEG) %>%
+    select(word, datum, sentiment) %>% 
+    group_by(word) %>% 
+    mutate(count = n()) %>%
+    arrange(desc(count)) %>%
+    mutate( score = sentiment*count) %>%
+    ungroup() %>%
+    group_by(datum) %>%
+    arrange(desc(datum)) -> sm
+
+
+sm %>%
+    select(datum, score) %>%
+    group_by(Datum = floor_date(datum, "week")) %>%
+    summarise(Tjedni_sent = sum(score, na.rm = TRUE)) %>%
+    ggplot(., aes(Datum, Tjedni_sent)) +
+    geom_bar(stat = "identity") + 
+    ggtitle("Sentiment kroz vrijeme") +
+    ylab("SentimentScore") -> gg_sentiment_kroz_vrijeme
+
+
+grid.arrange( gg_sentiment_kroz_vrijeme, gg_doprinos_sentimentu, nrow = 2, top = "Prikaz sentimenta" )
+
+
+
+```
+
+
+Sljedeći grafikon prikazuje najbitnije riječi vezane uz svakog kandidata. Riječi su identificirane pomoću *tf-idf* [metodologije](https://www.tidytextmining.com/tfidf.html). Rezultati nisu skroz "čisti" zbog međusobnog ispreplitanja članaka i kadidata, što predstavlja poteškoću pri formiranju *tf-idf* matrice u kojoj bi granice između dokumenta (u ovom slučaju jedan kandidat) i sastavnica tog dokumenta (u ovom slučaju članci) trebale biti čvršće, a poželjan bi bio i veći uzorak. Unatoč tome, nekoliko je stvari moguće zaključiti iz prikaza, makar i samo za pojedine kandidate. Najvažnije teme o Pernaru se odnose na stranačke probleme: skukobe unutar Živog zida, konflikt sa Bunjcem i Pernarovo istupanje iz stranke. Najbitnije riječi vezane uz Kolindu upućuju na njezino vanjsko-političko djelovanje. Za Škoru i Kolakušića rezultati ne pokazuju mnogo, a razlog je vjerojatno što se o njima i ne piše mnogo (vidi prethodni wordCloud). Najvažnije riječi vezane uz Milanovića daju naznake političkog marketinga zasnovanog na mitologiji samouvjerenosti i dominacije (pokoravanje, najmoćnijim, promicao).
+
+
+```{r idf, echo=FALSE,  message = FALSE, warning = FALSE}
+
+ idf <- kandidati %>%
+    unnest_tokens(word, txtVector) %>%
+    anti_join( stop_corpus, by = "word") %>%
+    mutate(word = gsub("\\d+", NA, word)) %>%
+    mutate(word = gsub("^[a-zA-Z]$", NA, word)) %>%
+    filter(!is.na(word)) 
+
+ idf_ <-idf %>%
+  count(kandidat, word, sort = TRUE) %>%
+  bind_tf_idf(word, kandidat,n) %>%
+  arrange(desc(tf_idf)) 
+
+options(scipen = 1000000)
+idf_ %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>%
+  group_by(kandidat) %>%
+  top_n(15) %>%
+  ungroup() %>%
+  ggplot(., aes(word, tf_idf, fill = kandidat)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = "Riječ", y = "TF-IDF Score") +
+  facet_wrap(~kandidat, ncol = 2, scales = "free") +
+  coord_flip() -> gg_idf
+  
+  gg_idf
+
+
+```
+
+
+Na kraju ćemo još pogledati razultate tematske analize napravljene pomoću LDA ( [**Latent Dirichlet Allocation**](https://medium.com/@lettier/how-does-lda-work-ill-explain-using-emoji-108abf40fa7d) ) algoritma. Riječi su sortirane u četiri tematska klastera jer specifikacija sa drugim brojem tema (2,3 i 5) daje manje robusne rezultate. Logičan izbor bi bio 5 tema jer se korpus tekstova odnosi na pet kandidata no zbog međusobnog ispretplitanja članaka i kanditata to nije ovdje očito nije slučaj. Raspoznaju se dvije teme o međustranačkim odnosima i kanditima, potencijalno na relaciji između HDZ-a i SDP-a, a naslućuje se i da Škoro ozbiljno pretendira na politički vakuum između dvije najveće stranke. Treća tema se odnosi na unutarstranačke probleme u Živom zidu, a cijela četvrta tema je vezana uz aktualnu predsjednicu što ne čudi jer ona ima najbolje pokazatelje zastupljenosti u digitalnom političkom prostoru. Na osnovi toga se može naslutiti da, zasada, aktualna predsjednica ima relativno bolje šanse od drugih kandidata.
+
+
+```{r tematska, echo=FALSE,  message = FALSE, warning = FALSE }
+
+kandidati %>%
+  #group_by(id) %>%
+  unnest_tokens(word, txtVector) %>%
+  anti_join( stop_corpus, by = "word") %>%
+  mutate(word = gsub("\\d+", NA, word)) %>%
+  mutate(word = gsub("^[a-zA-Z]$", NA, word)) %>%
+  filter(!is.na(word)) %>%
+  count(id, word, sort = TRUE) %>%
+  ungroup() -> tematska_kandidati
+
+ tematska_matrica_kandidati <- tematska_kandidati %>%
+   cast_dtm(id, word, n)
+ 
+ teme_kandidati <- LDA(tematska_matrica_kandidati, k = 4, control = list(seed = 1234))
+ 
+ wtp_kandidati <- tidy(teme_kandidati, matrix = "beta")
+ 
+ wtp_kandidati %>%
+   group_by(topic) %>%
+   top_n(10, beta) %>%
+   ungroup() %>%
+   arrange(topic, -beta) -> najvaznije_rijeci_po_temama_kandidati
+ 
+ 
+ najvaznije_rijeci_po_temama_kandidati %>%
+   mutate(term = reorder(term, beta)) %>%
+   ggplot(aes(term, beta, fill = factor(topic))) +
+   geom_col(show.legend = FALSE) +
+   
+   facet_wrap(~ topic, scales = "free") + 
+   coord_flip() -> gg_tematska
+ 
+ gg_tematska
+
+
+```
+
+
+U ovom postu je dan pregled osnovnih pokazatelja zastupljenosti pet predsjedničkih kandidata u domaćem digitalnom političkom prostoru. Pored toga, analiziran je i korpus tekstova, objavljenih u zadnja dva mjeseca, na šest najvećih domaćih internetskih portala. Motivacija za analizu leži u globalnom trendu rasta važnosti digitalnog političkog prostora, a koji je aktualan i u Hrvatskoj. Dodatno, trend rasta popularnosti **alternativnih** političkih opcija i kandidata koji vidimo u svijetu, također je prisutan i kod nas. Općenito je moguće reći da je aktualna predsjednica najzastupljenija u presjeku domaćih portala, barem kada se sudi prema broju objavljenih članaka. Ostali kandidati su podjednako zastupljeni, uz iznimku Kolakušića koji dobiva manje prostora. Pokazatelji relativne zastupljenosti pokazuju da **alternativci** poput Kolakušića i Pernara vještim digitalnim marketingom uspješno povećavaju svoju političku popularnost. Osim dodatne potvrde Kolindine digitalne dominacije, analiza tekstova je ukazala na druga dva aspekta (nadolazeće) predsjedničke kampanje: 1) pozitivan sentiment vezan uz nadu u bolju budućnost, 2) stranačku pozadinu kampanje, nauštrb programske.
+u u bolju budućnost, 2) stranačku pozadinu kampanje, nauštrb programske.
+  

@@ -1,0 +1,168 @@
+---
+title: Neiskorišteni potencijalni analize teksta u RH
+author: Mislav Šagovac
+date: '2019-04-11'
+slug: neiskori-teni-potencijalni-analize-teksta-u-rh
+categories:
+  - Tekst
+tags:
+  - analiza teksta
+  - R
+type: ''
+subtitle: ''
+image: ''
+---
+
+Nedavno sam razgovarao s kolegom s Ekonomskog fakulteta o mogućem utjecaju velikih količina podataka na (makro)ekonomiju. U razgovoru smo se dotakli jednog praktičnog primjera o korištenju javno dostupnih, nestrukturiranih, relativno velikih podataka u makroekonomskim istraživanjima. Riječ je o tekstovima koji se nalaze na webu. Dok se podaci statističkih zavoda uglavnom nalaze u strukturiranoj formi, za analizu tekstova dostupnih na webu potrebno je uložiti određeni napor da bi se podatci preuzeli i uredili za statističku ili neku drugu analizu. Jedna vrsta tih podataka su i tekstovi koji se nalaze na posjećenim hrvatskim web portalima, poput Indexa, 24 sata, jutarnjeg, večernjeg lista i td. Podaci prikupljeni s ovih stranica mogu se koristiti u makroekonomskoj analizi. U konkretnom slučaju o kojem smo raspravljali, radilo s o prikupljanju podataka o učestalosti korištenja riječi "recesija" na javnim portalima, što se može koristiti kao indikator moguće recesije. U ovom postu ću pokušati na jednostavnom primjeru prikazati kako bi se podaci za takvu analizu mogli prikupiti pomoću programskog paketa R.
+
+Proces prikupljanja sadržaja sa web stranica naziva se *web crawling*, a skripta koja automatski prikuplja podatke naziva se *bot*. Jednostavno rečeno, *bot* posjećuje željene web stranice, preuzima željeni sadržaj (cjelokupan ili parcijalan) i prati poveznice koje se nalaze na stranici. Cilj je posjetiti sve željene stranice i preuzeti sve podatke od interesa. To može uključivati kompletan tekst sa neke domene (što nije preporučljivo) ili samo određeni tekst sa nekih poveznica (recimo naslove filmova znanstvene fantastike). Najpoznatiji bot na svijetu je Google. Iako do sada možda niste razmišljali na ovaj način, Google ustvari *crawla* ogromni broj poveznica i sprema sadržaje pronađene na poveznicama na vlastite servere. Potom omogućuje pretragu teksta koji se nalazi na serveru. 
+
+R ima razvijen paket upravo za ovu svrhu, a zove se `Rcrawler`. Ovaj paket je vrlo jednostavan i mogu ga koristiti čak i apsolutni početnici u programiranju i *web crawlingu*. Osobno ne koristim predmetni paket jer mi ne daje potpunu kontrolu nad procesom web crawlinga, ali za početnike je najbolji izbor. Prije web scrapinga uvijek je preporučljivo pročitati opće uvjete korištenja koji se nalaze na stranici. Stranice uglavnom ne dopuštaju brzo i masovno preuzimanje podataka. Korisno je crawler napraviti na način da se preuzimaju samo ciljane web stranice i dijelove teksta koji su zaista potrebni. Nije poželjno koristiti veliki broj paralelnih R procesa jer će Vam vrlo vjerojatno pristup biti zabranjen. Također, poželjno je između svakog GET zahtjeva koristiti određen vremenski zastoj.
+
+U nastavku prikazujem jednostavnu analizu podataka teksta na temelju članaka preuzetih sa hrvatskog web portala [Večernji.hr](https://www.vecernji.hr/pretraga). Podaci uključuju razdoblje 1.1.2018. - 28.3.2019. Baza podataka sadrži ukupno 65.822 tekstova iz raznih područja (vijesti, posao, showbizz i td.). Prije analize je bilo potrebno urediti podatke i strukturirati podatke. Prvo sam napravio tokenizaciju svih objavljenih tekstova. Tokenizacija podrazumijeva transformaciju tekstova u tokene (riječi). Primjerice, rečenica: "Čitam blog CroEcon" se pretvara u vektor tokena: ("čitam", "blog", "croecon"). Nakon tokenizacije, iz vektora su izbačene "stop riječi". "Stop riječi" su riječi koje se vrlo često pojavljuju u nekom jeziku. Primjer stop riječi u hrvatskom su "a", "ali", "bi" itd. Treba napomenuti da različiti NLP (*Natural language processing*) paketi sadrže različiti skup stop riječi. Za potrebe ovog posta sam koristio riječi paketa [quanteda](https://github.com/quanteda/quanteda).
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(tidytext)
+library(kableExtra)
+
+files <- list.files("E:/data/R/web_scraping/novosti/vecernji", 
+                    pattern = "clanci.*.csv",
+                    full.names = TRUE)
+xfiles <- lapply(files, read.csv2, stringsAsFactors = FALSE)
+x <- do.call(rbind, xfiles)
+x <- unique(x)
+x$datumShort <- gsub(" \\d+:\\d+", "", x$datum)
+# tail(x$datumShort)
+x$datumShort <- str_replace(x$datumShort, "siječnja", "01\\.")
+x$datumShort <- str_replace(x$datumShort, "veljače", "02\\.")
+x$datumShort <- str_replace(x$datumShort, "ožujka", "03\\.")
+x$datumShort <- str_replace(x$datumShort, "travnja", "04\\.")
+x$datumShort <- str_replace(x$datumShort, "svibnja", "05\\.")
+x$datumShort <- str_replace(x$datumShort, "lipnja", "06\\.")
+x$datumShort <- str_replace(x$datumShort, "srpnja", "07\\.")
+x$datumShort <- str_replace(x$datumShort, "kolovoza", "08\\.")
+x$datumShort <- str_replace(x$datumShort, "rujna", "09\\.")
+x$datumShort <- str_replace(x$datumShort, "listopada", "10\\.")
+x$datumShort <- str_replace(x$datumShort, "studenoga", "11\\.")
+x$datumShort <- str_replace(x$datumShort, "prosinca", "12\\.")
+x$datumShort <- str_replace_all(x$datumShort, "[[:space:]]+", "")
+x$datumShort <- as.Date(x$datumShort, "%d.%m.%Y.")
+x <- x[!is.na(x$datumShort), ]
+# max(x$datumShort)
+
+# TEST
+# datumiSvi <- seq.Date(from = as.Date("2018-01-01"), to = as.Date("2019-03-15"), by = 1L)
+# datumNema <- as.Date(setdiff(datumiSvi, unique(x$datumShort)), origin="1970-01-01")
+# datumNema
+
+```
+
+Nakon prilagodbe podataka, možemo napraviti nekoliko jednostavnih analiza. Za početak je korisno pogledati najkorištenije riječi u svim tekstovima. Prikazat ćemo 50 najkorištenijih riječi.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# croatian stop words
+stopwords_cro <- get_stopwords(language = "hr", source = "stopwords-iso")
+ 
+# word frequencies
+text_df <- as_tibble(x) %>% 
+  unnest_tokens(word, tekst) %>%
+  anti_join(stopwords_cro, by = "word")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+tokeni <- text_df %>% 
+  count(word, sort = TRUE) 
+tokeni %>% 
+  head(., 50) %>% 
+  dplyr::rename(Token = "word", Frekvencija = "n") %>% 
+  kable(caption = "Tablica 1") %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F) %>% 
+  kableExtra::scroll_box(height = "500px")
+```
+
+Najkorištenija riječ je riječ "godine", dok je riječ istog korijena, "godina", na petom mjestu. Može se primijetiti veliki broj često korištenih riječi, poput "više" i "zbog". Neki NLP paketi ove riječi uključuju u "stop" riječi (npr. poznati python paket [spacy](https://github.com/explosion/spaCy/blob/master/spacy/lang/hr/stop_words.py)). Zanimljivo je da se na vrlo visokom 49. mjestu nalazi ¸"hdz". Pojam "hdz" je čak učestaliji i od riječi sad. Zanimljivo je primjetiti da se na dosta visokom mjestu nalazi i riječ kuna. Na visokom mjestu su i pojmovi "novci" i "milijuni", što ukazuje na vrlo veliki broj tekstova na o novcu i ekonomiji.
+
+Prethodnu analizu sam ponovio na tekstovima s najvećim brojem komentara. Dakle, htio sam vidjeti koje riječi koreliraju sa velikim brojem komentara. Za jasnu identifikaciju bi bilo potrebno provesti statistički tekst, ali ova jednostavna analiza može stvoriti predodžbu o korelacijama između riječi i komentara. Dakle, prvo sam izabrao 100 tekstova sa najviše komentara te sam izdovjio najfrekventnije riječi.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+tokeni_komentari <- as_tibble(x) %>%
+  dplyr::top_n(n = 100, wt = brojKomentara) %>%
+  unnest_tokens(word, tekst) %>%
+  anti_join(stopwords_cro, by = "word") %>%
+  count(word, sort = TRUE)
+tokeni_komentari %>%
+  head(., 50) %>%
+  dplyr::rename(Token = "word", Frekvencija = "n") %>%
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  kableExtra::scroll_box(height = "500px")
+```
+
+Osim uobičajenih riječi, koje se pojavljuju, u svim tekstovima, poput "rekao", "prema", "ljudi", postoje određene riječi koje se ne pojavljuju na listi najčešće korištenih riječi u tablici 1. To se posebno odnosi na riječi "vučić" i "srbije". Očito je da tekstovi o Srbiji i Srpskom predsjedniku privlače veliki broj komentara. Vrlo visoko se nalazi i pojam "reprezentacije" i "vatreni", što znači da ljudi vrlo često komentiraju nastupe reprezentacije. Od zanimljivijih riječi se još pojavljuju i pojmovi "migranta" i "putin". Pogledajmo još prikaz najučestalijih riječi poznatog autora Nine Raspudića, koji ima ukupno 70 tekstova:
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+tokeni_raspudic <- as_tibble(x) %>%
+  dplyr::filter(autor == "Nino Raspudić") %>%
+  unnest_tokens(word, tekst) %>%
+  anti_join(stopwords_cro, by = "word") %>%
+  count(word, sort = TRUE)
+tokeni_raspudic %>%
+  head(., 50) %>%
+  slice(-1) %>%
+  dplyr::rename(Token = "word", Frekvencija = "n") %>%
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  kableExtra::scroll_box(height = "500px")
+```
+
+Iz ove pregledne analize bi se dalo zaključiti da Nino Raspudić najviše piše o HDZ-u i premijeru Plenkoviću. Vjerujem da čitatelji već mogu uvidjeti koristi od analize tekstova, kako za analizu medija, politike, tako i za analizu ekonomije.
+
+S obzirom da je primjena analize teksta na ekonomske fenomene bila motivacijski pokretač ovog posta, dodatno sam analizirao određene ekonomske pojmove. Pogledajmo primjerice koliko često se pojam recesije pojavljivao u tekstovima:
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+recesija <- text_df[grep("recesi", text_df$word), ]
+recesija_plot <- recesija %>%
+  dplyr::group_by(datumShort) %>%
+  dplyr::summarise(Frekvencija = n()) %>%
+  dplyr::ungroup()
+ggplot(recesija_plot, aes(x = datumShort, y = Frekvencija)) +
+  geom_col() +
+  xlab("")
+
+# pojam <- x[grep("željk.*Perva.*|Perva", x$tekst, ignore.case = TRUE), ]
+# names(pojam)
+# pojamDatum <- pojam %>%
+#   dplyr::group_by(datumShort) %>%
+#   dplyr::summarise(broj = n())
+#
+# ggplot(recesija, aes(x = datumShort, y = broj)) +
+#   geom_col()
+
+```
+
+Graf pokazuje relativno ujednačenu frekvenciju pojma "recesija" do veljače 2019. Pojam recesija je naviše puta spomenut 23.2.2019. Međutim, važno je podsjetiti da jedan članak može više puta koristiti isti pojam. Primjerice, 23.02. objavljen je tekst pod naslovom: "Je li Hrvatska pred novom recesijom? Stručnjak otkriva što je slično kao i 2008. godine". Očito je da samo taj jedan tekst može sadržavati veliki broj pojmova recesija. Sljedeća tablica pokazuje pet datuma sa najvećom frekvencijom pojma "recesija":
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+head(recesija_plot %>%  dplyr::arrange(desc(Frekvencija))) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+Ako bi se iz grafa zaključivalo o riziku pojave nove recesije. čini se da je postojao signal pojave recesije u veljači i ožujku, ali da u posljednjih nekoliko dana ovaj signal oslabio. Ova kretanja su možda povezana i s događanjima u Uljaniku:
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+recesija <- text_df[grep("uljanik", text_df$word), ]
+recesija_plot <- recesija %>%
+  dplyr::group_by(datumShort) %>%
+  dplyr::summarise(Frekvencija = n()) %>%
+  dplyr::ungroup()
+ggplot(recesija_plot, aes(x = datumShort, y = Frekvencija)) +
+  geom_col() +
+  xlab("")
+```
+
+Cijela ova analiza pokazuje veliki potencijal primjene tekstualne analize na analizu teksta, medija, politike i ostalih područja. Najveće ograničenje predstavlja prikupljanje podataka s web-a (čime se inače bavimo :)), dok je analiza teksta lakši i zanimljivi dio U budućnosti možemo očekivati sve više tekstualnih analiza u ekonomiju, posebno u području *nowcastinga*.

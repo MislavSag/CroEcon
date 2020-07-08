@@ -1,0 +1,2001 @@
+---
+title: Dinamika i struktura zaposlenosti (RH, županije, gradovi)
+author: Mislav Sagovac
+date: '2019-01-16'
+slug: dinamika-i-struktura-zaposlenosti-u-rh-i-po-upanijama
+categories:
+  - Ekonomika
+  - Tržište rada
+tags:
+  - zaposlenost
+type: ''
+subtitle: ''
+image: ''
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/plotly-binding/plotly.js"></script>
+<script src="/rmarkdown-libs/typedarray/typedarray.min.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
+<link href="/rmarkdown-libs/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/plotly-main/plotly-latest.min.js"></script>
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>U jednom od prijašnjih <a href="http://croecon.contentio.biz/post/strukturirani-podaci-o-zaposlenosti-hzmo-a/">postova</a> analizirao sam dinamiku zaposlenosti u RH. Rezultati analize su bili prezentirani na <a href="https://forensis.shinyapps.io/CroEcon/">CroEcon aplikaciji</a>. S obzirom da su podaci o zaposlenima javno dostupni na <a href="http://www.mirovinsko.hr/default.aspx?id=13674">stranicama HZMO-a</a>, odlučio sam prikupiti podatke o zaposlenima na mjesečnoj razini za razdoblje 2014-2018 na razini županija i gradova/općina. Na stranicama HZMO-a nisu dostupni podaci za ranije razdoblje. Podaci omogućuju i raščlanjivanje podataka s obzirom na tip osiguranja (postoji 7 tipova osiguranja) i spol. Ovi novoprikupljeni podaci nalaze se na CroEcon <a href="http://www.mirovinsko.hr/default.aspx?id=13674">apliakciji</a> pod modulom “Tržište rada”&gt; “Dinamika radne snage”.</p>
+<p>Kako se kretala dinamika zaposlenih od analize u posljednjem postu (prosinac 2017.)? Prvo ćemo analizirati podatke za cijelu RH. Na grafu 1. je prikazana dinamika ukupnog broja zaposlenih. U aplikaciji ovaj grafikon dobijete ako za županiju i grad/općinu izaberete vrijednost “SVE” (zadano u aplikaciji). Na grafikonu je vidljiv jasan trend rasta od 2014 godine sa naglašenom sezonskom komponentom. Broj zaposlenih se kreće kao sinusoida oko blago rastućeg trenda. Točne stope rasta po mjesecima za 2018. u odnosu na 2017 dane su u tablici 1. Kolone pokazuju stope rasta zaposlenosti u odnosu na isti mjesec prethodne godine. Prosječna stopa rasta po mjesecima iznosi 2.3%. Apsolutno, broj zaposlenih narastao je za cca 30.000. Prema makro teoriji, rast broj zaposlenih, uz konstantan pad radne snage, trebalo bi dovesti do rasta plaća zbog veće pregovaračke moći radnika. To je upravno situacija koja se primjećuje u podacima (prema podacima DZS-a plaće su u 2018. rasle za 5%).</p>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"data":[{"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[1391288,1390898,1394788,1414750,1433827,1460042,1467952,1462281,1443744,1421053,1411197,1397400,1387337,1388803,1399509,1423513,1448021,1472497,1481193,1475914,1459211,1436197,1425709,1413637,1408790,1414115,1425201,1449815,1476865,1498922,1504328,1501955,1488807,1466090,1456824,1440188,1433402,1437782,1452052,1475786,1503700,1525457,1532009,1525489,1514241,1496040,1485757,1475044,1468631,1474303,1489091,1514171,1539946,1554821,1563560,1559197,1546848,1528590,1521950,1506912],"text":["mjesec: 2014-01-01<br />Vrijednosti: 1391288<br />Opis: SVEUKUPNO","mjesec: 2014-02-01<br />Vrijednosti: 1390898<br />Opis: SVEUKUPNO","mjesec: 2014-03-01<br />Vrijednosti: 1394788<br />Opis: SVEUKUPNO","mjesec: 2014-04-01<br />Vrijednosti: 1414750<br />Opis: SVEUKUPNO","mjesec: 2014-05-01<br />Vrijednosti: 1433827<br />Opis: SVEUKUPNO","mjesec: 2014-06-01<br />Vrijednosti: 1460042<br />Opis: SVEUKUPNO","mjesec: 2014-07-01<br />Vrijednosti: 1467952<br />Opis: SVEUKUPNO","mjesec: 2014-08-01<br />Vrijednosti: 1462281<br />Opis: SVEUKUPNO","mjesec: 2014-09-01<br />Vrijednosti: 1443744<br />Opis: SVEUKUPNO","mjesec: 2014-10-01<br />Vrijednosti: 1421053<br />Opis: SVEUKUPNO","mjesec: 2014-11-01<br />Vrijednosti: 1411197<br />Opis: SVEUKUPNO","mjesec: 2014-12-01<br />Vrijednosti: 1397400<br />Opis: SVEUKUPNO","mjesec: 2015-01-01<br />Vrijednosti: 1387337<br />Opis: SVEUKUPNO","mjesec: 2015-02-01<br />Vrijednosti: 1388803<br />Opis: SVEUKUPNO","mjesec: 2015-03-01<br />Vrijednosti: 1399509<br />Opis: SVEUKUPNO","mjesec: 2015-04-01<br />Vrijednosti: 1423513<br />Opis: SVEUKUPNO","mjesec: 2015-05-01<br />Vrijednosti: 1448021<br />Opis: SVEUKUPNO","mjesec: 2015-06-01<br />Vrijednosti: 1472497<br />Opis: SVEUKUPNO","mjesec: 2015-07-01<br />Vrijednosti: 1481193<br />Opis: SVEUKUPNO","mjesec: 2015-08-01<br />Vrijednosti: 1475914<br />Opis: SVEUKUPNO","mjesec: 2015-09-01<br />Vrijednosti: 1459211<br />Opis: SVEUKUPNO","mjesec: 2015-10-01<br />Vrijednosti: 1436197<br />Opis: SVEUKUPNO","mjesec: 2015-11-01<br />Vrijednosti: 1425709<br />Opis: SVEUKUPNO","mjesec: 2015-12-01<br />Vrijednosti: 1413637<br />Opis: SVEUKUPNO","mjesec: 2016-01-01<br />Vrijednosti: 1408790<br />Opis: SVEUKUPNO","mjesec: 2016-02-01<br />Vrijednosti: 1414115<br />Opis: SVEUKUPNO","mjesec: 2016-03-01<br />Vrijednosti: 1425201<br />Opis: SVEUKUPNO","mjesec: 2016-04-01<br />Vrijednosti: 1449815<br />Opis: SVEUKUPNO","mjesec: 2016-05-01<br />Vrijednosti: 1476865<br />Opis: SVEUKUPNO","mjesec: 2016-06-01<br />Vrijednosti: 1498922<br />Opis: SVEUKUPNO","mjesec: 2016-07-01<br />Vrijednosti: 1504328<br />Opis: SVEUKUPNO","mjesec: 2016-08-01<br />Vrijednosti: 1501955<br />Opis: SVEUKUPNO","mjesec: 2016-09-01<br />Vrijednosti: 1488807<br />Opis: SVEUKUPNO","mjesec: 2016-10-01<br />Vrijednosti: 1466090<br />Opis: SVEUKUPNO","mjesec: 2016-11-01<br />Vrijednosti: 1456824<br />Opis: SVEUKUPNO","mjesec: 2016-12-01<br />Vrijednosti: 1440188<br />Opis: SVEUKUPNO","mjesec: 2017-01-01<br />Vrijednosti: 1433402<br />Opis: SVEUKUPNO","mjesec: 2017-02-01<br />Vrijednosti: 1437782<br />Opis: SVEUKUPNO","mjesec: 2017-03-01<br />Vrijednosti: 1452052<br />Opis: SVEUKUPNO","mjesec: 2017-04-01<br />Vrijednosti: 1475786<br />Opis: SVEUKUPNO","mjesec: 2017-05-01<br />Vrijednosti: 1503700<br />Opis: SVEUKUPNO","mjesec: 2017-06-01<br />Vrijednosti: 1525457<br />Opis: SVEUKUPNO","mjesec: 2017-07-01<br />Vrijednosti: 1532009<br />Opis: SVEUKUPNO","mjesec: 2017-08-01<br />Vrijednosti: 1525489<br />Opis: SVEUKUPNO","mjesec: 2017-09-01<br />Vrijednosti: 1514241<br />Opis: SVEUKUPNO","mjesec: 2017-10-01<br />Vrijednosti: 1496040<br />Opis: SVEUKUPNO","mjesec: 2017-11-01<br />Vrijednosti: 1485757<br />Opis: SVEUKUPNO","mjesec: 2017-12-01<br />Vrijednosti: 1475044<br />Opis: SVEUKUPNO","mjesec: 2018-01-01<br />Vrijednosti: 1468631<br />Opis: SVEUKUPNO","mjesec: 2018-02-01<br />Vrijednosti: 1474303<br />Opis: SVEUKUPNO","mjesec: 2018-03-01<br />Vrijednosti: 1489091<br />Opis: SVEUKUPNO","mjesec: 2018-04-01<br />Vrijednosti: 1514171<br />Opis: SVEUKUPNO","mjesec: 2018-05-01<br />Vrijednosti: 1539946<br />Opis: SVEUKUPNO","mjesec: 2018-06-01<br />Vrijednosti: 1554821<br />Opis: SVEUKUPNO","mjesec: 2018-07-01<br />Vrijednosti: 1563560<br />Opis: SVEUKUPNO","mjesec: 2018-08-01<br />Vrijednosti: 1559197<br />Opis: SVEUKUPNO","mjesec: 2018-09-01<br />Vrijednosti: 1546848<br />Opis: SVEUKUPNO","mjesec: 2018-10-01<br />Vrijednosti: 1528590<br />Opis: SVEUKUPNO","mjesec: 2018-11-01<br />Vrijednosti: 1521950<br />Opis: SVEUKUPNO","mjesec: 2018-12-01<br />Vrijednosti: 1506912<br />Opis: SVEUKUPNO"],"type":"scatter","mode":"lines","line":{"width":4.53543307086614,"color":"rgba(248,118,109,1)","dash":"solid"},"hoveron":"points","name":"SVEUKUPNO","legendgroup":"SVEUKUPNO","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":43.7625570776256,"r":7.30593607305936,"b":25.5707762557078,"l":51.8721461187215},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"Dinamika radne snage RH","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[15981.25,17955.75],"tickmode":"array","ticktext":["2014","2016","2018"],"tickvals":[16071,16801,17532],"categoryorder":"array","categoryarray":["2014","2016","2018"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1378525.85,1572371.15],"tickmode":"array","ticktext":["1400000","1450000","1500000","1550000"],"tickvals":[1400000,1450000,1500000,1550000],"categoryorder":"array","categoryarray":["1400000","1450000","1500000","1550000"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"y":-0.15,"orientation":"h"},"annotations":[{"text":"Opis","x":1.02,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"left","yanchor":"bottom","legendTitle":true}],"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"23d827634ff0":{"x":{},"y":{},"colour":{},"type":"scatter"}},"cur_data":"23d827634ff0","visdat":{"23d827634ff0":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-3">Table 1: </span>Stope rasta zaposlenosti
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Opis
+</th>
+<th style="text-align:right;">
+01
+</th>
+<th style="text-align:right;">
+02
+</th>
+<th style="text-align:right;">
+03
+</th>
+<th style="text-align:right;">
+04
+</th>
+<th style="text-align:right;">
+05
+</th>
+<th style="text-align:right;">
+06
+</th>
+<th style="text-align:right;">
+07
+</th>
+<th style="text-align:right;">
+08
+</th>
+<th style="text-align:right;">
+09
+</th>
+<th style="text-align:right;">
+10
+</th>
+<th style="text-align:right;">
+11
+</th>
+<th style="text-align:right;">
+12
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SVEUKUPNO
+</td>
+<td style="text-align:right;">
+2.46
+</td>
+<td style="text-align:right;">
+2.54
+</td>
+<td style="text-align:right;">
+2.55
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+2.41
+</td>
+<td style="text-align:right;">
+1.92
+</td>
+<td style="text-align:right;">
+2.06
+</td>
+<td style="text-align:right;">
+2.21
+</td>
+<td style="text-align:right;">
+2.15
+</td>
+<td style="text-align:right;">
+2.18
+</td>
+<td style="text-align:right;">
+2.44
+</td>
+<td style="text-align:right;">
+2.16
+</td>
+</tr>
+</tbody>
+</table>
+<p>Osim ukupnog boja zaposlenih poželjno je proučiti kretanje zaposlenih prema dva dodatna kriterija: vrsti osiguranja i spolu. Distribucija prema vrsti osiguranja dana je na slici 2. i u tablici 2. Slika otkriva relativno stabilnu distribuciju kroz cijelo promatrano razdoblje. Većima ljudi (1.3 mil) radi kod pravnih osoba (d.o.o., d.d.), slijede radnici kod fizičkih osoba (100 tisuća) i obrtnici, kojih je oko 50 tisuća. Tablica pokazuje da je u u 2018- godini porastao broj obrtnika i radnika kod pravnih osoba, a smanjio se broj svih ostalih tipova osiguranja. Ovakvo kretanje je rezultat dugog trenda. U aplikaciji CroEcon se se može brzo provjeriti kretanje pojedinih vrsta osiguranja. U zadnje 4 godine je pao je sa 23.5 tisuće na 19 tisuća, samostalne profesionalne djelatnosti sa 22.5 na 19 tisuća, broj obrtnika se smanjio za cca 1000. Analiza po spolu pokazuje da muškarci i žene pokazuju istu dinamiku zaposlenosti s jedinom razlikom što žene imaju konzistentno niže stope zaposlenosti. Primjerice u zadnje mjesecu 2018. u RH je radilo 793 tisuće žena i 713 tisuća muškaraca. Jaz se tek neznatno smanjio u posljednjih 5 godina.</p>
+<div id="htmlwidget-2" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"data":[{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[1.329828,1.329753,1.333837,1.352693,1.370299,1.394755,1.402465,1.396757,1.379497,1.359992,1.351045,1.337449,1.328097,1.32991,1.340656,1.363498,1.386465,1.409522,1.417994,1.412829,1.397264,1.377436,1.36785,1.355941,1.3516,1.357142,1.368217,1.391557,1.416798,1.437076,1.442142,1.439806,1.427911,1.408487,1.400014,1.38363,1.377312,1.381659,1.395748,1.418046,1.443977,1.463829,1.47001,1.463305,1.453037,1.43788,1.428346,1.417632,1.411655,1.417253,1.431626,1.454994,1.478572,1.491492,1.499619,1.494908,1.483546,1.468105,1.462169,1.447059],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[0.0614600000000001,0.061145,0.060951,0.062057,0.063528,0.0652870000000001,0.0654870000000001,0.0655239999999999,0.0642469999999999,0.061061,0.060152,0.0599509999999999,0.0592400000000002,0.0588929999999999,0.058853,0.0600150000000002,0.0615559999999999,0.062975,0.063199,0.0630850000000001,0.0619470000000002,0.0587610000000001,0.0578590000000001,0.057696,0.0571900000000001,0.0569730000000002,0.0569839999999999,0.0582579999999999,0.0600669999999999,0.0618460000000001,0.0621860000000001,0.062149,0.0608960000000001,0.0576029999999998,0.05681,0.0565579999999999,0.05609,0.0561230000000001,0.0563039999999999,0.0577399999999999,0.059723,0.061628,0.0619990000000001,0.062184,0.061204,0.05816,0.0574110000000001,0.057412,0.0569759999999999,0.05705,0.0574650000000001,0.059177,0.061374,0.063329,0.063941,0.064289,0.063302,0.0604850000000001,0.0597810000000001,0.0598529999999999],"text":["Opis: Obrtnici - ukupno<br />count: 0.061460<br />mjesec: 16071","Opis: Obrtnici - ukupno<br />count: 0.061145<br />mjesec: 16102","Opis: Obrtnici - ukupno<br />count: 0.060951<br />mjesec: 16130","Opis: Obrtnici - ukupno<br />count: 0.062057<br />mjesec: 16161","Opis: Obrtnici - ukupno<br />count: 0.063528<br />mjesec: 16191","Opis: Obrtnici - ukupno<br />count: 0.065287<br />mjesec: 16222","Opis: Obrtnici - ukupno<br />count: 0.065487<br />mjesec: 16252","Opis: Obrtnici - ukupno<br />count: 0.065524<br />mjesec: 16283","Opis: Obrtnici - ukupno<br />count: 0.064247<br />mjesec: 16314","Opis: Obrtnici - ukupno<br />count: 0.061061<br />mjesec: 16344","Opis: Obrtnici - ukupno<br />count: 0.060152<br />mjesec: 16375","Opis: Obrtnici - ukupno<br />count: 0.059951<br />mjesec: 16405","Opis: Obrtnici - ukupno<br />count: 0.059240<br />mjesec: 16436","Opis: Obrtnici - ukupno<br />count: 0.058893<br />mjesec: 16467","Opis: Obrtnici - ukupno<br />count: 0.058853<br />mjesec: 16495","Opis: Obrtnici - ukupno<br />count: 0.060015<br />mjesec: 16526","Opis: Obrtnici - ukupno<br />count: 0.061556<br />mjesec: 16556","Opis: Obrtnici - ukupno<br />count: 0.062975<br />mjesec: 16587","Opis: Obrtnici - ukupno<br />count: 0.063199<br />mjesec: 16617","Opis: Obrtnici - ukupno<br />count: 0.063085<br />mjesec: 16648","Opis: Obrtnici - ukupno<br />count: 0.061947<br />mjesec: 16679","Opis: Obrtnici - ukupno<br />count: 0.058761<br />mjesec: 16709","Opis: Obrtnici - ukupno<br />count: 0.057859<br />mjesec: 16740","Opis: Obrtnici - ukupno<br />count: 0.057696<br />mjesec: 16770","Opis: Obrtnici - ukupno<br />count: 0.057190<br />mjesec: 16801","Opis: Obrtnici - ukupno<br />count: 0.056973<br />mjesec: 16832","Opis: Obrtnici - ukupno<br />count: 0.056984<br />mjesec: 16861","Opis: Obrtnici - ukupno<br />count: 0.058258<br />mjesec: 16892","Opis: Obrtnici - ukupno<br />count: 0.060067<br />mjesec: 16922","Opis: Obrtnici - ukupno<br />count: 0.061846<br />mjesec: 16953","Opis: Obrtnici - ukupno<br />count: 0.062186<br />mjesec: 16983","Opis: Obrtnici - ukupno<br />count: 0.062149<br />mjesec: 17014","Opis: Obrtnici - ukupno<br />count: 0.060896<br />mjesec: 17045","Opis: Obrtnici - ukupno<br />count: 0.057603<br />mjesec: 17075","Opis: Obrtnici - ukupno<br />count: 0.056810<br />mjesec: 17106","Opis: Obrtnici - ukupno<br />count: 0.056558<br />mjesec: 17136","Opis: Obrtnici - ukupno<br />count: 0.056090<br />mjesec: 17167","Opis: Obrtnici - ukupno<br />count: 0.056123<br />mjesec: 17198","Opis: Obrtnici - ukupno<br />count: 0.056304<br />mjesec: 17226","Opis: Obrtnici - ukupno<br />count: 0.057740<br />mjesec: 17257","Opis: Obrtnici - ukupno<br />count: 0.059723<br />mjesec: 17287","Opis: Obrtnici - ukupno<br />count: 0.061628<br />mjesec: 17318","Opis: Obrtnici - ukupno<br />count: 0.061999<br />mjesec: 17348","Opis: Obrtnici - ukupno<br />count: 0.062184<br />mjesec: 17379","Opis: Obrtnici - ukupno<br />count: 0.061204<br />mjesec: 17410","Opis: Obrtnici - ukupno<br />count: 0.058160<br />mjesec: 17440","Opis: Obrtnici - ukupno<br />count: 0.057411<br />mjesec: 17471","Opis: Obrtnici - ukupno<br />count: 0.057412<br />mjesec: 17501","Opis: Obrtnici - ukupno<br />count: 0.056976<br />mjesec: 17532","Opis: Obrtnici - ukupno<br />count: 0.057050<br />mjesec: 17563","Opis: Obrtnici - ukupno<br />count: 0.057465<br />mjesec: 17591","Opis: Obrtnici - ukupno<br />count: 0.059177<br />mjesec: 17622","Opis: Obrtnici - ukupno<br />count: 0.061374<br />mjesec: 17652","Opis: Obrtnici - ukupno<br />count: 0.063329<br />mjesec: 17683","Opis: Obrtnici - ukupno<br />count: 0.063941<br />mjesec: 17713","Opis: Obrtnici - ukupno<br />count: 0.064289<br />mjesec: 17744","Opis: Obrtnici - ukupno<br />count: 0.063302<br />mjesec: 17775","Opis: Obrtnici - ukupno<br />count: 0.060485<br />mjesec: 17805","Opis: Obrtnici - ukupno<br />count: 0.059781<br />mjesec: 17836","Opis: Obrtnici - ukupno<br />count: 0.059853<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(248,118,109,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Obrtnici - ukupno","legendgroup":"Obrtnici - ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[1.329585,1.329511,1.33359,1.352453,1.370055,1.394512,1.402212,1.396509,1.37926,1.359763,1.350825,1.337225,1.327867,1.32968,1.340426,1.363268,1.386248,1.409311,1.41779,1.412631,1.397059,1.377229,1.367642,1.355736,1.351412,1.356948,1.368023,1.391355,1.4166,1.436878,1.441944,1.439608,1.427731,1.408306,1.399831,1.383458,1.37714,1.381499,1.395604,1.41792,1.443853,1.463712,1.469899,1.463195,1.452926,1.437775,1.42824,1.417525,1.411553,1.417153,1.431528,1.454897,1.478481,1.491406,1.499532,1.494822,1.483461,1.468022,1.462085,1.446973],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[0.000242999999999993,0.000242000000000075,0.000247000000000108,0.000240000000000018,0.000243999999999911,0.000242999999999993,0.000252999999999837,0.000248000000000026,0.000237000000000043,0.000229000000000035,0.000219999999999887,0.000224000000000002,0.000229999999999952,0.000230000000000175,0.000230000000000175,0.000229999999999952,0.000217000000000134,0.000210999999999961,0.000204000000000093,0.000198000000000143,0.000205000000000011,0.000206999999999846,0.000207999999999986,0.000205000000000011,0.000188000000000077,0.000194000000000027,0.000194000000000027,0.000202000000000035,0.00019799999999992,0.00019799999999992,0.00019799999999992,0.00019799999999992,0.000179999999999847,0.000181000000000209,0.000183000000000044,0.000172000000000061,0.000172000000000061,0.000159999999999938,0.000144000000000144,0.000126000000000071,0.000124000000000013,0.000117000000000145,0.000110999999999972,0.000110000000000054,0.000110999999999972,0.000105000000000022,0.000105999999999939,0.000107000000000079,0.000102000000000046,9.9999999999989e-005,9.79999999999315e-005,9.70000000000137e-005,9.10000000000633e-005,8.59999999998085e-005,8.69999999999482e-005,8.60000000000305e-005,8.50000000001128e-005,8.30000000000553e-005,8.3999999999973e-005,8.60000000000305e-005],"text":["Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000243<br />mjesec: 16071","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000242<br />mjesec: 16102","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000247<br />mjesec: 16130","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000240<br />mjesec: 16161","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000244<br />mjesec: 16191","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000243<br />mjesec: 16222","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000253<br />mjesec: 16252","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000248<br />mjesec: 16283","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000237<br />mjesec: 16314","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000229<br />mjesec: 16344","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000220<br />mjesec: 16375","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000224<br />mjesec: 16405","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000230<br />mjesec: 16436","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000230<br />mjesec: 16467","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000230<br />mjesec: 16495","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000230<br />mjesec: 16526","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000217<br />mjesec: 16556","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000211<br />mjesec: 16587","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000204<br />mjesec: 16617","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000198<br />mjesec: 16648","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000205<br />mjesec: 16679","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000207<br />mjesec: 16709","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000208<br />mjesec: 16740","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000205<br />mjesec: 16770","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000188<br />mjesec: 16801","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000194<br />mjesec: 16832","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000194<br />mjesec: 16861","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000202<br />mjesec: 16892","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000198<br />mjesec: 16922","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000198<br />mjesec: 16953","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000198<br />mjesec: 16983","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000198<br />mjesec: 17014","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000180<br />mjesec: 17045","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000181<br />mjesec: 17075","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000183<br />mjesec: 17106","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000172<br />mjesec: 17136","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000172<br />mjesec: 17167","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000160<br />mjesec: 17198","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000144<br />mjesec: 17226","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000126<br />mjesec: 17257","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000124<br />mjesec: 17287","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000117<br />mjesec: 17318","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000111<br />mjesec: 17348","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000110<br />mjesec: 17379","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000111<br />mjesec: 17410","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000105<br />mjesec: 17440","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000106<br />mjesec: 17471","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000107<br />mjesec: 17501","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000102<br />mjesec: 17532","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000100<br />mjesec: 17563","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000098<br />mjesec: 17591","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000097<br />mjesec: 17622","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000091<br />mjesec: 17652","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000086<br />mjesec: 17683","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000087<br />mjesec: 17713","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000086<br />mjesec: 17744","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000085<br />mjesec: 17775","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000083<br />mjesec: 17805","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000084<br />mjesec: 17836","Opis: Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno<br />count: 0.000086<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(196,154,0,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno","legendgroup":"Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[1.322632,1.322501,1.326604,1.345506,1.363358,1.387983,1.395721,1.389873,1.372505,1.352904,1.343957,1.330297,1.320871,1.322658,1.333399,1.356459,1.379671,1.402941,1.411479,1.406378,1.390857,1.370933,1.361232,1.349303,1.344853,1.350346,1.361512,1.385028,1.410477,1.430975,1.436034,1.433741,1.421843,1.402326,1.393782,1.377289,1.370869,1.375218,1.389385,1.411974,1.438185,1.458213,1.464445,1.457813,1.44761,1.432375,1.422715,1.411932,1.405859,1.411459,1.42593,1.449508,1.473305,1.486339,1.494496,1.489852,1.478534,1.463029,1.457032,1.441953],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[0.00695299999999999,0.00700999999999996,0.00698599999999994,0.00694700000000004,0.00669700000000018,0.00652900000000001,0.00649100000000002,0.00663600000000009,0.00675500000000007,0.00685899999999995,0.0068680000000001,0.00692800000000005,0.006996,0.00702199999999986,0.00702699999999989,0.00680899999999984,0.00657699999999983,0.00636999999999999,0.00631099999999996,0.00625299999999984,0.00620199999999982,0.00629600000000008,0.00641000000000003,0.00643300000000013,0.00655899999999998,0.006602,0.00651099999999993,0.00632699999999997,0.0061230000000001,0.00590299999999999,0.00591000000000008,0.00586700000000007,0.00588800000000012,0.00597999999999987,0.00604899999999997,0.00616900000000009,0.00627099999999992,0.00628099999999998,0.00621899999999997,0.00594600000000001,0.00566800000000001,0.00549899999999992,0.00545399999999985,0.005382,0.00531599999999988,0.00539999999999985,0.005525,0.00559299999999996,0.00569399999999987,0.00569400000000009,0.00559799999999999,0.00538900000000009,0.00517600000000007,0.00506700000000015,0.00503600000000004,0.00496999999999992,0.0049269999999999,0.0049929999999998,0.00505299999999997,0.00502000000000002],"text":["Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006953<br />mjesec: 16071","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.007010<br />mjesec: 16102","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006986<br />mjesec: 16130","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006947<br />mjesec: 16161","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006697<br />mjesec: 16191","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006529<br />mjesec: 16222","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006491<br />mjesec: 16252","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006636<br />mjesec: 16283","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006755<br />mjesec: 16314","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006859<br />mjesec: 16344","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006868<br />mjesec: 16375","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006928<br />mjesec: 16405","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006996<br />mjesec: 16436","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.007022<br />mjesec: 16467","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.007027<br />mjesec: 16495","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006809<br />mjesec: 16526","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006577<br />mjesec: 16556","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006370<br />mjesec: 16587","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006311<br />mjesec: 16617","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006253<br />mjesec: 16648","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006202<br />mjesec: 16679","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006296<br />mjesec: 16709","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006410<br />mjesec: 16740","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006433<br />mjesec: 16770","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006559<br />mjesec: 16801","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006602<br />mjesec: 16832","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006511<br />mjesec: 16861","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006327<br />mjesec: 16892","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006123<br />mjesec: 16922","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005903<br />mjesec: 16953","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005910<br />mjesec: 16983","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005867<br />mjesec: 17014","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005888<br />mjesec: 17045","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005980<br />mjesec: 17075","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006049<br />mjesec: 17106","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006169<br />mjesec: 17136","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006271<br />mjesec: 17167","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006281<br />mjesec: 17198","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.006219<br />mjesec: 17226","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005946<br />mjesec: 17257","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005668<br />mjesec: 17287","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005499<br />mjesec: 17318","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005454<br />mjesec: 17348","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005382<br />mjesec: 17379","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005316<br />mjesec: 17410","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005400<br />mjesec: 17440","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005525<br />mjesec: 17471","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005593<br />mjesec: 17501","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005694<br />mjesec: 17532","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005694<br />mjesec: 17563","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005598<br />mjesec: 17591","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005389<br />mjesec: 17622","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005176<br />mjesec: 17652","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005067<br />mjesec: 17683","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005036<br />mjesec: 17713","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.004970<br />mjesec: 17744","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.004927<br />mjesec: 17775","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.004993<br />mjesec: 17805","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005053<br />mjesec: 17836","Opis: Osiguranici produženo osiguranje - ukupno<br />count: 0.005020<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(83,180,0,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Osiguranici produženo osiguranje - ukupno","legendgroup":"Osiguranici produženo osiguranje - ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[1.299087,1.299077,1.303381,1.322422,1.340437,1.365233,1.373079,1.367369,1.35011,1.330649,1.321837,1.308383,1.299109,1.301057,1.311992,1.335158,1.358478,1.38184,1.390417,1.38542,1.369995,1.350086,1.340493,1.328609,1.324729,1.330332,1.341594,1.365161,1.390686,1.411259,1.416379,1.414149,1.40233,1.382845,1.374345,1.357871,1.351458,1.355789,1.36997,1.392541,1.418771,1.438916,1.445162,1.438525,1.428334,1.413112,1.403487,1.392726,1.386719,1.392299,1.406736,1.430307,1.45408,1.467136,1.475338,1.470678,1.459377,1.443921,1.437939,1.422856],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[0.0235449999999999,0.0234240000000001,0.023223,0.0230839999999999,0.022921,0.0227499999999998,0.0226420000000001,0.0225039999999999,0.0223949999999999,0.0222550000000001,0.0221199999999999,0.021914,0.0217620000000001,0.021601,0.021407,0.021301,0.021193,0.021101,0.0210619999999999,0.020958,0.0208620000000002,0.0208470000000001,0.0207390000000001,0.020694,0.0201239999999998,0.020014,0.0199180000000001,0.0198670000000001,0.0197909999999999,0.0197160000000001,0.019655,0.0195920000000001,0.0195129999999999,0.0194810000000001,0.0194369999999999,0.0194179999999999,0.0194110000000001,0.0194289999999999,0.019415,0.019433,0.019414,0.0192970000000001,0.0192830000000002,0.019288,0.0192760000000001,0.019263,0.019228,0.0192060000000001,0.0191400000000002,0.0191600000000001,0.0191940000000002,0.0192009999999998,0.0192249999999998,0.0192029999999999,0.019158,0.019174,0.0191570000000001,0.0191080000000001,0.019093,0.0190969999999999],"text":["Opis: Poljoprivrednici - ukupno<br />count: 0.023545<br />mjesec: 16071","Opis: Poljoprivrednici - ukupno<br />count: 0.023424<br />mjesec: 16102","Opis: Poljoprivrednici - ukupno<br />count: 0.023223<br />mjesec: 16130","Opis: Poljoprivrednici - ukupno<br />count: 0.023084<br />mjesec: 16161","Opis: Poljoprivrednici - ukupno<br />count: 0.022921<br />mjesec: 16191","Opis: Poljoprivrednici - ukupno<br />count: 0.022750<br />mjesec: 16222","Opis: Poljoprivrednici - ukupno<br />count: 0.022642<br />mjesec: 16252","Opis: Poljoprivrednici - ukupno<br />count: 0.022504<br />mjesec: 16283","Opis: Poljoprivrednici - ukupno<br />count: 0.022395<br />mjesec: 16314","Opis: Poljoprivrednici - ukupno<br />count: 0.022255<br />mjesec: 16344","Opis: Poljoprivrednici - ukupno<br />count: 0.022120<br />mjesec: 16375","Opis: Poljoprivrednici - ukupno<br />count: 0.021914<br />mjesec: 16405","Opis: Poljoprivrednici - ukupno<br />count: 0.021762<br />mjesec: 16436","Opis: Poljoprivrednici - ukupno<br />count: 0.021601<br />mjesec: 16467","Opis: Poljoprivrednici - ukupno<br />count: 0.021407<br />mjesec: 16495","Opis: Poljoprivrednici - ukupno<br />count: 0.021301<br />mjesec: 16526","Opis: Poljoprivrednici - ukupno<br />count: 0.021193<br />mjesec: 16556","Opis: Poljoprivrednici - ukupno<br />count: 0.021101<br />mjesec: 16587","Opis: Poljoprivrednici - ukupno<br />count: 0.021062<br />mjesec: 16617","Opis: Poljoprivrednici - ukupno<br />count: 0.020958<br />mjesec: 16648","Opis: Poljoprivrednici - ukupno<br />count: 0.020862<br />mjesec: 16679","Opis: Poljoprivrednici - ukupno<br />count: 0.020847<br />mjesec: 16709","Opis: Poljoprivrednici - ukupno<br />count: 0.020739<br />mjesec: 16740","Opis: Poljoprivrednici - ukupno<br />count: 0.020694<br />mjesec: 16770","Opis: Poljoprivrednici - ukupno<br />count: 0.020124<br />mjesec: 16801","Opis: Poljoprivrednici - ukupno<br />count: 0.020014<br />mjesec: 16832","Opis: Poljoprivrednici - ukupno<br />count: 0.019918<br />mjesec: 16861","Opis: Poljoprivrednici - ukupno<br />count: 0.019867<br />mjesec: 16892","Opis: Poljoprivrednici - ukupno<br />count: 0.019791<br />mjesec: 16922","Opis: Poljoprivrednici - ukupno<br />count: 0.019716<br />mjesec: 16953","Opis: Poljoprivrednici - ukupno<br />count: 0.019655<br />mjesec: 16983","Opis: Poljoprivrednici - ukupno<br />count: 0.019592<br />mjesec: 17014","Opis: Poljoprivrednici - ukupno<br />count: 0.019513<br />mjesec: 17045","Opis: Poljoprivrednici - ukupno<br />count: 0.019481<br />mjesec: 17075","Opis: Poljoprivrednici - ukupno<br />count: 0.019437<br />mjesec: 17106","Opis: Poljoprivrednici - ukupno<br />count: 0.019418<br />mjesec: 17136","Opis: Poljoprivrednici - ukupno<br />count: 0.019411<br />mjesec: 17167","Opis: Poljoprivrednici - ukupno<br />count: 0.019429<br />mjesec: 17198","Opis: Poljoprivrednici - ukupno<br />count: 0.019415<br />mjesec: 17226","Opis: Poljoprivrednici - ukupno<br />count: 0.019433<br />mjesec: 17257","Opis: Poljoprivrednici - ukupno<br />count: 0.019414<br />mjesec: 17287","Opis: Poljoprivrednici - ukupno<br />count: 0.019297<br />mjesec: 17318","Opis: Poljoprivrednici - ukupno<br />count: 0.019283<br />mjesec: 17348","Opis: Poljoprivrednici - ukupno<br />count: 0.019288<br />mjesec: 17379","Opis: Poljoprivrednici - ukupno<br />count: 0.019276<br />mjesec: 17410","Opis: Poljoprivrednici - ukupno<br />count: 0.019263<br />mjesec: 17440","Opis: Poljoprivrednici - ukupno<br />count: 0.019228<br />mjesec: 17471","Opis: Poljoprivrednici - ukupno<br />count: 0.019206<br />mjesec: 17501","Opis: Poljoprivrednici - ukupno<br />count: 0.019140<br />mjesec: 17532","Opis: Poljoprivrednici - ukupno<br />count: 0.019160<br />mjesec: 17563","Opis: Poljoprivrednici - ukupno<br />count: 0.019194<br />mjesec: 17591","Opis: Poljoprivrednici - ukupno<br />count: 0.019201<br />mjesec: 17622","Opis: Poljoprivrednici - ukupno<br />count: 0.019225<br />mjesec: 17652","Opis: Poljoprivrednici - ukupno<br />count: 0.019203<br />mjesec: 17683","Opis: Poljoprivrednici - ukupno<br />count: 0.019158<br />mjesec: 17713","Opis: Poljoprivrednici - ukupno<br />count: 0.019174<br />mjesec: 17744","Opis: Poljoprivrednici - ukupno<br />count: 0.019157<br />mjesec: 17775","Opis: Poljoprivrednici - ukupno<br />count: 0.019108<br />mjesec: 17805","Opis: Poljoprivrednici - ukupno<br />count: 0.019093<br />mjesec: 17836","Opis: Poljoprivrednici - ukupno<br />count: 0.019097<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(0,192,148,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Poljoprivrednici - ukupno","legendgroup":"Poljoprivrednici - ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[1.194459,1.194444,1.196929,1.210398,1.222709,1.238858,1.242051,1.237932,1.231704,1.220204,1.214056,1.203269,1.197008,1.198742,1.207616,1.225636,1.241953,1.256982,1.261202,1.257974,1.252709,1.241013,1.233849,1.223853,1.221981,1.226943,1.235858,1.254401,1.27264,1.285567,1.286895,1.286399,1.284118,1.272559,1.266212,1.251526,1.248203,1.252296,1.264791,1.28191,1.301097,1.314062,1.316894,1.311901,1.310724,1.303238,1.29622,1.287379,1.284325,1.289426,1.301674,1.320063,1.336523,1.343321,1.348136,1.34511,1.342533,1.335094,1.331622,1.318661],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[0.104628,0.104633,0.106452,0.112024,0.117728,0.126375,0.131028,0.129437,0.118406,0.110445,0.107781,0.105114,0.102101,0.102315,0.104376,0.109522,0.116525,0.124858,0.129215,0.127446,0.117286,0.109073,0.106644,0.104756,0.102748,0.103389,0.105736,0.11076,0.118046,0.125692,0.129484,0.12775,0.118212,0.110286,0.108133,0.106345,0.103255,0.103493,0.105179,0.110631,0.117674,0.124854,0.128268,0.126624,0.11761,0.109874,0.107267,0.105347,0.102394,0.102873,0.105062,0.110244,0.117557,0.123815,0.127202,0.125568,0.116844,0.108827,0.106317,0.104195],"text":["Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.104628<br />mjesec: 16071","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.104633<br />mjesec: 16102","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.106452<br />mjesec: 16130","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.112024<br />mjesec: 16161","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.117728<br />mjesec: 16191","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.126375<br />mjesec: 16222","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.131028<br />mjesec: 16252","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.129437<br />mjesec: 16283","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.118406<br />mjesec: 16314","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.110445<br />mjesec: 16344","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.107781<br />mjesec: 16375","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.105114<br />mjesec: 16405","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.102101<br />mjesec: 16436","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.102315<br />mjesec: 16467","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.104376<br />mjesec: 16495","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.109522<br />mjesec: 16526","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.116525<br />mjesec: 16556","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.124858<br />mjesec: 16587","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.129215<br />mjesec: 16617","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.127446<br />mjesec: 16648","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.117286<br />mjesec: 16679","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.109073<br />mjesec: 16709","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.106644<br />mjesec: 16740","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.104756<br />mjesec: 16770","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.102748<br />mjesec: 16801","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.103389<br />mjesec: 16832","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.105736<br />mjesec: 16861","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.110760<br />mjesec: 16892","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.118046<br />mjesec: 16922","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.125692<br />mjesec: 16953","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.129484<br />mjesec: 16983","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.127750<br />mjesec: 17014","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.118212<br />mjesec: 17045","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.110286<br />mjesec: 17075","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.108133<br />mjesec: 17106","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.106345<br />mjesec: 17136","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.103255<br />mjesec: 17167","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.103493<br />mjesec: 17198","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.105179<br />mjesec: 17226","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.110631<br />mjesec: 17257","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.117674<br />mjesec: 17287","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.124854<br />mjesec: 17318","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.128268<br />mjesec: 17348","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.126624<br />mjesec: 17379","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.117610<br />mjesec: 17410","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.109874<br />mjesec: 17440","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.107267<br />mjesec: 17471","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.105347<br />mjesec: 17501","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.102394<br />mjesec: 17532","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.102873<br />mjesec: 17563","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.105062<br />mjesec: 17591","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.110244<br />mjesec: 17622","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.117557<br />mjesec: 17652","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.123815<br />mjesec: 17683","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.127202<br />mjesec: 17713","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.125568<br />mjesec: 17744","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.116844<br />mjesec: 17775","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.108827<br />mjesec: 17805","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.106317<br />mjesec: 17836","Opis: Radnici kod fizičkih osoba - ukupno<br />count: 0.104195<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(0,182,235,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Radnici kod fizičkih osoba - ukupno","legendgroup":"Radnici kod fizičkih osoba - ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[0.02255,0.022395,0.022475,0.022474,0.022439,0.022152,0.021648,0.021168,0.021282,0.021236,0.021256,0.02096,0.020946,0.021035,0.021139,0.021253,0.021376,0.021031,0.020851,0.020709,0.020927,0.021064,0.021218,0.020884,0.021001,0.021018,0.021213,0.02129,0.021185,0.021027,0.020663,0.020495,0.020628,0.020758,0.020688,0.020383,0.020437,0.02034,0.020523,0.020653,0.020717,0.020447,0.020115,0.020025,0.020146,0.020103,0.02027,0.019959,0.019924,0.019977,0.020128,0.020226,0.020155,0.02001,0.019607,0.019542,0.019682,0.019647,0.019715,0.019223],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[1.171909,1.172049,1.174454,1.187924,1.20027,1.216706,1.220403,1.216764,1.210422,1.198968,1.1928,1.182309,1.176062,1.177707,1.186477,1.204383,1.220577,1.235951,1.240351,1.237265,1.231782,1.219949,1.212631,1.202969,1.20098,1.205925,1.214645,1.233111,1.251455,1.26454,1.266232,1.265904,1.26349,1.251801,1.245524,1.231143,1.227766,1.231956,1.244268,1.261257,1.28038,1.293615,1.296779,1.291876,1.290578,1.283135,1.27595,1.26742,1.264401,1.269449,1.281546,1.299837,1.316368,1.323311,1.328529,1.325568,1.322851,1.315447,1.311907,1.299438],"text":["Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.171909<br />mjesec: 16071","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.172049<br />mjesec: 16102","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.174454<br />mjesec: 16130","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.187924<br />mjesec: 16161","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.200270<br />mjesec: 16191","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.216706<br />mjesec: 16222","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.220403<br />mjesec: 16252","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.216764<br />mjesec: 16283","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.210422<br />mjesec: 16314","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.198968<br />mjesec: 16344","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.192800<br />mjesec: 16375","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.182309<br />mjesec: 16405","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.176062<br />mjesec: 16436","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.177707<br />mjesec: 16467","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.186477<br />mjesec: 16495","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.204383<br />mjesec: 16526","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.220577<br />mjesec: 16556","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.235951<br />mjesec: 16587","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.240351<br />mjesec: 16617","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.237265<br />mjesec: 16648","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.231782<br />mjesec: 16679","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.219949<br />mjesec: 16709","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.212631<br />mjesec: 16740","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.202969<br />mjesec: 16770","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.200980<br />mjesec: 16801","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.205925<br />mjesec: 16832","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.214645<br />mjesec: 16861","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.233111<br />mjesec: 16892","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.251455<br />mjesec: 16922","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.264540<br />mjesec: 16953","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.266232<br />mjesec: 16983","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.265904<br />mjesec: 17014","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.263490<br />mjesec: 17045","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.251801<br />mjesec: 17075","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.245524<br />mjesec: 17106","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.231143<br />mjesec: 17136","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.227766<br />mjesec: 17167","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.231956<br />mjesec: 17198","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.244268<br />mjesec: 17226","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.261257<br />mjesec: 17257","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.280380<br />mjesec: 17287","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.293615<br />mjesec: 17318","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.296779<br />mjesec: 17348","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.291876<br />mjesec: 17379","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.290578<br />mjesec: 17410","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.283135<br />mjesec: 17440","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.275950<br />mjesec: 17471","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.267420<br />mjesec: 17501","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.264401<br />mjesec: 17532","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.269449<br />mjesec: 17563","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.281546<br />mjesec: 17591","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.299837<br />mjesec: 17622","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.316368<br />mjesec: 17652","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.323311<br />mjesec: 17683","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.328529<br />mjesec: 17713","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.325568<br />mjesec: 17744","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.322851<br />mjesec: 17775","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.315447<br />mjesec: 17805","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.311907<br />mjesec: 17836","Opis: Radnici kod pravnih osoba - ukupno<br />count: 1.299438<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(165,138,255,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Radnici kod pravnih osoba - ukupno","legendgroup":"Radnici kod pravnih osoba - ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.2000000000007,25.1999999999989,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971,25.1999999999971],"base":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"x":[16071,16102,16130,16161,16191,16222,16252,16283,16314,16344,16375,16405,16436,16467,16495,16526,16556,16587,16617,16648,16679,16709,16740,16770,16801,16832,16861,16892,16922,16953,16983,17014,17045,17075,17106,17136,17167,17198,17226,17257,17287,17318,17348,17379,17410,17440,17471,17501,17532,17563,17591,17622,17652,17683,17713,17744,17775,17805,17836,17866],"y":[0.02255,0.022395,0.022475,0.022474,0.022439,0.022152,0.021648,0.021168,0.021282,0.021236,0.021256,0.02096,0.020946,0.021035,0.021139,0.021253,0.021376,0.021031,0.020851,0.020709,0.020927,0.021064,0.021218,0.020884,0.021001,0.021018,0.021213,0.02129,0.021185,0.021027,0.020663,0.020495,0.020628,0.020758,0.020688,0.020383,0.020437,0.02034,0.020523,0.020653,0.020717,0.020447,0.020115,0.020025,0.020146,0.020103,0.02027,0.019959,0.019924,0.019977,0.020128,0.020226,0.020155,0.02001,0.019607,0.019542,0.019682,0.019647,0.019715,0.019223],"text":["Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.022550<br />mjesec: 16071","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.022395<br />mjesec: 16102","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.022475<br />mjesec: 16130","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.022474<br />mjesec: 16161","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.022439<br />mjesec: 16191","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.022152<br />mjesec: 16222","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021648<br />mjesec: 16252","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021168<br />mjesec: 16283","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021282<br />mjesec: 16314","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021236<br />mjesec: 16344","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021256<br />mjesec: 16375","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020960<br />mjesec: 16405","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020946<br />mjesec: 16436","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021035<br />mjesec: 16467","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021139<br />mjesec: 16495","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021253<br />mjesec: 16526","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021376<br />mjesec: 16556","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021031<br />mjesec: 16587","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020851<br />mjesec: 16617","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020709<br />mjesec: 16648","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020927<br />mjesec: 16679","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021064<br />mjesec: 16709","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021218<br />mjesec: 16740","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020884<br />mjesec: 16770","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021001<br />mjesec: 16801","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021018<br />mjesec: 16832","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021213<br />mjesec: 16861","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021290<br />mjesec: 16892","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021185<br />mjesec: 16922","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.021027<br />mjesec: 16953","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020663<br />mjesec: 16983","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020495<br />mjesec: 17014","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020628<br />mjesec: 17045","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020758<br />mjesec: 17075","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020688<br />mjesec: 17106","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020383<br />mjesec: 17136","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020437<br />mjesec: 17167","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020340<br />mjesec: 17198","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020523<br />mjesec: 17226","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020653<br />mjesec: 17257","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020717<br />mjesec: 17287","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020447<br />mjesec: 17318","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020115<br />mjesec: 17348","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020025<br />mjesec: 17379","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020146<br />mjesec: 17410","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020103<br />mjesec: 17440","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020270<br />mjesec: 17471","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019959<br />mjesec: 17501","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019924<br />mjesec: 17532","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019977<br />mjesec: 17563","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020128<br />mjesec: 17591","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020226<br />mjesec: 17622","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020155<br />mjesec: 17652","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.020010<br />mjesec: 17683","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019607<br />mjesec: 17713","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019542<br />mjesec: 17744","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019682<br />mjesec: 17775","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019647<br />mjesec: 17805","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019715<br />mjesec: 17836","Opis: Samostalne profesionalne djelatnosti- ukupno<br />count: 0.019223<br />mjesec: 17866"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(251,97,215,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"Samostalne profesionalne djelatnosti- ukupno","legendgroup":"Samostalne profesionalne djelatnosti- ukupno","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":43.7625570776256,"r":7.30593607305936,"b":25.5707762557078,"l":28.4931506849315},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"title":{"text":"Struktura zaposlenih prema tipu osiguranja","font":{"color":"rgba(0,0,0,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[15967.39,17969.61],"tickmode":"array","ticktext":["2014","2016","2018"],"tickvals":[16071,16801,17532],"categoryorder":"array","categoryarray":["2014","2016","2018"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.078178,1.641738],"tickmode":"array","ticktext":["0.0","0.5","1.0","1.5"],"tickvals":[0,0.5,1,1.5],"categoryorder":"array","categoryarray":["0.0","0.5","1.0","1.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"y":0.96751968503937},"annotations":[{"text":"Opis","x":1.02,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"left","yanchor":"bottom","legendTitle":true}],"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"23d85d7325e0":{"weight":{},"fill":{},"x":{},"type":"bar"}},"cur_data":"23d85d7325e0","visdat":{"23d85d7325e0":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-5">Table 2: </span>Stope rasta zaposlenosti
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Opis
+</th>
+<th style="text-align:right;">
+01
+</th>
+<th style="text-align:right;">
+02
+</th>
+<th style="text-align:right;">
+03
+</th>
+<th style="text-align:right;">
+04
+</th>
+<th style="text-align:right;">
+05
+</th>
+<th style="text-align:right;">
+06
+</th>
+<th style="text-align:right;">
+07
+</th>
+<th style="text-align:right;">
+08
+</th>
+<th style="text-align:right;">
+09
+</th>
+<th style="text-align:right;">
+10
+</th>
+<th style="text-align:right;">
+11
+</th>
+<th style="text-align:right;">
+12
+</th>
+<th style="text-align:right;">
+Prosjek
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Obrtnici - ukupno
+</td>
+<td style="text-align:right;">
+1.58
+</td>
+<td style="text-align:right;">
+1.65
+</td>
+<td style="text-align:right;">
+2.06
+</td>
+<td style="text-align:right;">
+2.49
+</td>
+<td style="text-align:right;">
+2.76
+</td>
+<td style="text-align:right;">
+2.76
+</td>
+<td style="text-align:right;">
+3.13
+</td>
+<td style="text-align:right;">
+3.39
+</td>
+<td style="text-align:right;">
+3.43
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+4.13
+</td>
+<td style="text-align:right;">
+4.25
+</td>
+<td style="text-align:right;">
+2.97
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Osig. zaposleni kod međunarodnih organizacija i u inozemstvu - ukupno
+</td>
+<td style="text-align:right;">
+-40.70
+</td>
+<td style="text-align:right;">
+-37.50
+</td>
+<td style="text-align:right;">
+-31.94
+</td>
+<td style="text-align:right;">
+-23.02
+</td>
+<td style="text-align:right;">
+-26.61
+</td>
+<td style="text-align:right;">
+-26.50
+</td>
+<td style="text-align:right;">
+-21.62
+</td>
+<td style="text-align:right;">
+-21.82
+</td>
+<td style="text-align:right;">
+-23.42
+</td>
+<td style="text-align:right;">
+-20.95
+</td>
+<td style="text-align:right;">
+-20.75
+</td>
+<td style="text-align:right;">
+-19.63
+</td>
+<td style="text-align:right;">
+-26.21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Osiguranici produženo osiguranje - ukupno
+</td>
+<td style="text-align:right;">
+-9.20
+</td>
+<td style="text-align:right;">
+-9.35
+</td>
+<td style="text-align:right;">
+-9.99
+</td>
+<td style="text-align:right;">
+-9.37
+</td>
+<td style="text-align:right;">
+-8.68
+</td>
+<td style="text-align:right;">
+-7.86
+</td>
+<td style="text-align:right;">
+-7.66
+</td>
+<td style="text-align:right;">
+-7.66
+</td>
+<td style="text-align:right;">
+-7.32
+</td>
+<td style="text-align:right;">
+-7.54
+</td>
+<td style="text-align:right;">
+-8.54
+</td>
+<td style="text-align:right;">
+-10.24
+</td>
+<td style="text-align:right;">
+-8.62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Poljoprivrednici - ukupno
+</td>
+<td style="text-align:right;">
+-1.40
+</td>
+<td style="text-align:right;">
+-1.38
+</td>
+<td style="text-align:right;">
+-1.14
+</td>
+<td style="text-align:right;">
+-1.19
+</td>
+<td style="text-align:right;">
+-0.97
+</td>
+<td style="text-align:right;">
+-0.49
+</td>
+<td style="text-align:right;">
+-0.65
+</td>
+<td style="text-align:right;">
+-0.59
+</td>
+<td style="text-align:right;">
+-0.62
+</td>
+<td style="text-align:right;">
+-0.80
+</td>
+<td style="text-align:right;">
+-0.70
+</td>
+<td style="text-align:right;">
+-0.57
+</td>
+<td style="text-align:right;">
+-0.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Radnici kod fizičkih osoba - ukupno
+</td>
+<td style="text-align:right;">
+-0.83
+</td>
+<td style="text-align:right;">
+-0.60
+</td>
+<td style="text-align:right;">
+-0.11
+</td>
+<td style="text-align:right;">
+-0.35
+</td>
+<td style="text-align:right;">
+-0.10
+</td>
+<td style="text-align:right;">
+-0.83
+</td>
+<td style="text-align:right;">
+-0.83
+</td>
+<td style="text-align:right;">
+-0.83
+</td>
+<td style="text-align:right;">
+-0.65
+</td>
+<td style="text-align:right;">
+-0.95
+</td>
+<td style="text-align:right;">
+-0.89
+</td>
+<td style="text-align:right;">
+-1.09
+</td>
+<td style="text-align:right;">
+-0.67
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Radnici kod pravnih osoba - ukupno
+</td>
+<td style="text-align:right;">
+2.98
+</td>
+<td style="text-align:right;">
+3.04
+</td>
+<td style="text-align:right;">
+3.00
+</td>
+<td style="text-align:right;">
+3.06
+</td>
+<td style="text-align:right;">
+2.81
+</td>
+<td style="text-align:right;">
+2.30
+</td>
+<td style="text-align:right;">
+2.45
+</td>
+<td style="text-align:right;">
+2.61
+</td>
+<td style="text-align:right;">
+2.50
+</td>
+<td style="text-align:right;">
+2.52
+</td>
+<td style="text-align:right;">
+2.82
+</td>
+<td style="text-align:right;">
+2.53
+</td>
+<td style="text-align:right;">
+2.72
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Samostalne profesionalne djelatnosti- ukupno
+</td>
+<td style="text-align:right;">
+-2.51
+</td>
+<td style="text-align:right;">
+-1.78
+</td>
+<td style="text-align:right;">
+-1.92
+</td>
+<td style="text-align:right;">
+-2.07
+</td>
+<td style="text-align:right;">
+-2.71
+</td>
+<td style="text-align:right;">
+-2.14
+</td>
+<td style="text-align:right;">
+-2.53
+</td>
+<td style="text-align:right;">
+-2.41
+</td>
+<td style="text-align:right;">
+-2.30
+</td>
+<td style="text-align:right;">
+-2.27
+</td>
+<td style="text-align:right;">
+-2.74
+</td>
+<td style="text-align:right;">
+-3.69
+</td>
+<td style="text-align:right;">
+-2.42
+</td>
+</tr>
+</tbody>
+</table>
+<p>Za kraj ćemo promotriti stope rasta zaposlenosti po županijama, te pogledati koji gradovi su imali najveći rast/pad zaposlenosti u 2018. godini. U tablici 3 su prikazane stope rasta zaposlenosti po županijama. Čak 4 županije su ostvarile stopu rasta zaposlenosti iznad 4%. Zanimljivo je da su dvije županije, koje se smatraju vodećim po pitanju razvoja u RH (Grad Zagreb i Varaždinska županija), među posljednjima po stopi rasta zaposlenih. Zanimljivo je također da nijedna županija nije ostvarila negativan rast zaposlenih, pa se može zaključiti da je rast zaposlenih u 2018 bio relativno uravnotežen. Za kraj prikazujemo 5 gradova s najmanjim i najvećim rastom u 2018. Popis je dan u tablici 4. Među gradovima postoji mnogo veća razlika nego među županijama. Razlika između najvećeg i najmanjeg grada iznosi 18 postotnih bodova.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-6">Table 3: </span>Stope rasta zaposlenosti po županijama
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+naziv_zup
+</th>
+<th style="text-align:right;">
+01
+</th>
+<th style="text-align:right;">
+02
+</th>
+<th style="text-align:right;">
+03
+</th>
+<th style="text-align:right;">
+04
+</th>
+<th style="text-align:right;">
+05
+</th>
+<th style="text-align:right;">
+06
+</th>
+<th style="text-align:right;">
+07
+</th>
+<th style="text-align:right;">
+08
+</th>
+<th style="text-align:right;">
+09
+</th>
+<th style="text-align:right;">
+10
+</th>
+<th style="text-align:right;">
+11
+</th>
+<th style="text-align:right;">
+12
+</th>
+<th style="text-align:right;">
+Prosjek
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ZAGREBAČKA
+</td>
+<td style="text-align:right;">
+5.05
+</td>
+<td style="text-align:right;">
+5.15
+</td>
+<td style="text-align:right;">
+4.73
+</td>
+<td style="text-align:right;">
+4.72
+</td>
+<td style="text-align:right;">
+4.56
+</td>
+<td style="text-align:right;">
+4.73
+</td>
+<td style="text-align:right;">
+4.64
+</td>
+<td style="text-align:right;">
+4.76
+</td>
+<td style="text-align:right;">
+4.62
+</td>
+<td style="text-align:right;">
+4.47
+</td>
+<td style="text-align:right;">
+4.24
+</td>
+<td style="text-align:right;">
+4.01
+</td>
+<td style="text-align:right;">
+4.64
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LIČKO-SENJSKA
+</td>
+<td style="text-align:right;">
+5.21
+</td>
+<td style="text-align:right;">
+4.92
+</td>
+<td style="text-align:right;">
+4.55
+</td>
+<td style="text-align:right;">
+5.29
+</td>
+<td style="text-align:right;">
+5.80
+</td>
+<td style="text-align:right;">
+3.22
+</td>
+<td style="text-align:right;">
+3.62
+</td>
+<td style="text-align:right;">
+4.20
+</td>
+<td style="text-align:right;">
+4.13
+</td>
+<td style="text-align:right;">
+4.24
+</td>
+<td style="text-align:right;">
+5.02
+</td>
+<td style="text-align:right;">
+3.25
+</td>
+<td style="text-align:right;">
+4.45
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ZADARSKA
+</td>
+<td style="text-align:right;">
+4.71
+</td>
+<td style="text-align:right;">
+4.83
+</td>
+<td style="text-align:right;">
+5.41
+</td>
+<td style="text-align:right;">
+5.07
+</td>
+<td style="text-align:right;">
+4.90
+</td>
+<td style="text-align:right;">
+3.95
+</td>
+<td style="text-align:right;">
+3.93
+</td>
+<td style="text-align:right;">
+3.81
+</td>
+<td style="text-align:right;">
+3.93
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+3.71
+</td>
+<td style="text-align:right;">
+3.55
+</td>
+<td style="text-align:right;">
+4.32
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DUBROVAČKO-NERETVANSKA
+</td>
+<td style="text-align:right;">
+4.72
+</td>
+<td style="text-align:right;">
+4.69
+</td>
+<td style="text-align:right;">
+6.11
+</td>
+<td style="text-align:right;">
+4.95
+</td>
+<td style="text-align:right;">
+4.62
+</td>
+<td style="text-align:right;">
+3.26
+</td>
+<td style="text-align:right;">
+3.44
+</td>
+<td style="text-align:right;">
+3.74
+</td>
+<td style="text-align:right;">
+3.47
+</td>
+<td style="text-align:right;">
+3.66
+</td>
+<td style="text-align:right;">
+4.32
+</td>
+<td style="text-align:right;">
+2.09
+</td>
+<td style="text-align:right;">
+4.09
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ŠIBENSKO-KNINSKA
+</td>
+<td style="text-align:right;">
+5.86
+</td>
+<td style="text-align:right;">
+5.88
+</td>
+<td style="text-align:right;">
+5.99
+</td>
+<td style="text-align:right;">
+5.33
+</td>
+<td style="text-align:right;">
+4.71
+</td>
+<td style="text-align:right;">
+1.91
+</td>
+<td style="text-align:right;">
+2.51
+</td>
+<td style="text-align:right;">
+2.78
+</td>
+<td style="text-align:right;">
+2.50
+</td>
+<td style="text-align:right;">
+2.78
+</td>
+<td style="text-align:right;">
+2.76
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+<td style="text-align:right;">
+3.69
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SISAČKO-MOSLAVAČKA
+</td>
+<td style="text-align:right;">
+3.47
+</td>
+<td style="text-align:right;">
+3.37
+</td>
+<td style="text-align:right;">
+3.25
+</td>
+<td style="text-align:right;">
+4.18
+</td>
+<td style="text-align:right;">
+3.97
+</td>
+<td style="text-align:right;">
+3.29
+</td>
+<td style="text-align:right;">
+3.54
+</td>
+<td style="text-align:right;">
+3.36
+</td>
+<td style="text-align:right;">
+3.40
+</td>
+<td style="text-align:right;">
+3.84
+</td>
+<td style="text-align:right;">
+4.38
+</td>
+<td style="text-align:right;">
+3.94
+</td>
+<td style="text-align:right;">
+3.67
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VUKOVARSKO-SRIJEMSKA
+</td>
+<td style="text-align:right;">
+1.68
+</td>
+<td style="text-align:right;">
+2.84
+</td>
+<td style="text-align:right;">
+3.17
+</td>
+<td style="text-align:right;">
+3.40
+</td>
+<td style="text-align:right;">
+3.46
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+<td style="text-align:right;">
+3.15
+</td>
+<td style="text-align:right;">
+3.33
+</td>
+<td style="text-align:right;">
+3.53
+</td>
+<td style="text-align:right;">
+4.21
+</td>
+<td style="text-align:right;">
+4.86
+</td>
+<td style="text-align:right;">
+5.16
+</td>
+<td style="text-align:right;">
+3.41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRODSKO-POSAVSKA
+</td>
+<td style="text-align:right;">
+3.46
+</td>
+<td style="text-align:right;">
+3.83
+</td>
+<td style="text-align:right;">
+3.48
+</td>
+<td style="text-align:right;">
+4.12
+</td>
+<td style="text-align:right;">
+3.20
+</td>
+<td style="text-align:right;">
+2.61
+</td>
+<td style="text-align:right;">
+2.34
+</td>
+<td style="text-align:right;">
+2.75
+</td>
+<td style="text-align:right;">
+2.51
+</td>
+<td style="text-align:right;">
+3.20
+</td>
+<td style="text-align:right;">
+4.58
+</td>
+<td style="text-align:right;">
+4.75
+</td>
+<td style="text-align:right;">
+3.40
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VIROVITIČKO-PODRAVSKA
+</td>
+<td style="text-align:right;">
+4.61
+</td>
+<td style="text-align:right;">
+4.12
+</td>
+<td style="text-align:right;">
+4.38
+</td>
+<td style="text-align:right;">
+4.33
+</td>
+<td style="text-align:right;">
+2.44
+</td>
+<td style="text-align:right;">
+2.89
+</td>
+<td style="text-align:right;">
+2.16
+</td>
+<td style="text-align:right;">
+2.57
+</td>
+<td style="text-align:right;">
+2.04
+</td>
+<td style="text-align:right;">
+2.39
+</td>
+<td style="text-align:right;">
+3.71
+</td>
+<td style="text-align:right;">
+2.60
+</td>
+<td style="text-align:right;">
+3.19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ISTARSKA
+</td>
+<td style="text-align:right;">
+3.53
+</td>
+<td style="text-align:right;">
+3.68
+</td>
+<td style="text-align:right;">
+3.94
+</td>
+<td style="text-align:right;">
+3.21
+</td>
+<td style="text-align:right;">
+3.95
+</td>
+<td style="text-align:right;">
+3.27
+</td>
+<td style="text-align:right;">
+3.21
+</td>
+<td style="text-align:right;">
+3.21
+</td>
+<td style="text-align:right;">
+2.47
+</td>
+<td style="text-align:right;">
+2.32
+</td>
+<td style="text-align:right;">
+2.33
+</td>
+<td style="text-align:right;">
+1.91
+</td>
+<td style="text-align:right;">
+3.09
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BJELOVARSKO-BILOGORSKA
+</td>
+<td style="text-align:right;">
+3.26
+</td>
+<td style="text-align:right;">
+3.23
+</td>
+<td style="text-align:right;">
+2.31
+</td>
+<td style="text-align:right;">
+2.58
+</td>
+<td style="text-align:right;">
+1.67
+</td>
+<td style="text-align:right;">
+2.02
+</td>
+<td style="text-align:right;">
+2.73
+</td>
+<td style="text-align:right;">
+2.85
+</td>
+<td style="text-align:right;">
+2.64
+</td>
+<td style="text-align:right;">
+3.19
+</td>
+<td style="text-align:right;">
+3.43
+</td>
+<td style="text-align:right;">
+3.28
+</td>
+<td style="text-align:right;">
+2.77
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SPLITSKO-DALMATINSKA
+</td>
+<td style="text-align:right;">
+3.16
+</td>
+<td style="text-align:right;">
+3.24
+</td>
+<td style="text-align:right;">
+3.26
+</td>
+<td style="text-align:right;">
+3.37
+</td>
+<td style="text-align:right;">
+3.39
+</td>
+<td style="text-align:right;">
+2.10
+</td>
+<td style="text-align:right;">
+2.27
+</td>
+<td style="text-align:right;">
+2.39
+</td>
+<td style="text-align:right;">
+2.74
+</td>
+<td style="text-align:right;">
+2.72
+</td>
+<td style="text-align:right;">
+2.68
+</td>
+<td style="text-align:right;">
+1.44
+</td>
+<td style="text-align:right;">
+2.73
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OSIJEČKO-BARANJSKA
+</td>
+<td style="text-align:right;">
+1.50
+</td>
+<td style="text-align:right;">
+1.61
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+2.11
+</td>
+<td style="text-align:right;">
+0.82
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+1.15
+</td>
+<td style="text-align:right;">
+2.32
+</td>
+<td style="text-align:right;">
+2.99
+</td>
+<td style="text-align:right;">
+3.07
+</td>
+<td style="text-align:right;">
+3.41
+</td>
+<td style="text-align:right;">
+3.51
+</td>
+<td style="text-align:right;">
+2.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MEĐIMURSKA
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+<td style="text-align:right;">
+2.15
+</td>
+<td style="text-align:right;">
+2.05
+</td>
+<td style="text-align:right;">
+2.51
+</td>
+<td style="text-align:right;">
+1.92
+</td>
+<td style="text-align:right;">
+2.07
+</td>
+<td style="text-align:right;">
+1.87
+</td>
+<td style="text-align:right;">
+1.87
+</td>
+<td style="text-align:right;">
+1.51
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.22
+</td>
+<td style="text-align:right;">
+0.79
+</td>
+<td style="text-align:right;">
+1.77
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+POŽEŠKO-SLAVONSKA
+</td>
+<td style="text-align:right;">
+1.12
+</td>
+<td style="text-align:right;">
+1.50
+</td>
+<td style="text-align:right;">
+0.96
+</td>
+<td style="text-align:right;">
+1.96
+</td>
+<td style="text-align:right;">
+1.40
+</td>
+<td style="text-align:right;">
+1.64
+</td>
+<td style="text-align:right;">
+1.21
+</td>
+<td style="text-align:right;">
+1.64
+</td>
+<td style="text-align:right;">
+1.36
+</td>
+<td style="text-align:right;">
+1.75
+</td>
+<td style="text-align:right;">
+2.70
+</td>
+<td style="text-align:right;">
+3.16
+</td>
+<td style="text-align:right;">
+1.70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KRAPINSKO-ZAGORSKA
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+<td style="text-align:right;">
+2.34
+</td>
+<td style="text-align:right;">
+1.87
+</td>
+<td style="text-align:right;">
+1.84
+</td>
+<td style="text-align:right;">
+2.08
+</td>
+<td style="text-align:right;">
+1.66
+</td>
+<td style="text-align:right;">
+1.27
+</td>
+<td style="text-align:right;">
+1.44
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.24
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+<td style="text-align:right;">
+1.62
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KARLOVAČKA
+</td>
+<td style="text-align:right;">
+2.67
+</td>
+<td style="text-align:right;">
+2.39
+</td>
+<td style="text-align:right;">
+2.09
+</td>
+<td style="text-align:right;">
+1.55
+</td>
+<td style="text-align:right;">
+1.27
+</td>
+<td style="text-align:right;">
+0.57
+</td>
+<td style="text-align:right;">
+0.76
+</td>
+<td style="text-align:right;">
+1.15
+</td>
+<td style="text-align:right;">
+1.15
+</td>
+<td style="text-align:right;">
+1.45
+</td>
+<td style="text-align:right;">
+1.98
+</td>
+<td style="text-align:right;">
+1.52
+</td>
+<td style="text-align:right;">
+1.55
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PRIMORSKO-GORANSKA
+</td>
+<td style="text-align:right;">
+1.51
+</td>
+<td style="text-align:right;">
+1.48
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+1.70
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+1.14
+</td>
+<td style="text-align:right;">
+1.44
+</td>
+<td style="text-align:right;">
+1.50
+</td>
+<td style="text-align:right;">
+1.34
+</td>
+<td style="text-align:right;">
+1.36
+</td>
+<td style="text-align:right;">
+1.72
+</td>
+<td style="text-align:right;">
+1.16
+</td>
+<td style="text-align:right;">
+1.48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GRAD ZAGREB
+</td>
+<td style="text-align:right;">
+1.28
+</td>
+<td style="text-align:right;">
+1.36
+</td>
+<td style="text-align:right;">
+1.29
+</td>
+<td style="text-align:right;">
+1.41
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+<td style="text-align:right;">
+1.35
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+<td style="text-align:right;">
+1.35
+</td>
+<td style="text-align:right;">
+1.25
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.41
+</td>
+<td style="text-align:right;">
+1.66
+</td>
+<td style="text-align:right;">
+1.34
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VARAŽDINSKA
+</td>
+<td style="text-align:right;">
+1.78
+</td>
+<td style="text-align:right;">
+1.61
+</td>
+<td style="text-align:right;">
+1.54
+</td>
+<td style="text-align:right;">
+1.57
+</td>
+<td style="text-align:right;">
+1.21
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.11
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.25
+</td>
+<td style="text-align:right;">
+1.16
+</td>
+<td style="text-align:right;">
+1.20
+</td>
+<td style="text-align:right;">
+0.92
+</td>
+<td style="text-align:right;">
+1.28
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KOPRIVNIČKO-KRIŽEVAČKA
+</td>
+<td style="text-align:right;">
+1.31
+</td>
+<td style="text-align:right;">
+1.56
+</td>
+<td style="text-align:right;">
+1.37
+</td>
+<td style="text-align:right;">
+1.24
+</td>
+<td style="text-align:right;">
+0.81
+</td>
+<td style="text-align:right;">
+0.39
+</td>
+<td style="text-align:right;">
+0.65
+</td>
+<td style="text-align:right;">
+0.58
+</td>
+<td style="text-align:right;">
+0.83
+</td>
+<td style="text-align:right;">
+0.93
+</td>
+<td style="text-align:right;">
+1.46
+</td>
+<td style="text-align:right;">
+1.67
+</td>
+<td style="text-align:right;">
+1.07
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-7">Table 4: </span>Stope rasta zaposlenosti po gradovima
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+naziv_opc
+</th>
+<th style="text-align:right;">
+01
+</th>
+<th style="text-align:right;">
+02
+</th>
+<th style="text-align:right;">
+03
+</th>
+<th style="text-align:right;">
+04
+</th>
+<th style="text-align:right;">
+05
+</th>
+<th style="text-align:right;">
+06
+</th>
+<th style="text-align:right;">
+07
+</th>
+<th style="text-align:right;">
+08
+</th>
+<th style="text-align:right;">
+09
+</th>
+<th style="text-align:right;">
+10
+</th>
+<th style="text-align:right;">
+11
+</th>
+<th style="text-align:right;">
+12
+</th>
+<th style="text-align:right;">
+Prosjek
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+VODNJAN
+</td>
+<td style="text-align:right;">
+19.85
+</td>
+<td style="text-align:right;">
+21.18
+</td>
+<td style="text-align:right;">
+20.80
+</td>
+<td style="text-align:right;">
+20.26
+</td>
+<td style="text-align:right;">
+21.91
+</td>
+<td style="text-align:right;">
+21.74
+</td>
+<td style="text-align:right;">
+17.60
+</td>
+<td style="text-align:right;">
+17.84
+</td>
+<td style="text-align:right;">
+13.54
+</td>
+<td style="text-align:right;">
+8.37
+</td>
+<td style="text-align:right;">
+7.31
+</td>
+<td style="text-align:right;">
+6.82
+</td>
+<td style="text-align:right;">
+16.43
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HRVATSKA KOSTAJNICA
+</td>
+<td style="text-align:right;">
+15.69
+</td>
+<td style="text-align:right;">
+14.85
+</td>
+<td style="text-align:right;">
+16.87
+</td>
+<td style="text-align:right;">
+18.93
+</td>
+<td style="text-align:right;">
+16.56
+</td>
+<td style="text-align:right;">
+11.85
+</td>
+<td style="text-align:right;">
+13.52
+</td>
+<td style="text-align:right;">
+14.71
+</td>
+<td style="text-align:right;">
+14.29
+</td>
+<td style="text-align:right;">
+15.66
+</td>
+<td style="text-align:right;">
+20.35
+</td>
+<td style="text-align:right;">
+10.75
+</td>
+<td style="text-align:right;">
+15.33
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PAKRAC
+</td>
+<td style="text-align:right;">
+14.66
+</td>
+<td style="text-align:right;">
+13.73
+</td>
+<td style="text-align:right;">
+15.92
+</td>
+<td style="text-align:right;">
+16.14
+</td>
+<td style="text-align:right;">
+15.15
+</td>
+<td style="text-align:right;">
+14.02
+</td>
+<td style="text-align:right;">
+12.72
+</td>
+<td style="text-align:right;">
+14.36
+</td>
+<td style="text-align:right;">
+12.76
+</td>
+<td style="text-align:right;">
+13.97
+</td>
+<td style="text-align:right;">
+14.78
+</td>
+<td style="text-align:right;">
+13.99
+</td>
+<td style="text-align:right;">
+14.35
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NIN
+</td>
+<td style="text-align:right;">
+16.42
+</td>
+<td style="text-align:right;">
+14.39
+</td>
+<td style="text-align:right;">
+25.51
+</td>
+<td style="text-align:right;">
+19.13
+</td>
+<td style="text-align:right;">
+13.42
+</td>
+<td style="text-align:right;">
+7.35
+</td>
+<td style="text-align:right;">
+6.42
+</td>
+<td style="text-align:right;">
+4.94
+</td>
+<td style="text-align:right;">
+5.88
+</td>
+<td style="text-align:right;">
+9.72
+</td>
+<td style="text-align:right;">
+6.92
+</td>
+<td style="text-align:right;">
+8.64
+</td>
+<td style="text-align:right;">
+11.56
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SKRADIN
+</td>
+<td style="text-align:right;">
+19.75
+</td>
+<td style="text-align:right;">
+22.88
+</td>
+<td style="text-align:right;">
+22.80
+</td>
+<td style="text-align:right;">
+12.14
+</td>
+<td style="text-align:right;">
+4.97
+</td>
+<td style="text-align:right;">
+2.24
+</td>
+<td style="text-align:right;">
+6.70
+</td>
+<td style="text-align:right;">
+4.93
+</td>
+<td style="text-align:right;">
+6.19
+</td>
+<td style="text-align:right;">
+12.79
+</td>
+<td style="text-align:right;">
+16.28
+</td>
+<td style="text-align:right;">
+-0.26
+</td>
+<td style="text-align:right;">
+10.95
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DONJI MIHOLJAC
+</td>
+<td style="text-align:right;">
+-1.50
+</td>
+<td style="text-align:right;">
+-0.93
+</td>
+<td style="text-align:right;">
+-1.34
+</td>
+<td style="text-align:right;">
+-2.17
+</td>
+<td style="text-align:right;">
+-1.40
+</td>
+<td style="text-align:right;">
+-2.02
+</td>
+<td style="text-align:right;">
+-1.82
+</td>
+<td style="text-align:right;">
+-1.76
+</td>
+<td style="text-align:right;">
+0.35
+</td>
+<td style="text-align:right;">
+1.17
+</td>
+<td style="text-align:right;">
+1.70
+</td>
+<td style="text-align:right;">
+2.55
+</td>
+<td style="text-align:right;">
+-0.60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ČABAR
+</td>
+<td style="text-align:right;">
+-2.36
+</td>
+<td style="text-align:right;">
+-2.88
+</td>
+<td style="text-align:right;">
+-3.09
+</td>
+<td style="text-align:right;">
+-0.75
+</td>
+<td style="text-align:right;">
+-1.28
+</td>
+<td style="text-align:right;">
+-1.38
+</td>
+<td style="text-align:right;">
+-0.43
+</td>
+<td style="text-align:right;">
+1.51
+</td>
+<td style="text-align:right;">
+-0.11
+</td>
+<td style="text-align:right;">
+-1.39
+</td>
+<td style="text-align:right;">
+0.87
+</td>
+<td style="text-align:right;">
+3.10
+</td>
+<td style="text-align:right;">
+-0.68
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KRAPINA
+</td>
+<td style="text-align:right;">
+-1.14
+</td>
+<td style="text-align:right;">
+-0.56
+</td>
+<td style="text-align:right;">
+-1.44
+</td>
+<td style="text-align:right;">
+-1.16
+</td>
+<td style="text-align:right;">
+-0.71
+</td>
+<td style="text-align:right;">
+-1.23
+</td>
+<td style="text-align:right;">
+-1.49
+</td>
+<td style="text-align:right;">
+-0.66
+</td>
+<td style="text-align:right;">
+-0.69
+</td>
+<td style="text-align:right;">
+-0.10
+</td>
+<td style="text-align:right;">
+-0.02
+</td>
+<td style="text-align:right;">
+-0.45
+</td>
+<td style="text-align:right;">
+-0.80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+POŽEGA
+</td>
+<td style="text-align:right;">
+-1.54
+</td>
+<td style="text-align:right;">
+-0.90
+</td>
+<td style="text-align:right;">
+-1.85
+</td>
+<td style="text-align:right;">
+-0.82
+</td>
+<td style="text-align:right;">
+-1.46
+</td>
+<td style="text-align:right;">
+-1.42
+</td>
+<td style="text-align:right;">
+-1.72
+</td>
+<td style="text-align:right;">
+-1.62
+</td>
+<td style="text-align:right;">
+-1.79
+</td>
+<td style="text-align:right;">
+-1.54
+</td>
+<td style="text-align:right;">
+-0.31
+</td>
+<td style="text-align:right;">
+0.21
+</td>
+<td style="text-align:right;">
+-1.23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ŽUPANJA
+</td>
+<td style="text-align:right;">
+-1.16
+</td>
+<td style="text-align:right;">
+-1.07
+</td>
+<td style="text-align:right;">
+-0.82
+</td>
+<td style="text-align:right;">
+-1.31
+</td>
+<td style="text-align:right;">
+-0.16
+</td>
+<td style="text-align:right;">
+-1.84
+</td>
+<td style="text-align:right;">
+-2.98
+</td>
+<td style="text-align:right;">
+-2.45
+</td>
+<td style="text-align:right;">
+-0.68
+</td>
+<td style="text-align:right;">
+-0.33
+</td>
+<td style="text-align:right;">
+-0.18
+</td>
+<td style="text-align:right;">
+-2.70
+</td>
+<td style="text-align:right;">
+-1.31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DUGO SELO
+</td>
+<td style="text-align:right;">
+-0.40
+</td>
+<td style="text-align:right;">
+-0.58
+</td>
+<td style="text-align:right;">
+-1.09
+</td>
+<td style="text-align:right;">
+-0.84
+</td>
+<td style="text-align:right;">
+-1.21
+</td>
+<td style="text-align:right;">
+-1.06
+</td>
+<td style="text-align:right;">
+-2.37
+</td>
+<td style="text-align:right;">
+-2.28
+</td>
+<td style="text-align:right;">
+-2.08
+</td>
+<td style="text-align:right;">
+-1.90
+</td>
+<td style="text-align:right;">
+-1.77
+</td>
+<td style="text-align:right;">
+-1.80
+</td>
+<td style="text-align:right;">
+-1.45
+</td>
+</tr>
+</tbody>
+</table>
+<p>Cilj ovog posta bio je upoznati čitatelja s izmjenama u aplikaciji i prikazati neke opće trendove u zaposlenosti. Pomoću aplikacije možete posebno analizirati strukturu po obliku osiguranja i spolu za svaku županiju/grad/općinu. Čitatelji slobodno mogu dati ideje za unapređenje apliakacije i dodavanja podataka.</p>

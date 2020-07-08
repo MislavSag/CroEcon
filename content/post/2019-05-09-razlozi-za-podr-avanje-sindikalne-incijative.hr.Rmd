@@ -1,0 +1,71 @@
+---
+title: Razlozi za podržavanje sindikalne incijative
+author: Mislav Šagovac
+date: '2019-05-09'
+slug: razlozi-za-podr-avanje-sindikalne-incijative
+categories:
+  - Ekonomika
+  - Tržište rada
+tags:
+  - mirovine
+type: ''
+subtitle: ''
+image: ''
+---
+
+Sindikalna inicijativa "67 je previše" počela je nedavno prikupljati potpise za raspisivanje referenduma o izmjenama Zakona o mirovinskom osiguranju. Inicijativa kao glavni cilj želi spriječiti dizanje dobne granice za odlazak u punu mirovinu na 67 godina. U referendumsku inicijativu su uključene tri sindikalne središnjice, a osim **smanjenja granice za odlazak u starosnu imovinu** se traži uvođenje mogućnosti **stjecanja prava na prijevremenu mirovinu** sa 60 godina i da se  **penalizacija zbog prijevremene mirovine smanji s 0,3 na 0,2 posto**. U javnosti postoji mnogo osvrta na referendumsku inicijativu no želim naglasiti da unutar njih postoji nekoliko aspekata koji nisu dovoljno dobro objašnjeni. U ovom postu ću dati nekoliko razloga za i protiv podizanja dobne granice, pri čemu su na kraju su ipak prevladali razlozi protiv podizanja dobne granice.
+
+### Prosječni životni vijek i dob za umirovljenje
+
+Ministar Pavić i zaposlenici njegovog ministarstva kao jedan od glavnih argumenata podizanja dobne granice navode povećanje prosječnog životnog vijeka hrvatskih građana. Međutim, ministar ne precizira o kojem se životnom vijeku radi. Je li riječ o životnom vijeku pri rođenju ili životnom vijeku nakon 65 godina. Ako visinu mirovina i dobne granice za odlazak u mirovinu vežete na indikator očekivanog životnog vijeka, nužno  je točno specificirati o kojem se indikatoru radi! Google tražilica „izbacuje“ sljedeće navode ministra Pavića:
+
+>O očekivanom životnom vijeku, rekao je da argumenti koji se koriste u referendumskoj inicijativi ne stoje, da je već sada prema statistici Svjetske zdravstvene organizacije, očekivani životni vijek hrvatskih građana 78 godina, a da je očekivani životni vijek 79,6 godina.
+…
+Naveo je i da rad od 67 godina neće biti od sutra već od 2033.g., dakle za 14 godina kada se očekuje da će se životni vijek dodatno produljiti, da taj trend produljenja dobi prisutan i u drugim zemljama, da pojedine europske države razmišljaju o daljnjem povećanju, primjerice Njemačka koja razmatra hoće li ići na 69 ili 70 godina.
+
+Ministar Pavić se poziva na statistiku WHO-a (Svjetske zdravstvene organizacije). Na sljedećoj [poveznici]( http://gamapserver.who.int/gho/interactive_charts/mbd/life_expectancy/atlas.html) možete pogledati očekivanu životnu dob za gotovo sve države svijeta, za 2016 godinu. Ministar Pavić točno navodi da je očekivana životna dob pri rođenju 78 godina (točnije 78.3 godine).  Prema [podacima Eurostata]( https://ec.europa.eu/eurostat/web/products-datasets/-/sdg_03_10) očekivana životna dob hrvatskih građana pri rođenju iznosi točno 78 godina. Isti podaci Eurostata pokazuju kako je očekivani životni vijek 2001. godine iznosio 74.6 godina. Dakle u 18 godina, očekivani životni vijek je povećan za cca 5 godina. Međutim, rast životnog vijeka je znatno usporen posljednjih 5 godina. U tom razdoblju je životni vijek povećan za 0.8 godina (indeks iznosi 77.2 u 2011.).
+
+Pri razmatranju ministrovih riječi želim ukazati drugi dio naziva indikatora koji on koristi. Riječ je o životnom vijeku **pri rođenju**. Ovaj pokazatelj odražava očekivani životni vijek od rođenja do smrti pa tako ne odražava „starenje stanovništva“. Primjerice, zamislite da u Hrvatskoj žive dvije osobe: jedna je živjela do 50 godine zbog tragične smrti, a druga do 80 godine. Prosječni životni vijek je 65 godina. Prva osoba nije dočekala mirovinu, dok je druga bila 15 godina u mirovini (pretpostavimo da se mirovina isplaćivala iz doprinosa obiju osoba). Zamislite sada drugi slučaj, u kojem su obje osobe živjele 65 godina. U tom slučaju niti jedna osoba neće primati mirovinu jer su umrle točno u godini umirovljenja. Dakle, iako je očekivani životni vijek isti, u prvom slučaju je trošak mirovina veći nego u drugom slučaju. Ovaj primjer pokazuje manjkavost mjere očekivane životne dobi **pri rođenju** za predviđanje budućih mirovina. Primjerice, ako smanjite tragične automobilske nesreće mladih ljudi, povećat će te životni vijek u zemlji. Međutim, to apriori ne podrazumijeva veći trošak mirovina. Dapače, zbog duljeg radnog vijeka, priljevi u proračun mogu biti veći zbog produljenja životnog vijeka mladih osoba. Rast životnog vijeka pri rođenju tako je više rezultat povećane sigurnosti i općenito manje smrtnosti među mladima nego stvarnog produljenja života svake osobe. 
+
+Umjesto očekivane životne dobi pri rođenju koju spominje ministar i ostali analitičari,  potencijalno bolja mjera procjene troška mirovina je očekivana životna dob **nakon navršenih 60 ili 65 godina**  života. Prema WHO-u (isti izvor kao i ranije), očekivana životna dob hrvatskih građana nakon navršenih 60 godina života, u 2016. godini iznosi 21.5 godina. Isti pokazatelj je 2000. godine imao vrijednost od 19.1. Dakle, prema WHO-a očekivani životni vijek nakon 60 godina je porastao za cca godinu i pol u 20 godina. To je znatno manje od 5 godina, koliko je porasla očekivana životna dob pri rođenju. Još bolja mjera troškamirovina su podatci Eurostata o očekivanoj životnoj dobi nakon navršenih 65 godina života , [dostupni] ( https://ec.europa.eu/eurostat/web/products-datasets/-/TEPSR_SP320) za razdoblje 2005-2017. Na početku, 2005. godine, očekivani životni vijek je iznosio 13.8 godina, a 2017. godine iznosi 15.5 godina. Pri tome se rast usporava s protekom vremena. U posljednjoj godini (2016-2017) se očekivani životni vijek nakon 65 godina čak i smanjio za 0.2.
+
+Osim očekivane životne dobi pri 65 godina, [Eurostat]( ps://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&language=en&pcode=tepsr_sp320&plugin=1) također računa i objavljuje indikator koji održava godine zdravog života i očekivane životne dobi nakon 65 godina. Jednostavno rečeno, indikator mjeri broj zdravih godina života, nakon dosegnutih 65 godina života. Hrvatska, prema ovom indikatoru, bilježi *pad* zdravih godina života i očekivane životne dobi nakon 65 godina i to  sa 6.5 godina u 2010 godini na 4.9 godina u 2016. godini. Dakle, očekivana životna dob ovisi indikatoru koju koristite. Rast životne dobi od 5 godina, koju spominju u ministarstvu nije opravdano očekivati u budućnosti. Mnogo realniji je rast dobi provedenog u mirovini za dvije godine u sljedećim desetljećima (https://www.oecd-ilibrary.org/docserver/pension_glance-2017-4-en.pdf?expires=1557389032&id=id&accname=guest&checksum=DC95C5EBE389BF80178BC3045D75C678).
+
+Zbog svega spomenutog, mnogo bolja mjera održivosti mirovinskog sustava je očekivani životni vijek nakon 65 godina, a ne očekivani životni vijek pri rođenju. Međutim, kada se komparativno (EU) promatra odnos indikatora očekivane životne dobi i dobne granice, kako predlaže ministarstvo vidljive  su značajne heterogenosti. Kako bi dobili dojam o odnosu životnog vijeka i dobne granice za umirovljenje, preuzet ću grafove sa sljedeće [stranice]( https://www.europeandatajournalism.eu/News/Data-news/Life-expectancy-after-retirement-a-very-unbalanced-Europe). Grafikoni pokazuju odnos očekivanog životnog vijeka za muškarce i žene i dobne granice za odlazak u mirovinu. Graf za muškarce izgleda ovako:
+
+<iframe src="//datawrapper.dwcdn.net/0hXeD/1/" height="772" width="600" marginheight="0" marginwidth="0" allowfullscreen></iframe>
+
+Razlika očekivanog životnog vijeka i dobne granice za umirovljenje muškarce u RH iznosi 14.9 godina. Iza Hrvatske su tri zemlje: Litva, Latvija, Rumunjska i Bugarska. Najviše vremena u mirovini provedu stanovnici Malte, Švedske i Španjolske. Ako bi Hrvatska povećala dob za umirovljenje na 67 godina, razlika očekivanog životnog vijeka i dobne granice za umirovljenje bi iznosila 12.9 godina. Tada bi jedino Bugarska imala manju razliku (12.6). Predmetni grafikon pokazuje da Hrvatska, poslije Bugarske, ima najmanji trošak mirovina (najmanji radni vijek u mirovini). Graf također upućuje na oprez kod uspoređivanja dobne granice za umirovljenje među zemljama. Primjerice, prosječni Nijemac provede u mirovini 17.2 godine, a prosječni Hrvat 14.9 godina.  Njemačka bi trebala imati 3 godine kasniju dobnu granicu za umirovljenje , kako bi se dvije zemlje izjednačile po duljini u mirovini. Ako bi se u obzir uzeo očekivani zdravi životni vijek nakon 65 godina života, razlika bi bila još izraženija (očekivani zdravi vijek u Njemačkoj iznosi 12.4, a u Hrvatskoj  4.9).
+
+Životni vijek pri rođenju kao pokazatelj nije adekvatan proxy za trošak mirovina u budućnosti. Mnogo bolja mjera je razlika očekivane životne dobi nakon 65 godina i dobne granice za odlazak u mirovinu. Ako bi se dobna granica povećala na 67 godina, Hrvatska bi po ovom pokazatelju bila na začelju Europe po „trošku mirovina“ (za muškarce, za žene je vrijednost pokazatelja nešto veća). Promatrajući isključivo životni vijek,  ne postoje dovoljno jaki argument za povećanje dobi za umirovljenje.
+
+### Troškovi povećanja dobne granice za umirovljenje
+
+Povećanje dobne granice za umirovljenje ima jasne troškove za pojedinca i društvo u cjelini. Jasno je da postoji veći teret zbog otežanog rada s rastom starosti. Međutim, povećanje dobne granice dovodi i do dodatnih teškoća. Starije osobe znatno teže nalaze posao od mladih osoba. Čak i kada ga uspiju pronaći, vrlo često su slabije plaćeni od mlađih kolega, za isti skup vještina.  Povećanje dobne granice još više produbljuje ovaj problem. Neke poslove je vrlo teško obavljati sa 60 i više godina, pa povećanje dobne granice produbljuje i ovaj problem. 
+
+Povećanje dobne granice za umirovljenje ima regresivni utjecaj. Slično kao i regresivni porezi, povećanje dobne granice za umirovljenje razmjerno više pogađa siromašnije građane.Na žalost, ne postoje podaci za Hrvatsku, ali podaci iz SAD-a [pokazuju]( https://www.vox.com/science-and-health/2018/1/9/16860994/life-expectancy-us-income-inequality) veći životni vijek za [bogate građane]( https://www.ssa.gov/policy/docs/workingpapers/wp108.html). Ne samo da je očekivani životni vijek dulji za osobe s većim dohotkom, nego je i stopa rasta životnog vijeka viša za građane s višim dohotkom. Ako se pretpostavi da i u Hrvatskoj bogati građani žive dulje, povećanje dobne granice za umirovljenje ide više na ruku bogatim građanima. Primjerice, siromašne osobe u SAD-u su iskusile znatno manji rasti životnog vijeka, a stoga i manje koristi od mirovinskih sustava. Dodatno, povećanje očekivanog životnog vijeka ne implicira poboljšanje zdravstvenog stanja. Ako ljudi nisu zdraviji s povećanjem životnog vijeka, povećanje dobne granice za umirovljenje podrazumijeva veći teret u odnosu na sadašnje umirovljenike. Osim dohodovnih razlika postoje i zdravstvene razlike. Osobe na slabije plaćenim poslovima uglavnom rade fizičke poslove koji dovode do češćih zdravstvenih problema. 
+
+Postoje i jasni troškovi za državni proračun. Primjerice, 	studija u SAD-u je pokazala da povećanje dobne granice za umirovljenje povećava izdvajanja za ozljede na radu i troškove bolovanja. Nije mi poznato postoji i ovakva studija za Hrvatsku, ali bi svakako trebalo procijeniti dodatni trošak zdravstvenog osiguranja zbog povećanje dobne granice.
+
+### Radnici do 65 godine zarade svoju mirovinu
+
+Zamislimo radnika s 40 godišnjim radnim vijekom (osoba koja radila od 25 do 65 godine života), koji ima dvoje djece. Pretpostavimo da je prosječna plaća radnika tijekom cijelog radnog vijeka 6000 kn neto. Prema postojećim doprinosima za prvi i drugi stup (20% ukupno), radnik tijekom životnog vijeka uplati 720.000 kn za mirovinsko osiguranje. Ako se tome pridodaju kamate od 2% godišnje (iako bi i investitor laik mogao zaraditi više), vrijednost ulaganja u mirovinski sustav iznosi cca 1.1 mil kuna. U hipotetskoj  situaciji u kojoj ne postoje sadašnji umirovljenici i gdje osoba provede u mirovini 15 godina, mirovina koju bi ova osoba dobivala  natemelju uplaćenih doprinosa iznosila bi 6.111 kn. Dakle, svaki radnik sa 6.000 kn plaćom bi imao mirovinu od 6.111 kn, kada ne bi uplaćivao 15% na ime međugeneracijske solidarnosti. Prosječna mirovina u RH je cca 2600 kn. Drugim riječima, radnik dobiva 42% onoga što uplati. Iz računice je jasno da su radnici koji rade do 60-te godine života osigurali mirovinu za najmanje dvije osobe u RH. Kako to da nema dovoljno novaca za mirovine, ako svaki radnik koji radi 40 godina isplati mirovinu za 2 radnika? Jedan razlog su poslovi koji se financiraju iz proračuna, kod kojih nema uplata u proračun (država uplaćuje sama sebi), a drugi razlog su mirovine na temelju posebnih propisa, prema kojima radnik mora raditi kraće od ostalih građana da bi dobio pravo na umirovljenje. 
+
+### Fiskalne koristi
+
+Glavna korist od povećanja dobne granice je jasna: veći fiskalni priljevi, kao temelj za isplatu budućih mirovina. Međutim postoji nekoliko drugih načina za povećanje fiskalnih prihoda kroz uplate koju čini postojeća radna snaga Nabrojat ću samo nekoliko načina:
+
+1. Povećanje stope participacije – u hrvatskoj se mnogo ljudi još uvijek nalazi izvan tržišta rada. Povećanje udjela zaposlenosti u ukupnoj radnoj snazi povećalo bi iznos doprinosa za umirovljenje. Ovo se posebno odnosi na povećanje stope participacije žena.
+2. Smanjenje ili ukidanje prava umirovljenja po posebnim propisima. O tome je nešto rečeno ovdje: https://www.liberal.hr/mirovinski-sustav-mirovine-67-je-previse-marko-pavic-andrej-plenkovic-vlada-rh-hdz-786
+3. Smanjenje mirovine sa povećanjem bogatstva, to jest diskriminacija u odnosu na bogatstvo (australski sustav).
+4. Imigracija
+
+Ove mjere zahtijevaju znatno strateško i analitičko promišljanje i znatno veći napor od povećanja dobne granice. 
+
+Za kraj, dajem pregled ključnih točaka:
+
+* Hrvatska ima manji životni vijek nakon 65. godine života od prosjeka EU. 
+* U budućnosti se može očekivati usporavanje rasta ovog pokazatelja(negativna druga derivacija ). 
+* Povećanje dobne granice za umirovljenje ima regresivan učinak (više pogađa siromašnije građane). 
+* Umirovljenici zarade za svoje mirovine tijekom 40-godišnjeg radnog vijeka
+* Postoje alternativni načini povećanja fiskalnog kapaciteta.

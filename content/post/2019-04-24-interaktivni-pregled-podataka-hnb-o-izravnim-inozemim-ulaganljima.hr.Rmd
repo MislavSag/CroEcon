@@ -1,0 +1,26 @@
+---
+title: Interaktivni pregled podataka HNB o izravnim inozemim ulaganljima
+author: Luka Šikić
+date: '2019-04-24'
+slug: interaktivni-pregled-podataka-hnb-o-izravnim-inozemim-ulaganljima
+categories:
+  - Ekonomika
+  - Shiny
+  - Firme
+tags:
+  - nefinancijska poduzeća
+  - sektori
+  - fdi
+type: ''
+subtitle: ''
+image: ''
+---
+
+Prije nekoliko tjedana sam [analizirao](http://croecon.contentio.biz/post/izravna-strana-ulaganja-pozitivni-efekti-koji-mogu-biti-i-ve-i/) prilike u domaćim tvrtkama koje su u vlasništvu stranih rezidenata. Pregled je pokazao da strani sektor posluje na višoj razini produktivnosti i profitabilnosti od domaćeg te da su strane tvrtke otpornije na ekonomske šokove od domaćih, a osim stabilizacije poslovnog ciklusa, strane tvrtke doprinose i dugoročnom rastu, primjerice kroz povećanje opće tehnološke granice. Ta je analiza napravljena na osnovi podataka o poslovanju tvrtki i kao takva govori o efektima izravnih inozemnih ulaganja. Druga istraživanja izravnih inozemnih ulaganja u Hrvatskoj su se orijentirala na agregatne trendove i efekte tih ulaganja na osnovi HNB-ovih podataka. S obzirom da tema izravnih inozemnih ulaganja pobuđuje znatan istraživački interes na više razina, odlučio sam interaktivno kroz *Shiny* prikazati statističke podatke HNB-a o sektoru inozemstva, koji su osnova najvećeg broja tih istraživanja.
+
+HNB sastavlja podatke o [sektoru inozemstva](https://www.hnb.hr/statistika/statisticki-podaci/sektor-inozemstva/inozemna-izravna-ulaganja) na osnovi metodologije Međunarodnog monetarnog fonda koja dijeli izravna inozemna ulaganja na *imovinu* i *obveze* vlasnički povezanih rezidenata i nerezidenata. Pri tome je moguć pregled ukupnih ulaganja, ulaganja po zemljama porijekla kapitala i ulaganja po djelatnostima rezidenta. Za detalje o metodologiji i pojašnjenja varijabli se može pogledati [IMF Manual](https://www.imf.org/external/pubs/ft/bop/2007/pdf/bpm6.pdf). Poštujući takav okvir, interaktivni pregled podataka je omogućen na tri tab-a: `UKUPNI IZNOS`, `ZEMLJE PORIJEKLA`, `DJELATNOSTI REZIDENTA`.
+
+Podatci pokazuju da su stranci u razdoblju od 1993. do 2018. godine u Hrvatskoj izravno uložili u imovinu u vrijednosti oko 34 mlrd EUR. Od toga je najveći dio, u vrijednosti oko 22.8 mlrd EUR, uložen u vlasničke udjele, a zadržana dobit je također značajna i iznosi 6.5 mlrd EUR. Hrvatski rezidenti su u tom razdoblju u inozemstvu uložili 6.6 mlrd EUR pri čemu je većina ulaganja usmjerena u vlasničke udjele. Neto bilanca izravnih stranih ulaganja tako iznosi oko 27.5 mlrd EUR. U Hrvatsku su najviše ulagale zemlje zapadne Europe, a  značajni iznosi su uloženi i od strane mađarskih i slovenskih rezidenata. Dominantna destinacija hrvatskih inozemnih investicija su zemlje iz okruženja, no valja napomenuti i visoke investicije u Nizozemsku. Najviše su ulaganja u Hrvatskoj primili financijski sektor, trgovina, poslovanje sa nekretninama i telekomunikacije dok su domaći rezidenti najviše investirali u trgovinu, financije i upravljačke djelatnosti. Za detaljniji pregled trendova kroz vrijeme pogledajte aplikaciju!
+
+
+<iframe width="950" height="700" scrolling="yes" frameborder="yes" src="https://luxsikic.shinyapps.io/fdi_hnb/"></iframe>

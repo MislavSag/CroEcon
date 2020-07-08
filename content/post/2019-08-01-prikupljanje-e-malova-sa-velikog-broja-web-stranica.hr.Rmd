@@ -1,0 +1,125 @@
+---
+title: Prikupljanje e-malova sa velikog broja web stranica
+author: Mislav Šagovac
+date: '2019-08-01'
+slug: prikupljanje-e-malova-sa-velikog-broja-web-stranica
+categories:
+  - R
+  - Web scraping
+tags:
+  - web scraping
+  - email
+type: ''
+subtitle: ''
+image: ''
+---
+
+U predzadnjem [postu](http://croecon.contentio.biz/post/kako-preuzeti-e-mailove-sa-web-stranice-pomo-u-r-a/) sam prikazao kako preuzeti e-mail adrese sadržane **unutar slike** (.img) sa web stranice. Međutim, mnogo češće se email-ovi nalaze unutar **`<a>` html taga** ili kao **čisti tekst**. U ovom postu ću prikazati kako preuzeti e-mail adrese sa web stranica u tom slučaju. Post može biti zanimljiv svima koje žele raditi ciljane e-mail kampanje programski i tako zaobići ručno preuzimanje podataka sa web stranica. 
+
+Nedavno sam htio preuzeti e-mail adrese leasing kuća u Hrvatskoj. Nakon upisivanja pojma „leasing kuće“, google je vratio sljedeću [stranicu](https://www.hanfa.hr/leasing-i-faktoring/registri/leasing-drustva/). Na stranici su pobrojana sva leasing društva u RH (16 ukupno). Uz to su dostupni i osnovni podaci poput sjedišta društva i brojeva telefona, ali ne i e-mail adrese. Ipak, dostupna je službena web stranica društva na kojoj se  nalazi i e-mail adresa. Za početak je dakle potrebno preuzeti sve poveznice sa web stranice leasing društava. Nakon toga je potrebno provjeriti jesu li sve web stranice još uvijek aktivne jer moguće je da se početni *url* promijenio. Opisani postupak je kodiran na sljedeći način:
+
+```{r message = FALSE, warning = FALSE}
+
+library(tidyverse)
+library(rvest)
+library(Rcrawler)
+library(jsonlite)
+library(httr)
+
+
+# izvlacenje web stranica s stranice
+p <- read_html("https://www.hanfa.hr/leasing-i-faktoring/registri/leasing-drustva/")
+webLinks <- p %>% 
+  html_nodes("a") %>% # izvlacenje dijela html-a gdje je tag <a>
+  html_attr("href") %>% # izvlacenje sadrzaja href atributa
+  .[str_detect(., "http.*www")] %>%  # filtriranje onih poveznica kod kojih se pojavljuje http
+  map(., GET) %>% # slanje GET zahtjeva na svaku web stranicu
+  map(., `[[`, "url") %>% # izvlacenje url elementa iz prethodnog koraka kako bi se dobila aktualna adresa
+  unlist(.) # pretvaranje liste u vektor
+
+```
+
+Prvi red koda preuzima sadržaj web stranice u html obliku pomoću [otprije](http://croecon.contentio.biz/post/kako-preuzeti-e-mailove-sa-web-stranice-pomo-u-r-a/) poznate funkcije `read_html`. Sljedeća ugniježdena naredba preuzima web stranice leasing društava i provjerava njihovu aktualnost. Prvo su preuzete sve poveznice pomoću funkcija `html_nodes` i `html_attr`. Nakon toga su iz vektora poveznica filtrirane poveznice koje sadrže „http“ i „www“ i bilo što između. Konačno, na svaku poveznicu je poslan `GET` zahtjev, te je iz outputa `GET` zahtjeva izvučen *url* element. 
+
+Raspolaganje web stranicama je nužan korak ali moguće je da već posjedujete bazu web stranica pa Vam ovaj korak nije potreban. Pitanje ovog posta je: kako izvući e-mail adrese sa dostupnih web stranica? Za to ćemo koristiti paket za *web crawling* u R-u o kojem sam [već pisao](http://croecon.contentio.biz/post/neiskori-teni-potencijalni-analize-teksta-u-rh/): `Rcrawler`. Paket sadrži samo jednu ključnu funkciju koja ima isti naziv kao i naziv paketa. Pogledajmo prvo tu funkciju na primjeru jednog *url-a*:
+
+```{r message = FALSE, warning = FALSE, results=FALSE}
+# jedan link - primjer
+Rcrawler(webLinks[1], 
+         no_cores = 4,
+         MaxDepth = 3,
+         ExtractXpathPat = c("//title", "//*//a[starts-with(@href, 'mailto')]/text()", "//*[contains(text(), '@')]"),
+         PatternsNames = c("title", "e-mail-href", "e-mail-sign"),
+         ManyPerPattern = TRUE,
+         saveOnDisk = FALSE
+)
+```
+
+Više o argumentima funkcije možete vidjeti davanjem naredbe `? Rcrawler ` u R konzolu. U našem slučaju, prvi argument je *url* s kojeg želimo preuzeti podatke. Drugi argument je broj jezgri koje želimo koristiti prilikom *scrapanja*. Treći argument je maksimalna dubina *scrapanja*. Primjerice, domena www.vecernji.hr ima dubinu 0, *url* „www.vecernji.hr/vijesti“ ima dubinu 1, *url* „www.vecernji.hr/vijesti/hrvatska“ ima dubinu 2 itd. Ako želite brže preuzimanje adresa možete koristiti manju dubinu, a ako želite provjeriti veliki broj stranica određene domene, koristit ćete veću dubinu. Slijedeći argument, `ExtractXpathPat` je vrlo važan i pokazuje *xpath* koji identificira dio *HTML-a* koji želimo izvući. Prvi je *\\title*, odnosno naslov sa web stranice. Ovaj element nije potreban, ali često sadrži naziv tvrtke pa može biti koristan. Druga dva elementa su mnogo važnija. *Xpath*  `//*//a[starts-with(@href, 'mailto')]/text()`  jednostavno kaže: vrati dio HTML-a (točnije, tekst), koji sadrži tag `<a>`, pri čemu atribut „href“ počinje sa „mailto“. Treći *xpath*, `//*[contains(text(), '@')]`, najjednostavniji je *xpath* za izvlačenje mail-adresa kaže: vrati dio HTML-a koji sadrži znak „@“. Sljedeći argument, `PatternsNames` definira nazive za svaki prethodno definirani *xpath*. Argument `ManyPerPattern` zahtijeva izvlačenje svih identificiranih elemenata po *xpath-u*. Konačno, zadnji argument `saveOnDisk` ima vrijednost`„FALSE`, što znači da ne želimo spremiti kompletne HTML-ove svih stranica sa domene jer nas zanimaju samo e-mail adrese.
+
+Rezultat funkcije je objekt DATA, lista koja sadrži 4 elementa: id  i tri prethodno definirana HTML elementa prema *xpathu*. U nastavku opisujemo kako "očistiti" dobivene rezultate. Prvo se izdvoji svaki element, eliminiraju suvišni razmaci prije i nakon e-mail adrese, a potom te e-mailove izdvojene iz dva različita xpatha spajamo u jedan vektor:
+
+```{r message = FALSE, warning = FALSE}
+title <- unlist(lapply(DATA, `[[`, 2))
+emails_href <- unlist(lapply(DATA, `[[`, 3))
+emails_sign <- unlist(lapply(DATA, `[[`, 4))
+title <- trimws(unique(title)[1])
+emails <- c(emails_href, emails_sign)
+emails <- trimws(unique(emails))  # ostaviti jedinstvene emailove i maknuti suvišne razmake sa lijeve i desne strane
+
+```
+
+Rezultati pokazuju sve dijelove texta na web stranicama koji unutar teksta sadrže „@“ i kojima atribut poveznice sadrži „mailto“. Budući da sam koristio vrlo jednostavan obrazac za identificiranje e-maila („@“), potrebno je dodatno iz tekstova izvući e-mail adrese. Ako u google upišete "regex e-mail", dobit ćete mnogo različitih prijedloga *regexa* za identificiranje e-mailova. Primjenit ćemo jedan od dostupnih:
+
+```{r message = FALSE, warning = FALSE}
+emailRegex <- "([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)"
+
+emails <- emails[!str_detect(emails, "\\{")]  # maknuti emailove koji se nalaze unutar Javascript koda
+emailst <- str_extract(emails, emailRegex)
+```
+
+To je to. Izdvojili smo sve e-mailove sa zadanog *url-a*. Na kraju ćemo sve korake spojiti i napraviti funkciju **email_crawler**:
+Funkcija sadrži samo dva argumenta: *url* s kojeg želite preuzimati podatke i output koji očekjete (tablica ili json format). S ovom funkcijom, preuzimanje e-malova leasing društava zahtijeva samo jedan red koda (vidi dolje). Drugi red je nužan samo ako koristite tablicu kao output i želite sve rezultate spojiti u jednu tablicu:
+
+```{r message = FALSE, warning = FALSE, results=FALSE}
+
+email_crawler <- function(url, save = c("df", "json")) {
+  Rcrawler(url, no_cores = 4,
+           MaxDepth = 2,
+           ExtractXpathPat = c("//title", "//*//a[starts-with(@href, 'mailto')]/text()", "//*[contains(text(), '@')]"),
+           PatternsNames = c("title", "e-mail-href", "e-mail-sign"),
+           ManyPerPattern = TRUE,
+           saveOnDisk = FALSE
+  )
+  title <- unlist(lapply(DATA, `[[`, 2))
+  emails_href <- unlist(lapply(DATA, `[[`, 3))
+  emails_sign <- unlist(lapply(DATA, `[[`, 4))
+  title <- trimws(unique(title)[1])
+  emails <- c(emails_href, emails_sign)
+  emails <- trimws(unique(emails))  # ostaviti jedinstvene emailove i maknuti suvišne razmake sa lijeve i desne strane
+  emails <- emails[!str_detect(emails, "\\{")]  # maknuti emailove koji se nalaze unutar Javascript koda
+  emailRegex <- "([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)"
+  emails <- str_extract(emails, emailRegex)
+  if (save == "df") {
+    emails_df <- cbind.data.frame(title, emails, domena = url,stringsAsFactors = FALSE)  # spojiti sve u df 
+    return(emails_df)
+  } else if (save == "json") {
+    emails_json <- jsonlite::toJSON(  # spojiti sve u json
+      list(tvrtka = title,
+           emails = emails)
+    )
+    return(emails_json)
+  }
+}
+
+leasing_emails <- lapply(webLinks, email_crawler, save = "df")
+scraped_emails <- do.call(rbind, leasing_emails)
+
+```
+
+```{r}
+glimpse(scraped_emails)
+```
+
+
+U budućnosti, ako želite preuzeti e-mal adrese sa određenih stranica, instalirajte R, potrebne pakete i primjenite ove funkcije na željene domene. Sretno *scrapanje*.

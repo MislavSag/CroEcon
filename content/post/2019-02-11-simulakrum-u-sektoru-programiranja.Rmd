@@ -1,0 +1,527 @@
+---
+title: Simulakrum u sektoru programiranja
+author: Luka Šikić
+date: '2019-02-11'
+slug: simulakrum-u-sektoru-programiranja
+categories:
+  - Ekonomika
+  - Firme
+tags:
+  - sektori
+type: ''
+subtitle: ''
+image: ''
+---
+
+```{r echo=FALSE, warning=FALSE, results='hide', message=FALSE}
+
+library(eurostat)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(grid)
+library(ggthemes)
+library(extrafont)
+library(purrr)
+library(gridExtra)
+library(tidyr)
+library(RMySQL)
+library(RODBC)
+library(stringi)
+library(plm)
+library(data.table)
+library(gridExtra)
+library(scales)
+library(ggpubr)
+
+db <- dbConnect(MySQL(), dbname = "odvjet12_gfi", host =  "91.234.46.219", 
+                port = 3306L, user = "odvjet12_mislav", 
+                password = "Theanswer0207")
+
+q <- sprintf("SELECT b335/1000000000 AS Export,
+                     b370/1000000000 AS Import,
+                     b372 AS Zaposleni,
+                     b266/1000000000 AS Software,
+                     b249/1000000000 AS Razvoj,
+                     b250/1000000000 AS Tech, 
+                     b004/1000000000 AS Razvoj1,
+                     b005/1000000000 AS Tech1,
+                     b003/1000000000 AS Nematerijalna,
+                     b110/1000000000 AS Prihod,
+                     b120/1000000000 AS Placa,
+                     b147/1000000000 AS Nett,
+             reportyear, subjectid, employeecounteop, foreigncontrol,
+             nacerev21, nacerev22, nacerev23, nacerev24
+             FROM gfi_all 
+             WHERE reportyear >= 2000;")  
+
+
+data <- dbGetQuery(db, q)
+dbDisconnect(db)
+
+```
+
+Zadnjih nekoliko godina [(nova) digitalna ekonomija](https://unctad.org/en/PublicationsLibrary/tn_unctad_ict4d08_en.pdf) u središtu je policy i istraživačke pozornosti. Robotika, automatizacija proizvodnih procesa, obrada podataka (big data, AI), nove mrežne platforme i sl. među glavnim su temama akdemskih analiza, formalnih i neformalnih rasprava u policy institucijama, policy dokumenata, konferencija središnjih banaka te poslovnih krugova. Intenzitet digitalne transformacije ali i relevantnost teme vidljiva je u mnogim [nedavno (osobito nakon 2012. godine) objavljenim znanstvenim radovima](http://apps.webofknowledge.com/CitationReport.do?product=UA&search_mode=CitationReport&SID=F5AoGtpQRLwMGAsyonD&page=1&cr_pqid=1&viewType=summary), [policy analizama](http://bruegel.org/tag/digital/)  te [praktičnim policy implementacijama](https://ec.europa.eu/digital-single-market/en). Ukratko, digitalne tehnologije mnogo toga mijenjaju jer utječu na troškove poslovanja, ne samo smanjenjem proizvodnih troškova već i promjenom [rashodne strukture poslovanja](https://www.nber.org/papers/w23684). Ne čudi stoga da je u Hrvatskoj u protekle dvije godine organiziran niz konferencija i objavljeno nekoliko studija o digitalnoj ekonomiji:
+
+* [Friedrich Ebert Stiftung](http://www.fes-croatia.org/fileadmin/user_upload/171130_Mondekar_digital_economy_analysis_web.pdf)
+
+* [Ekonomski institut](https://www.eizg.hr/UserDocsImages/vijesti/vijesti_dogadaji/dt_studija/wb6-study.pdf)
+
+* [HGK](https://www.hgk.hr/documents/hr-it-2018-brosura-v45c35ed1666f32.pdf).
+
+
+Imajući to na umu, zapazili smo i identificirali ključne trendove u sektoru *informacija i komunikacija* (J). Važno je prethodno napomenuti kako slične analize koriste nešto suptilniju identifikacijsku strategjiu IT sektora/digitalne ekonomije (vidi primjerice prethodno spomenute studije: Ekonomskog instituta i HGK za domaći ili pak [OECD](https://read.oecd-ilibrary.org/science-and-technology/oecd-digital-economy-outlook-2017_9789264276284-en#page2) za međunarodni kontekst), u kojima su isključeni određeni podsektori sektora *informacija i komunikacija* te dodani neki proizvođački i/ili trgovački podsektori koji se bave informatičkim tehnologijama. Agregatne razlike nisu velike pa sektor *informacija i komunikacija* ostaje robusan, brz i jednostavan proxy za IT odnosno digitalnu ekonomiju. Osnovni je zaključak analize ponešto kontradiktoran: dobri pokazatelji u domaćem digitalnom sektoru zapravo upućuju na njegovu podrazvijenost!
+
+Prije svega pogledajmo komparativnu poziciju sektora *informacija i komunikacija* u presjeku nekoliko najvećih domaćih industrijskih sektora. Na grafikonu 1 je vidljivo da je sektor *informacija i komunikacija* u 2016. godini nalazi u (nižoj) sredini distribucije najvećih domaćih sektora prema nekoliko standardnih pokazatelja agregatnog izvoza, uvoza, prihoda i dobiti. Na grafikonu 2 prikazano je par drugih mjera veličine u usporednom sektorskom kontekstu. Primjećuje se da je sektor *informacija i komunikacija* u donjoj polovici distribucije najvećih sektora prema kriteriju broja tvrtki, zaposlenih i agregatnih plaća. 
+
+```{r echo=FALSE, message = FALSE}
+
+
+#osnovni pregled najvećih sektora_1
+
+data %>% 
+  filter(reportyear == 2016, nacerev21 %in% c("C", "G", "D", "M", "J", "H", "I", "F", "K")) %>% 
+  mutate(nacerev21 = recode(nacerev21,
+                            C = "Prerađivačka industrija",
+                            G = "Trgovina",
+                            D = "Opskrba energijom",
+                            M = "Stručne, znanstvene i tehničke djelatnosti",
+                            J = "Informacije i komunikacije",
+                            H = "Prijevoz i skladištenje",
+                            I = "Usluge smještaja i pripreme hrane",
+                            F = "Građevinarstvo",
+                            K = "Financije i osiguranje")) %>%
+  group_by(reportyear, nacerev21) %>%
+  select(reportyear, nacerev21, Export, Import, Prihod, Nett) %>% 
+  summarise(Prihodi = sum (Prihod, na.rm = TRUE),
+            Izvoz = sum (Export, na.rm = TRUE), 
+            Uvoz = sum(Import, na.rm = TRUE),
+            Nett = sum (Nett, na.rm = TRUE)) %>% 
+  gather(varijable, vrijednosti, -c(nacerev21, reportyear)) %>% 
+  arrange(varijable,vrijednosti) %>%
+  mutate(order = row_number()) -> os
+
+ggplot(os, aes(order, vrijednosti, fill = ifelse(nacerev21 == "Informacije i komunikacije", "Normal", "High"))) + 
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~varijable,scales = "free") +
+  xlab("")+
+  ylab("mlrd kn") + 
+  theme_bw() + 
+  scale_x_continuous(breaks = os$order,
+                     labels = os$nacerev21) +
+  ggtitle("Grafikon 1:\n Pregled najvećih industrijskih sektora RH, 2016") +
+  coord_flip() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+#osnovni pregled najvećih sektora_2
+
+data %>% 
+  filter(reportyear == 2016, 
+         nacerev21 %in% c("C", "G", "D", "M", "J", "H", "I", "F", "K"))%>% 
+  mutate(nacerev21 = recode(nacerev21,
+                            C = "Prerađivačka industrija",
+                            G = "Trgovina",
+                            D = "Opskrba energijom",
+                            M = "Stručne, znanstvene i tehničke djelatnosti",
+                            J = "Informacije i komunikacije",
+                            H = "Prijevoz i skladištenje",
+                            I = "Usluge smještaja i pripreme hrane",
+                            F = "Građevinarstvo",
+                            K = "Financije i osiguranje")) %>%
+  group_by(reportyear, nacerev21) %>%
+  select(reportyear, nacerev21, Placa, subjectid, employeecounteop) %>% 
+  summarise(Place_mlrd_kn = sum (Placa, na.rm = TRUE),                        
+            Br_tvrtki = n_distinct(subjectid),
+            Br_zaposlenih = sum (employeecounteop, na.rm = TRUE), 
+            Placa =  (sum (Placa, na.rm = TRUE)/(Br_zaposlenih = sum (employeecounteop, na.rm = TRUE)))*1000000000/12) %>% 
+  gather(varijable, vrijednosti, -c(nacerev21, reportyear)) %>% 
+  arrange(varijable,vrijednosti) %>%
+  mutate(order = row_number()) -> ns
+
+ggplot(ns, aes(order, vrijednosti, fill = ifelse(nacerev21 == "Informacije i komunikacije", "Normal", "High"))) + 
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~varijable,scales = "free") +
+  xlab("")+
+  ylab("") + 
+  theme_bw() + 
+  scale_x_continuous(breaks = ns$order,
+                     labels = ns$nacerev21) +
+  ggtitle("Grafikon 2:\n Pregled najvećih industrijskih sektora RH, 2016") +
+  coord_flip() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Stvar postaje zanimljiva promotrimo li jedini pokazatelj prema kojem sektor *informacija i komunikacija* odstupa od ostalih sektora, a radi se o prosječnoj isplaćenoj plaći (donji lijevi panel na grafikonu 2). Visoka prosječna isplaćena plaća u 2016. godini u sektoru *informacija i komunikacija* dobar je opći pokazatelj visoke produktivnosti i doprinosa tog sektora ekonomskom rastu. Plaća kao okvirni proxy za produktivnost dodatno dobiva na relevantnosti u sektoru *informacija i komunikacija* s obzirom na to da je ljudski kapital ovdje ključni proizvodni faktor. Trend porasta plaća u domaćem sektoru *informacija i komunikacija* nastavio se i do [danas](https://arhivanalitika.hr/blog/place-nase-svagdasnje-i-kome-najvise-a-kome-najmanje/) pa je upravo to sektor u kojem je najisplativije raditi u 2018. godini, za otprilike 8,5 tisuća kn mjesečno.      
+
+
+``` {r echo=FALSE,message = FALSE}
+
+
+#osnovni pregled J sektora
+
+data %>% 
+  filter(reportyear == 2016, nacerev21 == "J") %>%
+  mutate(nacechar = as.character(nacerev22),
+         rekod = recode(nacechar, 
+                            "58" =  "Izdavačke djelatnosti",
+                            "59" =  "Proizvodnja audio i video sadržaja",
+                            "60" =  "Emitiranje programa",
+                            "61" =  "Telekomunikacije",
+                            "62" =  "Programiranje",
+                            "63" =  "Informacijske uslužne djelatnosti")) %>%
+  group_by(reportyear, rekod) %>%
+  summarise(Prihodi_mlrd_kn = sum (Prihod, na.rm = TRUE),
+            Place_mlrd_kn = sum (Placa, na.rm = TRUE),                                        
+            Izvoz_mlrd_kn = sum (Export, na.rm = TRUE),         
+            Nett_mlrd_kn = sum (Nett, na.rm = TRUE),
+            Br_tvrtki = n_distinct(subjectid),
+            Zaposleni = sum (employeecounteop, na.rm = TRUE), 
+            Placa_kn =  (sum (Placa, na.rm = TRUE)/(Zaposleni = sum (employeecounteop, na.rm = TRUE)))*1000000000/12) %>% 
+  select(reportyear, rekod, Prihodi_mlrd_kn, Place_mlrd_kn, Izvoz_mlrd_kn, Nett_mlrd_kn) %>%
+  gather(varijable, vrijednosti, -c(reportyear, rekod))%>%
+  arrange(varijable,vrijednosti) %>%
+  mutate(order = row_number()) -> j
+
+data %>% 
+  filter(reportyear == 2016, nacerev21 == "J") %>%
+  mutate(nacechar = as.character(nacerev22),
+         rekod = recode(nacechar, 
+                            "58" =  "Izdavačke djelatnosti",
+                            "59" =  "Proizvodnja audio i video sadržaja",
+                            "60" =  "Emitiranje programa",
+                            "61" =  "Telekomunikacije",
+                            "62" =  "Programiranje",
+                            "63" =  "Informacijske uslužne djelatnosti")) %>%
+  group_by(reportyear, rekod) %>%
+  summarise(Prihodi_mlrd_kn = sum (Prihod, na.rm = TRUE),
+            Place_mlrd_kn = sum (Placa, na.rm = TRUE),                                        
+            Izvoz_mlrd_kn = sum (Export, na.rm = TRUE),         
+            Nett_mlrd_kn = sum (Nett, na.rm = TRUE),
+            Br_tvrtki = n_distinct(subjectid),
+            Zaposleni = sum (employeecounteop, na.rm = TRUE), 
+            Placa_kn =  (sum (Placa, na.rm = TRUE)/(Zaposleni = sum (employeecounteop, na.rm = TRUE)))*1000000000/12) %>% 
+  select(reportyear, rekod, Br_tvrtki, Zaposleni, Placa_kn) %>%
+  gather(varijable, vrijednosti, -c(reportyear, rekod))%>%
+  arrange(varijable,vrijednosti) %>%
+  mutate(order = row_number()) -> ji
+
+  ggplot(j, aes(order,vrijednosti, fill = ifelse(rekod == "Programiranje", "High", "Norm"))) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~varijable , scales = "free")+
+    theme_bw() + 
+    xlab("")+
+    ylab("")+
+    scale_x_continuous(breaks = j$order,
+                       labels = j$rekod) +
+    ggtitle("Grafikon 3:\n Pregled J (pod)sektora; 2016") +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  ggplot(ji, aes(order,vrijednosti, fill = ifelse(rekod == "Programiranje", "High", "Norm"))) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~ varijable  , scales = "free", nrow = 2)+
+    theme_bw() + 
+    xlab("")+
+    ylab("")+
+    scale_x_continuous(breaks = j$order,
+                       labels = j$rekod) +
+    ggtitle("") +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+Grafikon 3 pokazuje presijek sektora Informacija i komunikacija u 2016. godini i otkriva nekoliko zanimljivosti. Naime, podsektor programiranja (J:62;crveno) je "kreativno-proizvodni dio" sektora *informacija i komunikacija* te je njegov uvjerljivo najveći i najdinamičniji dio prema kriteriju broja tvrtki, zaposlenih, izvoza i agregatnih plaća. Jedini (naoko) "bolji" segment sektora *informacija i komunikacija* su *telekomunikacije* (J:61) i to u kategorijama isplaćene prosječne plaće i agregatnoga prihoda no riječ je o znatno manjem i manje dinamičnom segmentu čije se poslovanje zasniva na monopolskoj poziciji i fizičkom kapitalu tj. infrastrukturi. Također, podsektor *telekomunikacija* primarno je orijentiran na poslovanje na domaćem tržištu što je vidljivo na panelima prihoda i izvoza. Zanimljivo je da prema [Europskoj komisiji](http://ec.europa.eu/information_society/newsroom/image/document/2018-20/hr-desi_2018-country-profile_eng_B4406AEC-AC62-A67B-2B7B633077700C13_52224.pdf) upravo telekomunikacijski sektor usporava digitalnu transformaciju RH, prije svega u području povezivosti.
+
+```{r echo=FALSE,message = FALSE}
+
+#dinamika  J sektora
+data %>% 
+  filter( nacerev21 == "J") %>%
+  mutate(nacechar = as.character(nacerev22),
+         rekod = recode(nacechar, 
+                            "58" =  "Izdavačke djelatnosti",
+                            "59" =  "Proizvodnja audio i video sadržaja",
+                            "60" =  "Emitiranje programa",
+                            "61" =  "Telekomunikacije",
+                            "62" =  "Programiranje",
+                            "63" =  "Informacijske uslužne djelatnosti")) %>%
+  group_by(reportyear, rekod) %>%
+  summarise(Prihodi = sum (Prihod, na.rm = TRUE),
+            Zaposleni = sum (Zaposleni, na.rm = TRUE),
+            Place = sum (Placa, na.rm = TRUE),                                 
+            Izvoz = sum (Export, na.rm = TRUE),                                 
+            Razvoj = sum (Razvoj, na.rm = TRUE),                                  
+            Tech = sum (Tech, na.rm = TRUE),                                 
+            Nett = sum (Nett, na.rm = TRUE),
+            zaposleni2 = sum (employeecounteop, na.rm = TRUE),
+            n = n_distinct(subjectid),
+            zaposleni2 = sum (employeecounteop, na.rm = TRUE), 
+            plata =  (sum (Placa, na.rm = TRUE)/(zaposleni2 = sum (employeecounteop, na.rm = TRUE)))*1000000000/12) -> dr
+
+#broj tvrtki  
+pl1 <-  ggplot(dr, aes(reportyear, n, colour = as.factor(rekod))) +
+    geom_line(size = 1.2) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 10))+
+    guides(color = guide_legend("J_podsektori"))+
+    ggtitle("Grafikon 4:\n Broj tvrtki u J podsektorima")+
+    scale_x_discrete(name = "Vrijeme",
+                     limits = c(2000,2004,2009,2012,2016))+ 
+    scale_y_discrete(name = "Br_tvrtki",
+                     limits = c(100, 250, 350, 500, 750, 1000, 2000, 2500, 3000))+
+    geom_vline(xintercept = 2009, linetype ="dashed")
+    
+#zaposleni
+pl2 <- ggplot(dr, aes(reportyear, Zaposleni, colour = as.factor(rekod))) +
+    geom_line(size = 1.2) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 10)) +
+    guides(color = guide_legend("J_podsektori")) +
+    ggtitle("Grafikon 5:\n Broj zaposlenih u J podsektorima") +
+    scale_x_discrete(name = "Vrijeme",
+                     limits = c(2000,2004,2008,2012,2016)) +
+    scale_y_discrete(name = "Zaposleni",
+                     limits = c(1000,2500, 3500, 5000,6000, 7500, 9000, 10000, 11000, 12500, 14000))+
+    geom_vline(xintercept = 2008, linetype ="dashed")
+
+
+
+#izvoz 
+pl3 <- ggplot(dr, aes(reportyear, Izvoz, colour = as.factor(rekod))) +
+    geom_line(size = 1.2) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 10)) +
+    guides(color = guide_legend("J_podsektori"))+
+    ggtitle("Grafikon 6:\n Izvoz u J podsektorima")+
+    scale_x_discrete(name = "Vrijeme",
+                     limits = c(2000,2004,2008,2012,2016)) +
+    ylab("Izvoz; mlrd kn")+
+    geom_vline(xintercept = 2008, linetype ="dashed")
+
+
+
+#prihod  
+pl4 <- ggplot(dr, aes(reportyear, Prihodi, colour = as.factor(rekod))) +
+    geom_line(size = 1.2) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 10)) +
+    guides(color = guide_legend("J_podsektori"))+
+    ggtitle("Prihodi u J podsektorima") +
+    scale_x_discrete(name = "Vrijeme",
+                     limits = c(2000,2004,2008,2012,2016))+
+    geom_vline(xintercept = 2008, linetype = "dashed")+
+    scale_y_discrete("Prihodi; mlrd kn",
+                     limits = c(0,2.5,5,7.5,10,12.5,15))
+#nett
+pl5 <- ggplot(dr, aes(reportyear, Nett, colour = as.factor(rekod))) +
+    geom_line(size = 1.2) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 10))+
+    guides(color = FALSE)+
+    ylab("Dobit; mlrd kn")+
+    ggtitle("Dobit u J podsektorima") +
+    scale_x_discrete(name = "Vrijeme",
+                     limits = c(2000,2004,2007,2012,2016))+
+    scale_y_discrete("Dobit; mlrd kn", limits = c(-0.2, 0, 0.5,1,1.5,2,2.5,3,3.5,4))+
+    geom_vline(xintercept = 2007,
+               linetype = "dashed")
+#placa
+pl6 <- ggplot(dr, aes(reportyear, plata, colour = as.factor(rekod))) +
+    geom_line(size = 1) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 10)) +
+    guides(color = guide_legend("J_podsektori"))+
+    ylab("Placa; kn")+
+    ggtitle("Placa u J podsektorima")+
+    scale_x_discrete(name = "Vrijeme",
+                     limits = c(2000,2004,2007,2011, 2016))+
+    geom_vline(xintercept = 2011,
+               linetype = "dashed")+
+    scale_y_discrete("Placa;kn", 
+                     limits = c(3000,4000,5000,6000,7000,8000))
+
+
+
+```
+
+Vremenska dinamika broja novootvorenih tvrtki u J podsektorima  prikazana je na grafikonu 4. Primjećuje se da podsektor *programiranja* (J:62) karakterizira najveći broj novih tvrtki u cijelokupnom promatranom razdoblju 2000:2016, a taj se trend  intenzivirao nakon 2009. godine. Ostali podsektori (J:63 i J:59) također bilježe porast broja tvrtki ali je riječ o znatno manjim apsolutnim vrijednostima. Zanimljivo je da broj tvrtki u podsektoru *telekomunikacija* nakon krize stagnira dok je u *izdavaštvu* (J:58), koje je najlošije prošlo u krizi, negativan trend nakon 2009. godine relativno snažno naglašen. Dobit većine podsektora stagnira ili blago raste u cjelokupnom promatranom razdoblju dok su iznimke podsektor *programiranja* koji karakterizira rastuća dobit u cjelokupnom razdoblju te podsektor *telekomunikacija* koji do krize ima rastuću dobit po visokim stopama,a nakon krize intenzivan opadajući trend dobiti.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+  
+ggarrange (pl1, pl5, nrow = 1,ncol = 2, common.legend = TRUE, legend = "bottom" )
+
+
+```  
+
+Iako su prosječne plaće u podsektoru *telekomunikacija* (J:61) više nego u podsektoru *programiranja* (J:62), grafikon 5 pokazuje kako se broj zaposlenih u *telekomunikacijama* smanjuje u cjelokupnom promatranom razdoblju 2000:2016, a posebno intenzivno nakon krize. Snažan opadajući trend broja zaposlenih nakon krize  također je vidljiv u sektoru *izdavaštva* (J:58) i *radiotelevizije* (J:60). Najviše je novozaposlenih u podsektoru *programiranja* (J:62) ali valja istaknuti i podsektor *informacijskih servisa* (J:63) koji je nakon krize zaposlio oko 1500 ljudi. Zanimljivo je promotriti i kretanje prosječnih  plaća  (vidljiva je ljepljivost plaća; reagiraju sa zakašnjenjem od 3 godine nakon izbijanja krize) po podsektorima koje do 2011. godine imaju rastući trend, a nakon toga uglavnom stagniraju te malo koji podsektor uspijeva preskočiti razinu prije krize. Promotri li kretanje zaposlenosti i plaća zajedno, jasno je da "ozbiljan" ekonomski rast (simultani porast plaća i broja zaposlenih) postoji samo u podsektoru *programiranja* (J:62) i *informacijskih servisa* (J:63).
+  
+``` {r echo=FALSE, message=FALSE, warning=FALSE}
+  
+ggarrange (pl2, pl6, nrow = 1,ncol = 2, common.legend = TRUE, legend = "bottom" )
+
+
+```   
+
+Posebno zanimljiv je trend kretanja izvoza i prihoda u podsektorima *informacija i komunikacija*. Na grafikonu 6 vidljivoj je kako nakon 2008. godine izvoz intenzivno raste u podsektoru *programiranja* (J:62), a zamjetan je i dobar rast u podsektorima *informacijskih servisa* (J:63) te obrade *audio i video materijala* (J:59), iako na znatno nižim apsolutnim razinama nego u podsektoru *programiranja.* Znatan gubitak izvoznog tržišta  vidljiv je u *telekomunikacijskom sektoru* (J:61) te blagi pad u *izdavaštvu* (J:58) i *radiotelevizijskim djelatnostima* (J:60). Važno je primjetiti znatno sporiji rast prihoda na domaćem tržištu u odnosu na rast izvoza. To daje naslutiti kako je dobar dio izvrsnih performansi domaćega digitalnog sektora zasnovan na stranoj potražnji te upućuje na općenito slabu razvojnu dinamiku domaćeg digitalnog tržita. Ima osnove za pretpostavku da pozitivni trendovi u domaćoj digitalnoj ekonomije odražavaju trendove na globalnim tržištima (izvoz), a ne domaće razvojne potrebe.
+
+``` {r echo=FALSE, message=FALSE, warning=FALSE}
+  
+ggarrange (pl3, pl4, nrow = 1, ncol = 2, common.legend = TRUE, legend = "bottom" )
+
+
+```     
+
+Na grafikonu 7 se jasno vidi da je strana potražnja dominantni generator pozitivnih trendova u domaćoj digitalnoj ekonomiji. Prihodi podsektora *programiranja* (J:62) na domaćem tržištu u razdoblju 2008:2016 rastu oko 80%, a izvoz tog sektora u istom razdoblju porastao je skoro 300%. Dodatno, iz panela na grafikonu 7 koji prikazuje apsolutnu promjenu izvoza vidljivo je da je gotovo cjelokupni porast izvoza vezan upravo uz sektor *programiranja* (J:62). Taj je zaključak na tragu otprije spomenute analize [Borisa Žitnika](https://www.hgk.hr/documents/hr-it-2018-brosura-v45c35ed1666f32.pdf) koji ide korak dalje ističući da je u pozadini tog trenda obavljanje lohn poslova domaćih kompanija u stranom vlasništvu za izvoz s obzirom na relativno jeftin domaći ljudski kapital. 
+
+  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#pregled porasta J sektora/bar_chartovi
+
+data %>% 
+  filter(nacerev21 == "J", reportyear >= 2008) %>%
+  mutate(nacechar = as.character(nacerev22),
+         rekod = recode(nacechar, 
+                            "58" =  "Izdavačke djelatnosti",
+                            "59" =  "Proizvodnja audio i video sadržaja",
+                            "60" =  "Emitiranje programa",
+                            "61" =  "Telekomunikacije",
+                            "62" =  "Programiranje",
+                            "63" =  "Informacijske uslužne djelatnosti")) %>%
+  group_by(reportyear, rekod) %>%
+  summarise(Prihodi = sum (Prihod, na.rm = TRUE),
+            Zaposleni = sum (Zaposleni, na.rm = TRUE),
+            Place = sum (Placa, na.rm = TRUE),  
+            Izvoz = sum (Export, na.rm = TRUE),    
+            Nett = sum (Nett, na.rm = TRUE),
+            zaposleni2 = sum (employeecounteop, na.rm = TRUE), 
+            plata =  (sum (Placa, na.rm = TRUE)/(zaposleni2 = sum (employeecounteop, na.rm = TRUE)))*1000000000/12,
+            n = n_distinct(subjectid)) %>%
+  group_by(rekod) -> zrast
+
+zrast %>%
+  mutate(rast = n - dplyr::lag(n)) %>%
+  summarise(abs_rast = sum(rast, na.rm = TRUE),
+            rel_rast = (tail(n, 1) - head(n,1))/ head(n,1)*100) %>% arrange(desc(rel_rast)) -> br
+
+zrast %>%
+  mutate(rast = Prihodi - dplyr::lag(Prihodi)) %>%
+  summarise(abs_rast = sum(rast, na.rm = TRUE),
+            rel_rast = (tail(Prihodi,1)- head(Prihodi,1))/head(Prihodi,1)*100) %>%
+  arrange(desc(rel_rast)) -> prihod
+
+zrast %>%
+  mutate(rast = Izvoz -dplyr::lag(Izvoz)) %>%
+  summarise(abs_rast = sum(rast, na.rm = TRUE),
+            rel_rast = (tail(Izvoz,1)-head(Izvoz,1))/head(Izvoz,1)*100) %>%
+  arrange(desc(rel_rast)) -> izvoz
+
+zrast %>%
+  mutate(rast = Zaposleni -dplyr::lag(Zaposleni)) %>%
+  summarise(abs_rast = sum(rast, na.rm = TRUE),
+            rel_rast = (tail(Zaposleni,1)-head(Zaposleni,1))/head(Zaposleni,1)*100) %>%
+  arrange(desc(rel_rast)) -> zaposleni
+
+zrast %>%
+  mutate(rast = plata -dplyr::lag(plata)) %>%
+  summarise(abs_rast = sum(rast, na.rm = TRUE),
+            rel_rast = (tail(plata,1)-head(plata,1))/head(plata,1)*100) %>%
+  arrange(desc(rel_rast)) -> plata
+
+
+
+# ggplot(br ,aes(reorder(nacerev22, -abs_rast), abs_rast, fill = ifelse(nacerev22 == "62", "Normal", "High"))) +
+ # geom_bar(stat = "identity") +
+ # gtitle("Apsolutna promjena broja tvrtki u J podsektorima; 2008:2016") +
+ # theme_bw() +
+ # theme(legend.position = "none") +
+ # scale_x_discrete("Podsektori J djelatnosti") +
+ # scale_y_continuous("")
+#  ggplot(br, aes(reorder(nacerev22, -rel_rast), rel_rast, fill = ifelse(nacerev22 == "62", "Normal", "High"))) +
+ # geom_bar(stat = "identity") +
+ # ggtitle("Relativna promjena broja tvrtki; 2008:2016") +
+ # theme_bw()+
+ # theme(legend.position = "none") +
+ # scale_x_discrete("Podsektori J djelatnosti") +
+ # scale_y_continuous("", labels = function(rel_rast) paste0(rel_rast, "%"))
+  
+
+pr <- ggplot(prihod ,aes(reorder(rekod, abs_rast), abs_rast, fill = ifelse(rekod == "Programiranje", "Normal", "High"))) +
+  geom_bar(stat = "identity") +
+  ggtitle("Grafikon 7:\n Apsolutna promjena agregatnog prihoda; 2008:2016") +
+  theme_bw()+
+  theme(legend.position = "none", 
+        plot.title = element_text(size = 8) ) +
+  scale_x_discrete("Podsektori J djelatnosti") +
+  scale_y_continuous("mlrd kn") +
+  coord_flip()
+pa <- ggplot(prihod, aes(reorder(rekod, rel_rast), rel_rast, fill = ifelse(rekod == "Programiranje", "Normal", "High"))) +
+  geom_bar(stat = "identity") +
+  ggtitle("Relativna promjena agregatnog prihoda; 2008:2016") +
+  theme_bw()+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 8)) +
+  scale_x_discrete("") +
+  scale_y_continuous("", labels = function(rel_rast) paste0(rel_rast, "%"))+
+  coord_flip()
+
+
+ir <- ggplot(izvoz ,aes(reorder(rekod, abs_rast), abs_rast, fill = ifelse(rekod == "Programiranje", "Normal", "High"))) +
+  geom_bar(stat = "identity") +
+  ggtitle("Apsolutna promjena agregatnog izvoza; 2008:2016") +
+  theme_bw()+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 8))+
+  scale_x_discrete("Podsektori J djelatnosti") +
+  scale_y_continuous("mlrd kn")+
+  coord_flip()
+ia <- ggplot(izvoz, aes(reorder(rekod, rel_rast), rel_rast, fill = ifelse(rekod == "Programiranje", "Normal", "High"))) +
+  geom_bar(stat = "identity") +
+  ggtitle("Relativna promjena agregatnog izvoza tvrtki; 2008:2016") +
+  theme_bw()+
+  theme(legend.position = "none",
+        plot.title = element_text(size = 8)) +
+  scale_x_discrete("") +
+  scale_y_continuous("", labels = function(rel_rast) paste0(rel_rast, "%"))+
+  coord_flip()
+
+
+#ggplot(zaposleni ,aes(reorder(nacerev22, -abs_rast), abs_rast, fill = ifelse(nacerev22 == "62", "Normal", "High"))) +
+ # geom_bar(stat = "identity") +
+ # ggtitle("Apsolutna promjena broja zaposlnih u J podsektorima; 2008:2016") +
+ # theme_bw()+
+ # theme(legend.position = "none")+
+ # scale_x_discrete("Podsektori J djelatnosti") +
+ # scale_y_continuous("")
+#ggplot(zaposleni, aes(reorder(nacerev22, -rel_rast), rel_rast, fill = ifelse(nacerev22 == "62", "Normal", "High"))) +
+ # geom_bar(stat = "identity") +
+ # ggtitle("Relativna promjena broja zaposlnih u J podsektorima; 2008:2016") +
+ # theme_bw()+
+ # theme(legend.position = "none") +
+ # scale_x_discrete("Podsektori J djelatnosti") +
+ # scale_y_continuous("", labels = function(rel_rast) paste0(rel_rast, "%"))
+
+
+#ggplot(plata ,aes(reorder(nacerev22, -abs_rast), abs_rast, fill = ifelse(nacerev22 == "62", "Normal", "High"))) +
+ # geom_bar(stat = "identity") +
+ # ggtitle("Apsolutna promjena place u J podsektorima; 2008:2016") +
+ # theme_bw()+
+ # theme(legend.position = "none")+
+ # scale_x_discrete("Podsektori J djelatnosti") +
+ # scale_y_continuous("kn")
+#ggplot(plata, aes(reorder(nacerev22, -rel_rast), rel_rast, fill = ifelse(nacerev22 == "62", "Normal", "High"))) +
+ # geom_bar(stat = "identity") +
+ # ggtitle("Relativna promjena place u J podsektorima; 2008:2016") +
+ # theme_bw()+
+ # theme(legend.position = "none") +
+ # scale_x_discrete("Podsektori J djelatnosti") +
+ # scale_y_continuous("", labels = function(rel_rast) paste0(rel_rast, "%"))
+
+grid.arrange(pr,pa,ir, ia, ncol = 2)
+
+```
+
+Zaključno, domaći sektor *informacija i komunikacija* karakteriziraju dobre poslovne performanse, a visoka apsolutna plaća i njezin dinamičan rast u razdoblju nakon ekonomske krize daju naslutiti kako je riječ o  sektoru koji karakterizira i visoka produktivnost. [Paraleni porast izvoza](https://web.stanford.edu/~klenow/Melitz.pdf) i plaće u ovom sektoru također snažno podupire takav zaključak. Prvi dojam upućuje na to da je domaći sektor *informacija i komunikacija* izvrsno razvijen, dinamičan i propulzivan. Ipak, pogledom u strukturu i dinamiku slika je ponešto drugačija. Nositelj pozitivnih trendova i "realnog rasta" dominantno je podsektor *programiranja* (J:63). Riječ je o podsektoru koji apsolutnom veličinom i dinamikom rasta prikazanih pokazatelja u razdoblju nakon krize pridonosi pozitivnom dojmu cjelokupnoga sektora *informacija i komunikacja* (i.e. digitalne ekonomije). Iako bi bila podrebna dodatna analiza, snažne su naznake kako je pozitivan trend i domaćem podsektoru *programiranja* zapravo generiran vanjskom potražnjom, a u pozadini reflektira podrazvijenost domaće digitalne ekonomije koja nema lokalno tržite. 

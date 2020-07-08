@@ -1,0 +1,183 @@
+---
+title: Geografija usluznog sektora
+author: Luka Šikić
+date: '2020-06-18'
+slug: geografija-usluznog-sektora
+categories:
+  - Ekonomika
+tags:
+  - globalizacija
+type: ''
+subtitle: ''
+image: '/img/post_tercijarizacija.jpg'
+bigimg: 
+  - {src: "/img/post_tercijarizacija.jpg", desc: "Globalizacija"}
+---
+---
+title: "Geografija uslužnog sektora"
+author: "dr.sc.Luka Sikic"
+date: '29 01 2020 '
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = F)
+library(knitr)
+
+```
+
+# Društvo usluga
+
+O porastu važnosti uslužnog sektora u svijetu i Hrvatskoj je već bilo govora na ovom [blogu](http://croecon.contentio.biz/post/hrvatska-od-postindustrijskog-do-postmaterijalisti-kog-dru-tva/). Uglavnom sam promatrao **trendove** i **razloge** koji stoje iza rasta uslužnih djelatnosti ili trendove unutar uslužnog sektora. Podatci za Hrvatsku pokazuju *trend* rasta važnosti uslužnih djelatnosti prema relativnim udjelima EU i OECD zemalja u zadnjih 15ak godina i nastavak dugoročnog deindustrijalizacijskog trenda u započetog 1970-ih godina. Analiza mi  također pokazuje da je glavni *razlog* povećanja važnosti uslužnih djelatnosti u Hrvatskoj uglavnom opći porast dohotka/potrošnje, a postoje i [naznake](http://croecon.contentio.biz/post/productivity-puzzle-i-digitalna-ekonomija-u-rh/) da domaći sektor digitalne ekonomije ima važnu ulogu u povećanju općeg tehnološkog kapaciteta i napretka. Ovaj post nastavlja sa analizom uslužnog sektora i uz podršku geografa [Nikole Šimunića](https://pilar.academia.edu/Nikola%C5%A0imuni%C4%87) daje pregled prostornih efekata tercijarizacijskog procesa u Hrvatskoj. 
+
+# Tercijarizacijski proces
+
+Tercijarizacija označava strukturnu promjenu ekonomiji u kojoj raste važnost uslužnih djelatnosti u odnosu na ostatak gospodarstva. Porast važnosti se najčešće mjeri pokazateljima dodane vrijednosti ili broja zaposlenih u tvrtkama koje posluju u tercijarnom sektoru. Od 1970-ih intenzivira se proces tercijarizacije (i deindustrijalizacije) u svijetu i Hrvatskoj, koji od 1990-ih godina do danas postaje dominantan čimbenik promjene u strukturi privrednih djelatnosti. Prema modelu koji su razvili [Clark](https://archive.org/details/in.ernet.dli.2015.223779/page/n91/mode/2up), [Fisher](https://www.amazon.com/Clash-Progress-Security-G-Fisher/dp/B002N453MQ) i Fourastie, društvo je prošlo prestrukturiranje kroz **tri razvojne faze** u kojima se promijenio značaj pojedinih sektora gospodarstva (u smislu udjela zaposlenih prema sektorima). *U predindustrijskom, tradicionalnom društvu* značaj primarnoga sektor, posebice poljoprivrede, bio je od krucijalnog značenja za gospodarstvo pa je najveći udio zaposlenih obavljao zanimanja vezana uz poljoprivredu. *Razvojem industrije* i industrijalizacijom društva, opada značaj poljoprivrede, a sve više raste značaj sekundarnog sektora, odnosno industrije. Dolazi i do porasta udjela zaposlenih u tercijarnom sektoru, odnosno razvoja prometa i ostalih uslužnih djelatnosti. U novije vrijeme društvo se nalazi u tzv. *postindustrijskoj fazi* razvoja u kojoj je udio zaposlenih u poljoprivredi značajno smanjen (iako se povećala proizvodnja zbog razvoja novih tehnologija), udio zaposlenih u industriji se polako smanjuje (robotizacija proizvodnje, opadanje značenja „prljavih“ industrija), dok udio zaposlenih u tercijarnom sektoru bilježi konsolidaciju na visokim razinama. Zbog dinamičnog razvoja tercijarnog sektora dolazi do profiliranja i izdvajanja novih uslužnih sektora (kvartarni, kvintarni) kojima raste važnost, a kasnijim razvojem gospodarstva i pojavom novih djelatnosti  strukturna podjela gospodarstva dopunjena je dvama novim sektorima: kvartarnim (IV) i kvintarnim (V), a prethodno opisani model strukturne promjene je prikazan na donjoj slici.
+
+<details>
+<summary> 
+Prema [Bellu](https://www.os3.nl/_media/2011-2012/daniel_bell_-_the_coming_of_post-industrial_society.pdf), suvremeni sektori gospodarstva su:
+</br>(Klik!)
+</summary>
+<p>
+
+1.	Primarni sektor – obuhvaća poljoprivredu, rudarstvo, ribarstvo, šumarstvo i nadru i plin;
+2.	Sekundarni sektor – obuhvaća proizvodnju dobara (trajnih i potrošnih), i tešku industriju;
+3.	Tercijarni sektor – obuhvaća transport i osobne usluge;
+4.	Kvartarni sektor – obuhvaća trgovinu, financije, osiguranje, nekretnine;
+5.	Kvintarni sektor – obuhvaća zdravstvo, obrazovanje, istraživanja, državnu upravu, rekreaciju i zabavu.
+
+
+</p>
+</details> 
+</br>
+
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl1.png)
+
+# Razlozi
+
+Nekoliko je glavnih čimbenika koji objašnjavaju rast važnosti uslužnih djelatnosti, odnosno tercijarizaciju. Na strani **ekonomske potražnje**, prema Engelovom zakonu, porast bogatstva kućanstva dovodi do relativnog porasta potrošnje na usluge u odnosu na dobra. Porast *potražnje* za uslugama, osim kod kućanstava, raste i kod poduzeća, prvenstveno na osnovi sve većeg opsega usluga koje su potrebne u proizvodnji. [Podatci za Hrvatsku](http://croecon.contentio.biz/post/hrvatska-od-postindustrijskog-do-postmaterijalisti-kog-dru-tva/) pokazuju da upravo *potražnja* bitno utječe na tercijarizacijski proces. Rast međunarodne trgovine, globalizacije i povećanja sektora javnih usluga također utječu na porast *potražnje* za uslugama. Na strani **ekonomske ponude** su razlike u produktivnosti među sektorima najbitnije za razumijevanje rasta uslužnih djelatnosti, uglavnom jer niska produktivnost uslužnih djelatnosti povećava potrebu za proizvodnim faktorima i dovodi do rasta zaposlenosti u tom sektoru. Rast javnoga, obrazovnoga i zdravstvenoga sektora su također bitni čimbenici koji utječu na rast uslužnih djelatnosti na strani *ponude*, a tu je bitno uz globaluzaciju i međunarodnu trgovinu spomenuti i rast tehnologije i ICT sektora.
+
+# Trendovi
+
+Unutarsektorski predvodnik uslužniih djelatnosti zadnjih 5 godina svakako je sektor digitalne ekonomije. Digitalne tehnologije i ICT infrastruktura su nositelji transformacije koja se intenzivira u zadnjih nekoliko i dovodi do **nove uslužne ekonomije**. Nova uslužna ekonomija se zasniva na novim potrošačkim potrebama i obrascima potrošnje omogućenima internetom i umrežavanjem ali i implementacijom digitalnih usluga u pružanju javnih [smart city](https://hrcak.srce.hr/index.php?show=clanak&id_clanak_jezik=302966) i zdravstvenih usluga. Važnost **nove uslužne ekonomije** postaje još jasnija kada se sagleda u kontekstu sveopće digitalne transformacije ( [vidi poziv!](http://drustvena-istrazivanja.pilar.hr/index.php/drustvena-istrazivanja) ) u svijetu i Hrvatskoj koja je bila analizirana i na ovom [blogu](http://croecon.contentio.biz/post/productivity-puzzle-i-digitalna-ekonomija-u-rh/) pokazujući da sektor digitalne ekonomije, kao dio uslužnog sektora, predstavlja najbrže-rastući domaći sektor, domaću tehnološku granicu i ima važan anticiklički efekt.
+
+# Prostor i tercijarizacijski proces
+
+Tercijarizacijski proces, osim ekonomsko-društvenih, proizvodi i **izražene prostorne efekte**. Iako utjecaj tercijarizacije na prostor nije u primarnom istraživačkom fokusu, [literatura](https://pdfs.semanticscholar.org/970d/cc99c40117b29fd875f916cf43060b3067ac.pdf?_ga=2.36921696.1547081543.1580412688-1666620931.1577741448) o prostornim efektima tercijarizacijkog procesa izrazito je bogata i uključuje teoretski okvir nove ekonomske geografije, urbanu ekonomiku, a  na empirijskoj strani mnoštvo modela poput: gravity metodologije, aglomeracijskih modela probabilističke analize, modele prostorne interakcije i dr. Najvažniji zaključci tih istraživanja su da uslužne djelatnosti pokazuju tendenciju prostornog okupljanja, prevenstveno *u velikim gradovima*, no neke djelatnosti poput turizma, pokazuju tendenciju bržeg rasta *u ruralnim i perifernim regijama*. Upravo to potvrđuju i podatci analize za Hrvatsku.
+
+# Analiza utjecaja tercijarizacije na prostor u Hrvatskoj
+
+ <script>
+function myFunction() {
+    var x = document.getElementById("myDIV");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+</script>
+
+
+<button onclick="myFunction()"> Pokaži/ sakrij</button>
+
+<div id="myDIV">
+
+### Podatci
+
+U analizi prostornih efekata tercijarizacijskog procesa koristimo novo dodanu vrijednost na razini tvrtke i po NKD2007 agregiramo do razine definiranih sektora:
+1.	Primarni sektor – obuhvaća NKD 2007. djelatnosti u skupni A;
+2.	Sekundarni sektor – obuhvaća NKD 2007. djelatnosti u skupinama B, C, D, E i F;
+3.	Tercijarni sektor – obuhvaća NKD 2007. djelatnosti u skupinama G, H, I i J;
+4.	Kvartarni sektor – obuhvaća NKD 2007. djelatnosti u skupinama K, L, M i N;
+5.	Kvintarni sektor – obuhvaća NKD 2007. djelatnosti u skupinama O, P, Q, R, S, T i U.
+Novododana vrijednost je izračunata na osnovi godišnjih financijskih izvještaja tvrtki i izračunata na način već opisan na [CroEcon blogu](http://croecon.contentio.biz/post/dodana-nova-vrijednost-hrvatskih-poslovnih-subjekata/). Podatkovni skup uključuje sve aktivne tvrtke u Hrvatskoj u 2002. i 2016. godine i tako predstavlja ukupnu (agregatnu) ekonomiju na strani ponude u ta dva razdoblja. Prostornu dimenziju podataka predstavlja registrirana adresa poduzeća, a mapiranje je provedeno u [GIS](https://hr.wikipedia.org/wiki/Geografski_informacijski_sustav) sustavu.
+
+
+### Agregatne promjene
+
+Bruto dodana vrijednost (dalje: BDV) za Republiku Hrvatsku iznosila je 2002. godine nešto više od 93,2 mlrd. HRK. Ako se razmotri sektorska struktura BDV-a, iste godine BDV je prema sektorima u Republici Hrvatskoj iznosio: primarni sektor – oko 2,5 mlrd. HRK; sekundarni sektor – oko 43,9 mlrd. HRK; tercijarni sektor: oko 35,7 mlrd. HRK; kvartarni sektor: oko 9,9 mlrd. HRK; kvintarni sektor – oko 1,3 mlrd. HRK. Najveća ukupna vrijednost ostvarenog BDV-a (2002.) zabilježena je u Gradu Zagrebu (oko 50,7 mlrd. HRK), a najmanja u Ličko-senjskoj županiji (oko 0,3 mlrd. HRK).
+
+BDV za Republiku Hrvatsku iznosila je 2016. godine nešto manje od 160,7 mlrd. HRK. Ako se razmotri sektorska struktura BDV-a, iste godine BDV je prema sektorima u Republici Hrvatskoj iznosio: primarni sektor – oko 4,3 mlrd. HRK; sekundarni sektor – oko 65,7 mlrd. HRK; tercijarni sektor: oko 61,6 mlrd. HRK; kvartarni sektor: oko 24,0 mlrd. HRK; kvintarni sektor – oko 5,1 mlrd. HRK. Najveća ukupna vrijednost ostvarenog BDV-a (2016.) zabilježena je ponovo u Gradu Zagrebu (oko 78,3 mlrd. HRK), a najmanja također ponovo u Ličko-senjskoj županiji (oko 0,7 mlrd. HRK).
+
+Indeks promjene BDV-a u Republici Hrvatskoj (2016./2002.) iznosio je 172,3, što znači da je BDV u promatranom razdoblju povećan za 72,3%. Indeks promjene BDV-a (2016./2002.) iznosio je za primarni sektor 173,3 (povećanje za 73,3%), sekundarni sektor 149,7 (povećanje za 49,7%), tercijarni sektor 172,7 (povećanje za 72,7%), kvartarni sektor 241,1 (povećanje za 141,1%), te kvintarni sektor 403,2 (povećanje za 303,2%). Najveći indeks promjene BDV-a (2016./2002.) zabilježen je u Zadarskoj županiji (258,8 – povećanje za 158,8%), a najmanji u Koprivničko-križevačkoj županiji (130,7 – povećanje za 30,7%).
+
+### Primarni sektor
+
+Godine 2002., kako je prethodno navedeno, BDV ostvarena u primarnom sektoru je u Republici Hrvatskoj iznosila oko 2,5 mlrd. HRK ili 1,5% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u primarnom sektoru zabilježen je u Gradu Zagrebu (46,9%), a slijedio je tradicionalno agrarni prostor Osječko-baranjska (14,3%) županije. Najmanji udjel BDV ostvarene u primarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,04%).
+Godine 2016., BDV ostvarena u primarnom sektoru je u Republici Hrvatskoj iznosila oko 4,3 mlrd. HRK ili 2,7% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u primarnom sektoru zabilježen je ponovo u Gradu Zagrebu (33,1%), a slijedila je Osječko-baranjska županija (20,6%). Najmanji udjel BDV ostvarene u primarnom sektoru zabilježen je u Šibensko-kninskoj županiji (0,3%).
+
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl2.jpg)
+
+
+Najveće povećanje udjela ostvarene BDV u primarnom sektoru (2002. – 2016.) zabilježeno je u Virovitičko-podravskoj (+10,2 postotnih bodova) i Brodsko-posavskoj županiji (+9,7 postotnih bodova), a najveće smanjenje u Vukovarsko-srijemskoj (-7,3 postotnih bodova) i Zagrebačkoj županiji (-1,6 postotnih bodova) (Slika 2.).
+
+### Sekundarni sektor
+
+Godine 2002., BDV ostvarena u sekundarnom sektoru je u Republici Hrvatskoj iznosila oko 43,9 mlrd. HRK ili 47,1% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u sekundarnom sektoru zabilježen je u Gradu Zagrebu (50,5%), a slijedila je Splitsko-dalmatinska županija (6,0%) sa razvijenom splitskom industrijskom regijom. Najmanji udjel BDV ostvarene u sekundarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,3%).
+Godine 2016., BDV ostvarena u sekundarnom sektoru je u Republici Hrvatskoj iznosila oko 65,7 mlrd. HRK ili 40,9% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u sekundarnom sektoru zabilježen je ponovo u Gradu Zagrebu (42,3%), a slijedila je Splitsko-dalmatinska županija (6,1%). Najmanji udjel BDV ostvarene u sekundarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,5%).
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl3.jpg)
+
+Najveće povećanje udjela ostvarene BDV u sekundarnom sektoru (2002. – 2016.) zabilježeno je u Vukovarsko-srijemskoj (+17,4 postotnih bodova) i Međimurskoj županiji (+5,0 postotnih bodova), a najveće smanjenje u Šibensko-kninskoj (-17,7 postotnih bodova) i Požeško-slavonskoj županiji (-11,1 postotnih bodova) (Slika 3.).
+
+
+### Tercijarni sektor
+
+Godine 2002., BDV ostvarena u tercijarnom sektoru je u Republici Hrvatskoj iznosila oko 35,7 mlrd. HRK ili 38,3% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u tercijarnom sektoru zabilježen je u Gradu Zagrebu (57,9%), a slijedila je Primorsko-goranska županija (7,3%) s Rijekom kao razvijenim prometnim središtem. Najmanji udjel BDV ostvarene u tercijarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,3%).
+Godine 2016., BDV ostvarena u tercijarnom sektoru je u Republici Hrvatskoj iznosila oko 61,6 mlrd. HRK ili 38,4% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u tercijarnom sektoru zabilježen je ponovo u Gradu Zagrebu (49,9%), a slijedila je Splitsko-dalmatinska županija (8,4%). Najmanji udjel BDV ostvarene u tercijarnom sektoru zabilježen je u Virovitičko-podravskoj županiji (0,2%).
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl4.jpg)
+
+Najveće povećanje udjela ostvarene BDV u tercijarnom sektoru (2002. – 2016.) zabilježeno je u Ličko-senjskoj (+12,1 postotnih bodova) i Istarskoj županiji (+12,1 postotnih bodova), a najveće smanjenje u Vukovarsko-srijemskoj (-10,8 postotnih bodova) i Brodsko-posavskoj županiji (-6,0 postotnih bodova). Promjena udjela nije zabilježena u Varaždinskoj i Zagrebačkoj županiji (Slika 4.).
+
+
+### Kvartarni sektor
+
+Godine 2002., BDV ostvarena u kvartarnom sektoru je u Republici Hrvatskoj iznosila oko 9,9 mlrd. HRK ili 10,7% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u kvartarnom sektoru zabilježen je u Gradu Zagrebu (62,0%), a slijedila je Istarska županija (13,3%) kao razvijena regija čiji je gospodarski razvoj generiran razvojem turizma. Najmanji udjel BDV ostvarene u kvartarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,1%).
+Godine 2016., BDV ostvarena u kvartarnom sektoru je u Republici Hrvatskoj iznosila oko 24,0 mlrd. HRK ili 14,9% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u kvartarnom sektoru zabilježen je ponovo u Gradu Zagrebu (66,7%), a slijedila je Istarska županija (7,6%). Najmanji udjel BDV ostvarene u kvartarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,1%).
+
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl5.jpg)
+
+Najveće povećanje udjela ostvarene BDV u kvartarnom sektoru (2002. – 2016.) zabilježeno je u Gradu Zagrebu (+8,3 postotnih bodova) i Osječko-baranjskoj županiji (+6,1 postotnih bodova), a najveće smanjenje u Istarskoj (-4,2 postotnih bodova) i Varaždinskoj županiji (-4,1 postotnih bodova) (Slika 5.).
+
+
+### Kvintarni sektor
+
+Godine 2002., BDV ostvarena u kvintarnom sektoru je u Republici Hrvatskoj iznosila oko 1,3 mlrd. HRK ili 1,3% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u kvintarnom sektoru zabilježen je u Gradu Zagrebu (41,9%), a slijedila je Primorsko-goranska županija (13,3%) kao razvijena regija sa središnjom razvojnom ulogom grada Rijeke. Najmanji udjel BDV ostvarene u kvintarnom sektoru zabilježen je u Virovitičko-podravskoj županiji (0,2%).
+Godine 2016., BDV ostvarena u kvintarnom sektoru je u Republici Hrvatskoj iznosila oko 5,1 mlrd. HRK ili 3,2% ukupne BDV Republike Hrvatske. Najveći udjel BDV ostvarene u kvintarnom sektoru zabilježen je ponovo u Gradu Zagrebu (46,4%), a slijedila je Splitsko-dalmatinska županija (13,0%). Najmanji udjel BDV ostvarene u kvintarnom sektoru zabilježen je u Ličko-senjskoj županiji (0,1%).
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl6.jpg)
+
+Najveće povećanje udjela ostvarene BDV u kvintarnom sektoru (2002. – 2016.) zabilježeno je u Zadarskoj (+5,1 postotnih bodova) i Šibensko-kninskoj županiji (+4,6 postotnih bodova), a najveće smanjenje u Ličko-senjskoj (-22,6 postotnih bodova) i Brodsko-posavskoj županiji (-0,2 postotna boda). Promjena udjela nije zabilježena u Dubrovačko-neretvanskoj županiji (Slika 6.).
+
+
+### Tercijarni vs. netercijarni sektor
+
+Iz donjeg prikaza objedinjenog udjela netercijarnog sektora (I+II sektor), te tercijarnog sektora u širem smislu (III+IV+V sektor) po županijama 2002. i 2016. godine je vidljivo da su u početnom razdoblju (godine 2002.) najveće udjele netercijarnog sektora imale Koprivničko-križevačka (83,5%) i Karlovačka županija (78,5%), a najmanje Dubrovačko-neretvanska (27,5%) i Primorsko-goranska županija (37,3%). Godine 2016. najveće udjele netercijarnog sektora imale su Karlovačka (77,0%) i Virovitičko-podravska županija (76,3%), a najmanje Dubrovačko-neretvanska (18,4%) i Istarska županija (33,5%). Najveći intenzitet tercijarizacije zabilježen je u Šibensko-kninskoj, Splitsko-dalmatinskoj, Dubrovačko-neretvanskoj županiji i u Gradu Zagrebu. S druge strane, u promatranom razdoblju proces tercijarizacije još uvijek nije zahvatio 7 hrvatskih županija, od kojih posebno nije zahvatio Vukovarsko-srijemsku županiju (Slika 7.).
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl7.jpg)
+
+
+### Prosječna hrvatska županija
+
+Svođenjem na prosječne vrijednosti, moguće je vizualno prikazati sektorski profil prosječne hrvatske županije.
+
+![](/post/2020-06-18-geografija-usluznog-sektorahr_files/sl8.jpg)
+
+Prosječna hrvatska županija 2002. godine ostvarila je sljedeće udjele BDV po sektorima: primarni sektor – 3,2%; sekundarni sektor – 55,4%; tercijarni sektor – 32,0%; kvartarni sektor – 7,1%; kvintarni sektor – 2,4%. Godine 2016., prosječna hrvatska županija ostvarila je sljedeće udjele BDV po sektorima: primarni sektor – 4,7%; sekundarni sektor – 51,6%; tercijarni sektor – 32,6%; kvartarni sektor – 8,2%; kvintarni sektor – 2,9%. Iz toga proizlazi da je u razdoblju 2002. – 2016. prosječno povećan udio BDV u primarnom sektoru (+1,5 postotnih bodova), smanjen u sekundarnom sektoru (-3,7 postotnih bodova), te povećan u tercijarnom (+0,6 postotnih bodova), kvartarnom (+1,2 postotnih bodova) i kvintarnom sektoru (+0,5 postotnih bodova) (Slika 8.). Sve navedeno ide u prilog potvrde tercijarizacije hrvatskog gospodarstva u cjelini (gledano kroz prizmu dodane vrijednosti).
+
+</div>
+
+
+
+# Neka zaključna razmatranja
+
+Tercijarizacija je dugoročni strukturni proces započeo prije 50ak godina koji se zadnjih 15 godina intenzivira u Hrvatskoj. Osim povećanja važnosti uslužnog sektora u strukturi hrvatskog gospodarstva, podatci pokazuju da je tercijarizacijski trend prvenstveno potaknut domaćom potrošnjom (*potražnjom*). Unutar domaćeg uslužnog sektora posebno je naglašeno povećanje tehnološkog kapaciteta i rasta poslovnih pokazatelja u sektoru digitalne ekonomije, koji je postao domaća tehnološka granica. Razumijevanje tercijarizacijskog procesa u Hrvatskoj ograničenog je opsega, a ova analiza nadopunjuje postojeće spoznaje prostornim aspektima. Analiza pokazuje da, prosječna hrvatska županija, iako u najvećem dijelu još uvijek orjentirana na proizvodne djelatnosti, značajno povećava udjel uslužnih djelatnosti u zadnjih 15 ak godina. Prosjek skriva zanimljivu dinamiku na županijskoj razini gdje ima dosta međusobnih razlika, prvenstveno između primorske regije i grada Zagreba sa jedne i ostatka Hrvatske sa druge strane pa se može zaključiti da je proces tercijarizacije u Republici Hrvatskoj uvjetovan snažnim turističkim razvojem županija Jadranske Hrvatske u većoj mjeri, te sveopćim gospodarskim razvojem i ulogom Grada Zagreba.

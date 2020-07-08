@@ -1,0 +1,68 @@
+---
+title: Kako preuzeti e-mailove sa web stranice pomoću R-a?
+author: Mislav Sagovac
+date: '2019-07-25'
+slug: kako-preuzeti-e-mailove-sa-web-stranice-pomo-u-r-a
+categories:
+  - R
+tags:
+  - web scraping
+type: ''
+subtitle: ''
+image: ''
+bigimg: 
+  - {src: "/img/post_web_scraping_email.jpg", desc: "Web"}
+
+---
+
+Mali poduzetnici do novih potencijalnih klijenta dolaze na četiri glavna načina: poštom, e-mailom, hladnim pozivom ili preporukom. Iako postoji cijela teorija marketinga o tome kako doći do novih klijenata, prvi kontakt se u većini slučajeva temelji na ove 4 jednostavne tehnike (barem kada je riječ o B2B prodaji). U ovom postu ću pokazati kako se pomoću programskog jezika R može relativno jednostavno prikupiti javno dostupne e-mail adrese sa određene stranice. Studij slučaja koji ću prikazati isprogramirao sam s ciljem preuzimanja e-mail adresa banaka u BiH. Jednostavnim *google* pretraživanjem naišao sam na sljedeću [stranicu](https://www.cbbh.ba/Content/Read/7). Na toj web adresi nalaze se e-mail adrese svih banaka u Federaciji i Republici Srpskoj. Specifičnost ovoga pothvata je u tome što e-mail adrese nisu dio texta (nisu unutar `<p>` *taga*), nego su slika (tekst se nalazi unutar slike). U nastavku je opis kako programski preuzeti ove adrese koristeći R.
+
+Glavni alat za ovakav projekt je poznati paket za web scraping u R-u, [rvest](https://cran.r-project.org/web/packages/rvest/rvest.pdf). Prvo je potrebno učitati web stranicu kao html file:
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(tesseract)
+
+
+# get pictures links
+p <- read_html("https://www.cbbh.ba/Content/Read/7", encoding = "UTF-8")
+p
+```
+
+Output pokazuje status 200, što znači da je zahtjev prošao i da smo uspješno preuzeli web stranicu kao html dokument. Sljedeći korak je pronalaženje svih e-mail adresa na stranici. Za to ćemo koristiti dvije funkcije: `html_nodes` i `html_attr`. Prva funkcija izvlači dijelove HTML dokumenta prema zadanom **XPath-u** ili **CSS selectoru**, koji su posebno korisni u kombinaciji sa [selectorgadget]( http://selectorgadget.com/:) alatom koji omogućuje lako pronalaženje željenog dijela HTML dokumenta, odnosno poveznicu podatka koji se preuzima. Budući da su e-mailovi spremljeni kao slike, potražit ćemo sve dijelove HTML dokumenta koji imaju `<img>` **tag**, a zatim izvući poveznicu na kojoj se nalazi slika izvlačenjem `src` atributa. Postupak za to je sljedeći:
+
+```{r}
+email <- p %>% 
+  html_nodes("img") %>% 
+  html_attr("src") %>% 
+  .[stringr::str_detect(., "img_mails")]
+email
+```
+
+Zadnja linija koda filtira samo one slike koje sadrže e-mail, to jest elemente vektora koji sadrže pojam "img_mails". Output čine poveznice na slike koje sadrže e-mail adrese. Kada bi e-mailovi bili u tekstualnom fomatu, a ne slikovnom, posao bi bio ovdje završio. U samo tri linije koda bi preuzeli sve e-mail adrese sa stranice. Međutim, ovdje to nije slučaj. Sljedeći zadatak je preuzimanje svih slika pomoću poveznica i njihovo spremanje na lokalnom računalu. Ovo je relatinvo jednostavan zadatak i može se izvesti pomoću funkcije `download.file`. Koristeći poveznice kao prvi argument, lokaciju za lokalno pohranjivanje kao drugi i model za spremanje kao treći argument, u samo jednoj liniji koda preuzimamo sve dokumente:
+
+```{r}
+# doewnload pictures
+for (i in 1:length(email)) {
+  download.file(paste0("https://www.cbbh.ba", email[i]), paste0("C:/Users/Mislav/Documents/email_", i, ".png"), mode = "wb")
+}
+```
+
+Glavna funbkcija je uklopljena u *for loop* koji za svaki e-mail primjenjuje `download.file` funkciju. Nakon što o smo preuzeli sve slike potrebno je napraviti samo još jedan korak, prepoznati tekst na slikama. Ovo je moguće pomoću poznatog **open source** paketa za čitanje teksta sa slika - `tesseract`:
+
+```{r}
+# ocr pictures
+engine <- tesseract(language = "eng",
+                    options = list(tessedit_char_whitelist = "0123456789abcdefghijklmnopqrstuvwxyz"))
+
+emailPath <- list.files("C:/Users/Mislav/Documents", pattern = "email", full.names = TRUE)
+emailOCR <- vector("character", length(emailPath))
+for (i in 1:length(emailPath)) {
+  emailOCR[i] <- ocr(emailPath[i], engine = engine)
+}
+emailOCR <- trimws(emailOCR)
+emailOCR
+```
+
+To je sve! Pomoću nekoliko redova koda preuzeli smo e-mail adrese sa web stranice, koje su prvotno bile prikazane kao slike. Ako se e-mailovi nalaze u `<p>` **tagovima**, proces je znatno jednostavniji od prikaznog pa e-mail adrese možete preuzeti uz par linija koda.

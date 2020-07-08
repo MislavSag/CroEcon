@@ -1,0 +1,28 @@
+---
+title: Strukturirani podaci o zaposlenosti HZMO-a
+author: Mislav Šagovac
+date: '2018-03-04'
+slug: strukturirani-podaci-o-zaposlenosti-hzmo-a
+categories:
+  - Ekonomika
+  - R
+tags:
+  - Shiny
+  - Tržište rada
+---
+
+U prošlom [postu](http://croecon.contentio.biz/post/croecon-differentia-specifica/) je pomoću programskog jezika R i paketa Shiny izrađena interaktivna analiza životnog standarda u RH i članicama EU. U ovom postu će se makro podaci nadopuniti podacima o zaposlenosti jer oni, uz gospodarski rast, najvjernije odražavaju stanje neke ekonomije. Kao i u prošlom postu, cilj nije pružiti detaljnu analizu zaposlenosti, već prezentirati opće trendove i omogućiti ostalim čitateljima korištenje podataka za svoje vlastite analize. 
+
+Podaci o zaposlenosti najčešće su vjerodostojniji pokazatelj kretanja na tržištu rada od podataka o nezaposlenosti. Za sve zaposlene postoji potreba uplate doprinosa u državni proračun pa je relativno lako identificirati osobe koje su u određenom trenutku zaposlene. Izuzetak su dakako osobe "zaposlene" na crno, bez zasnivanja radnog odnosa, ali možemo pretpostaviti da je to ipak manji udio zaposlenih i da je najčešće riječ o kratkotrajnim poslovima. Kod izračuna broja nezaposlenih postoji znatno više metodoloških poteškoća jer se nezaposlenom osobom smatra samo ona osoba koja je dio radne snage i aktivno traži posao, što je vrlo teško točno utvrditi. Dodatno, broj nezaposlenih se može smanjivati zbog iseljavanja radne snage, pa analiza dinamike nezaposlenih može dovesti do krivih zaključaka o kretanjima na tržištu rada. 
+
+Podaci o zaposlenima u RH najčešće se preuzimaju iz tri izvora. Opis podataka je već dan u [objavi](https://arhivanalitika.hr/blog/dajte-da-rascistimo-tu-zbrku-oko-podataka-o-zaposlenosti/) na arhivanalitici pa nema potrebe ponovno objašnjavati kako se podaci prikupljaju i koje su razlike između pojedinih izvora. Od tri izvora, u ovom blogu će se prikazati podaci prikupljeni od strane HZMO-a. Međutim, za razliku od nekih dosadašnjih postova, prikazat će se struktura zaposlenih po kriteriju spola i vrste osiguranja. Dodatno, podaci se mogu promatrati na razini županija i gradova, što može dati dodatan uvid o nejednakosti stopa rasta zaposlenosti u RH.
+
+Podaci se mogu pogledati i preuzeti na [CroEcon](https://forensis.shinyapps.io/CroEcon/) aplikaciji (pogledati prethodni [post](http://croecon.contentio.biz/post/croecon-differentia-specifica/) za razloge korištenja aplikacije). Potrebno je kliknuti na karticu "Tržište rada". Nakon toga se pojavljuje ptretraživač u kojem je moguće izabrati županiju i grad. Ako se polja ostave prazna (to jest izabere se sve), prikazat će se podaci za cijelu RH. Tablica se može preuzeti na različite načine: excel, csv, pdf, ispis). Klikom na pojedini redak pojavljuje se i grafikon s dinamikom broja zaposlenih u RH.
+
+Na žalost, u aplikaciji ne postoje podaci za kraj 2017 u strukturiranoj formi, ali u posljednjim [statističkim informacijama HZMO-a](http://www.mirovinsko.hr/UserDocsImages/publikacije/statisticke_informacije/2017/4/Statisticke_informacijeHZMOa_4_2017_veljaca2018.pdf) može se vidjeti stanje za prosinac 2017. Broj osiguranika iznosi 1.475.044. Iz podataka je jasno da postoji jasan trend rasta broja zaposlenih u razdoblju 2014-2016. Rast iznosi 5.5% u trogodišnjem razdoblju. Iako je trend pozitivan posljednje tri godine, treba napomenuti da se prema podacima HZMO još uvijek nalazimo na razinama iz razdoblja 2004-2005. Iako je oporavak započeo još je daleko od predkriznih razina.
+
+Tablica omogućuje još dvije razine promatranja. Jedna je vrsta osiguranja, a druga spol. Analiza prema spolu pokazuje manju razinu zaposlenosti žena, kroz cijelo razdoblje, ali i smanjenje jaza u prethodne tri godine. Na kraju 2013. razlika u zaposlenosti iznosi 9 tisuća , a na kraju 2016. 7 tisuća zaposlenih. Žene su zastupljenije jedino u vrsti osiguranja "Radnici kod fizičkih osoba". Kada se gleda struktura prema vrsti osiguranja, najveći broj osiguranika radi kod pravnih osoba (85%), zatim kod fizičkih osoba (7%), obrtnika (4%), samostalnim profesionalnim djelatnostima  (2%), a ostali čine 1 ili manje posto zaposlenih. Čitatelji mogu samostalno analizirati potonje podatke za određeni grad ili županiju, kako bi dodatno ispitali heterogenost u strukturi i broju zaposlenih. Primjerice podaci za splitsko-dalmatinsku i zadarsku županiju pokazuju rast u cijelom razdoblju, dok podaci za virovitičko-podravsku i koprivničko križevačku pokazuju pad broja zaposlenih na početku i znatno slabiji oporavak u prethodne dvije godine.
+
+Iz ove kratke analize može se zaključiti da prema podacima broj zaposlenih raste u posljednje tri godine, ali da je razina iz 2017 još ucijek 8% niža od razine iz 2008. Pri tome postoji heterogenosti kretanjima kako prema vrsti osiguranja (raste broj osiguranih kod pravnih osoba, a smanjuje se broj obrtnika, poljoprivrednika, samostalnih profesionalnih djelatnosti i radnika kod fizičkih osoba), tako i prema spolu (zaposleno je manje žena, ali se jaz smanjuje) i županijama (očekivano, županije iz Slavonije pokazuju manje stope rasta zaposlenosti).
+
+

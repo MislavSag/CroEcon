@@ -1,0 +1,214 @@
+---
+title: Predviđanje cijene dionica pomoću modela dubokog učenja
+author: Mislav Šagovac
+date: '2019-03-20'
+slug: predvi-anje-cijene-dionica-uz-pomo-u-modela-dubokog-u-enja
+categories:
+  - Financije
+  - R
+tags:
+  - duboko učenje
+  - dionice
+  - R
+  - Shiny
+type: ''
+subtitle: ''
+bigimg:
+  - {src: "/img/triangle.jpg", desc: "Triangle"}
+  - {src: "/img/sphere.jpg", desc: "Sphere"}
+  - {src: "/img/hexagon.jpg", desc: "Hexagon"}
+---
+
+Prošli tjedan sam započeo novi hobistički projekt. Riječ je o analizi dionica u Hrvatskoj i susjednim zemljama. Konačan broj zemalja koji će biti uključen u analizu ovisit će politici otvorenosti podataka pojedinih burzi. Projekt ću kontinuirano prezentirati na ovom blogu, na novoj Shiny aplikaciji koju ću razvijati isključivo za ovu svrhu i Github repozitoriju, odnosno R paketu koji će sadržavati sve ključne funkcije važne za projekt. Cilj je više edukativni: primjenom statističkih modela za predikciju cijena dionica upoznati sebe, ali i zainteresirane čitatelje sa klasičnim i *state of the art* modelima za predikciju vremenskih serija (cijena dionice). Pri tome prvenstveno mislim na modele iz područja dubokog učenja. Analiza će se uglavnom temeljiti na primjeni postojećih paketa u R-u (keras interface, forecast paket i sl.) i Pythonu (Keras, PyTorch i sl.).
+
+Za početak ću se fokusirati na hrvatsko tržište dionica. Prije primjene bilo kakvih modela, potrebno je prikupiti podatke za analizu dionica. Zagrebačka burza (ZSE) redovito objavljuje podatke o trgovanjima na svojim web stranicama. Podaci o trgovanju mogu se preuzeti s [ove stranice]( http://www.zse.hr/default.aspx?id=26521). Ručno prikupljanje podataka za svaki dan zahtijevalo bi podosta vremena pa sam za početak napisao funkciju koja preuzima podatke sa ZSE stranice u strukturiranom obliku. Funkcija je dostupna na Github [repozitoriju](https://github.com/MislavSag/stocksee/blob/master/R/tradeZSE.R). S obzirom da funkcija projekta nije web scraping, odnosno preuzimanje podataka sa weba, neću posebno objašnjavat dijelove koda. Za one koji će koristiti paket, podaci se mogu preuzeti na sljedeći način:
+
+```{r warning=FALSE,message=FALSE}
+# instalirati paket
+# devtools::install_github("MislavSag/stocksee")
+# ucitati paket
+library(stocksee)
+
+# preuzimanje podataka o cijenama sa ZSE-a, za travanj
+cijeneTravanj <- stocksee::trade_data("2019-03-01", "2019-03-18", wait = 1L)
+
+head(cijeneTravanj)
+```
+
+Ako se funkcija `trade_data` koristi bez argumenata, `trade_data(wait = 1L)`, preuzimaju se svi trgovinski podaci dostupni na ZSE (iz nekog razloga ZSE nema dostupne podatke prije 2008. godine). Za osobe  koje ne koriste R, a htjeli bi brzo preuzeti podatke o cijenama, mogu podatke o pojedinoj dionici preuzeti sa nove Shiny aplikacije [stockForensis](https://forensis.shinyapps.io/FinStat/), koju ću razvijati zajedno s projektom. Aplikacija je za sada jako siromašna, ali s vremenom će, nadam se, postati korisna čitateljima i investitorima. Ako želite preuzeti podatke o cijenama za određenu dionicu, potrebno je kliknuti na modul "Dionice" i potom, izabrati željenu dionicu u padajućem izborniku, te kliknuti na "Trgovanje". U modulu "Trgovanje" nalaze se trgovinski podaci (prva, zadnja, prosječna cijena, prometi). Podaci se mogu eksportirati u excel file. Aplikacija za sada pokazuje još jednu vrstu informacija: iznos dividendi i dividendne prinose. Ako će čitatelji imati prijedloga u vezi novih svojstava u aplikaciji, molimo Vas da napišete u komentarima ili napišete mail.
+
+Preuzimanjem podataka s ZSE-a postigli smo *ground zero*. Slijedeći korak je izgradnja modela za predviđanje cijena dionica. Odlučio sam koristiti *dive in* pristup i replicirati neki model dostupan na Github-u. Točnije, odlučio sam se za model [Siraja Rivala](https://github.com/llSourcell/How-to-Predict-Stock-Prices-Easily-Demo), vjerojatno najpoznatijeg promotora strojnog učenja na webu. U nadolazećim postovima ću pokušati objasniti *deep learning* modele u detalje, ali za sada ću samo replicirati predmetni model, kako bi dobio osjećaj o funkcioniranju modela na uzorku cijena jedne dionice.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+library(DBI)
+library(RMySQL)
+
+getStocks <- function(tickers) {
+  ch <- DBI::dbConnect(MySQL(), 
+                      user = "odvjet12_mislav", 
+                      password = "Theanswer0207",
+                      host = "91.234.46.219",
+                      port = 3306L,
+                      dbname = "odvjet12_stocks")
+  tickerList <- paste0("'", tickers, "'", collapse = ", ")
+  tradedf <- DBI::dbGetQuery(ch, paste0("SELECT * FROM trade_data WHERE simbol IN(", tickerList, ")"))
+  DBI::dbDisconnect(ch)
+  return(tradedf)
+}
+tickers <- c("THNK")
+stock <- getStocks(tickers)
+```
+
+Iako trgovinski podaci sadrže nekoliko podataka o cijenama, Sirajov model koristi samo zaključne cijene, pa će i naš model koristiti samo zaključne cijene. Primijenit ćemo model na dionici Tehnike. Dionica Tehnike je relativno likvidna i volatilna, pa predstavlja razuman izbor. Na kraju će čitatelj relativno jednostavno moći ponoviti analizu za neku drugu dionicu. S obzirom da Sirajov model koristi samo zaključne cijene, potrebno je prilagoditi ulazne podatke na način da input matrica (vektor) sadrži samo zaključne cijene:
+
+```{r message=FALSE,warning=FALSE}
+library(tidyverse)
+library(tidyr)
+
+head(stock)   # pregled podataka
+stock <- stock %>% 
+  dplyr::select(simbol, zadnja, datum) %>%   # izbor varijabli koristenih u analizi
+  tidyr::drop_na(zadnja) %>%    # izbacibvanje nedostajućih vrijendosti
+  dplyr::select(zadnja)   # izbor zaključne cijene
+head(stock)   # pregled podataka
+```
+
+Siraj je za predviđanje cijena dionica koristio LSTM model, koji se uobičajeno koristi za sekvencijalne podatke, (najčešće tekstualne). Ne trebate se brinuti, ako ne razumijete pojedinosti koda koji slijedi. Ni sam ne razumijem kako sve funkcionira, ali cilj ovog posta je dobiti uvid o primjeni modela dubokog učenja na cijene dionica, ne razumjeti svaki korak. 
+
+LSTM model pretpostavlja izbor duljine niza. Siraj je u svom modelu koristio duljinu od 50 sekvencijalnih cijena dionica. Isprobao sam nekoliko puta model sa duljinom 50 i rezultati su bili prilično razočaravajući. Kada sam koristio duljinu 20, rezultati su bili znatno bolji, stoga ćemo i mi koristiti duljinu niza od 20. Intuitivno, pretpostavljamo da model bolje predviđa kada kao input ima više nizova od 20, nego manje nizova od 50. Kod je sljedeći:
+
+```{r message=FALSE,warning=FALSE}
+# izbor duljine niza
+seq_length <- 20
+sequence_length <- seq_length + 1
+result <- list()
+for (i in 1:(nrow(stock) - seq_length)) {
+  result[[i]] <- stock[i:(i + seq_length),1]
+}
+```
+
+Sljedeći korak je normalizacija podataka. Ovaj korak ćete vidjeti u gotovo svim modelima dubokog učenja. Praksa je pokazala da model uči na efikasniji način, ako se input vektor (matrica) normalizira, to jest ako poprima male vrijednosti.
+
+```{r message=FALSE,warning=FALSE}
+# normalised data
+normalised_data <- list()
+for (i in 1:length(result)) {
+  normalised_window <- ((result[[i]] / result[[i]][[1]]) - 1)
+  normalised_data[[i]] <- normalised_window
+}
+result <- normalised_data
+```
+
+Podaci su sada spremni za analizu. Prije izgradnje modela potrebno je napraviti još jedan korak koji je opet uobičajen za sve prediktivne modele. Potrebno je uzorak podijeliti na skup na kojem će mreža "učiti" i na testni skup na kojem će se testirati kvaliteta modela. Također, napravili smo slučajni uzorak između dotupnih nizova u *training* skupu:
+
+```{r message=FALSE}
+library(keras)
+
+row <- round(0.9 * length(result))   # 90% uzorka je odvojeno na train, a ostatak na test skup
+train <- result[1:as.integer(row)]
+train <- sample(train)   # sampling nizova
+x_train <- lapply(train, '[', -length(train[[1]]))
+y_train <- lapply(train, '[', length(train[[1]]))
+y_train <- unlist(y_train)
+test = result[(as.integer(row) + 1):length(result)]
+x_test <- lapply(test, '[', -length(test[[1]]))
+y_test <- lapply(test, '[', length(test[[1]]))
+
+x_train <- array_reshape(as.numeric(unlist(x_train)), dim = c(length(x_train), 20, 1))
+x_test <- array_reshape(as.numeric(unlist(x_test)), dim = c(length(x_test), 20, 1))
+
+```
+
+Možda kod izgleda komplicirano, ali ustvari smo napravili vrlo jednostavan korak. Podijelili smo uzorak na način da 90% uzorka čini *train* skup, a ostatak testni skup. Važno je primijetiti da su input podaci trodimenzionalni. Prva dimenzija se odnosi na broj opservacija (*sample dimension*), druga dimenzija na duljinu niza (*timestamp*), a treća dimenzija je broj input varijabli (*features*). Vrijednosti jedinica u razinama su promijenjena, u skladu sa promjenom duljine niza u prethodnim koracima. Konačno prikazujemo najzanimljiviji dio - izgradnju modela:
+
+```{r message=FALSE,warning=FALSE}
+
+model <- keras_model_sequential()
+model %>% layer_lstm(units = 20L, return_sequences = TRUE, input_shape = list(NULL, 1)) %>%
+  layer_dropout(0.2) %>%
+  layer_lstm(units = 50L, return_sequences = FALSE) %>%
+  layer_dropout(0.2) %>%
+  layer_dense(1L) %>%
+  layer_activation('linear')
+
+model %>% compile(
+  optimizer = 'rmsprop',
+  loss = 'mse'
+)
+
+summary(model)
+```
+
+Model se sastoji od 6 razina, pri čemu se razmjenjuje ["LSTM"](http://colah.github.io/posts/2015-08-Understanding-LSTMs/) i *dropout* (umanjuje problem *overfitinga*). Ponovno naglašavam da nije naglasak na razumijevanju svakog koraka. Procjenjivanje parametra modela (*training*) svodi se na jednu funkciju - *fit* (za razliku od bazičnog Sirajovog modela, koristimo 4 epohe, jer sam nakon nekoliko iteracija primjetio povečavanje *val_loss* parametra nakon 4. epohe):
+
+```{r message=FALSE,warning=FALSE}
+model %>% fit(x_train, y_train, epochs=4, batch_size=512, validation_split = 0.05)
+```
+
+Upravo smo napravili *state of the art* model dubokog učenja na primjeru zaključnih cijena dionica Tehnike! Iako nisam objašnjavao svaki korak u detalje (ni sam ih još ne razumijem u potpunosti), uspjeli smo, replicirajući tuđi kod, relativno brzo primijeniti jedan od najnaprednijih modela za predviđanje vremenskih serija.
+
+Pitate se kakav je konačan rezultat? Umjesto *backatestinga* koristit ćemo grafički prikaz koji je korišten u Sirajovom modelu (duljine linija iznose 20 umjesto 50):
+
+```{r message=FALSE,warning=FALSE}
+library(rowr)
+# library(optmach)
+
+predict_sequences_multiple <- function(model, data, window_size, prediction_len){
+  # Predict sequence of 50 steps before shifting prediction run forward by 50 steps
+  prediction_seqs = list()
+  for (i in 1:as.integer(nrow(data)/prediction_len)){
+    curr_frame = array(data[i*prediction_len,,], dim = c(1,prediction_len,1))
+    predicted = list()
+    for (j in 1:prediction_len){
+      predicted[[j]] <- predict_on_batch(model, curr_frame)[1]
+      curr_frame <- array_reshape(curr_frame[,2:20,], dim = c(1,19,1))
+      curr_frame <- array(c(curr_frame, predicted[[j]]), dim = c(1,prediction_len,1))
+    }
+    prediction_seqs[[i]] <- unlist(as.numeric(predicted))
+  }
+  return(prediction_seqs)
+}
+predictions <- predict_sequences_multiple(model, x_test, 20, 20)
+predictions <- data.frame(pred = unlist(predictions), stringsAsFactors = FALSE)
+
+plot_data <- data.frame(y_test = unlist(y_test), stringsAsFactors = FALSE)
+plot_data <- cbind.fill(plot_data, predictions, fill = NA)
+number_of_predictions <- nrow(plot_data) %/% 20
+cols <- paste0("Prediction ", 1:number_of_predictions)
+help_vector <- c(1, seq(20, number_of_predictions*20, by = 20))
+for (i in 1:number_of_predictions){
+  if(i == 1){
+    plot_data[,cols[i]] <- NA
+    plot_data[help_vector[i]:help_vector[i+1],cols[i]] <- c(plot_data[(help_vector[i]):help_vector[i+1],"pred"])
+  }else{
+    plot_data[,cols[i]] <- NA
+    x <- plot_data[help_vector[i]+1,"pred"] - plot_data[help_vector[i]+1,"y_test"]
+    plot_data[(help_vector[i]+1):(help_vector[i+1]),cols[i]] <- c(plot_data[(help_vector[i]+1):help_vector[i+1],"pred"]) - x
+  }
+}
+
+plot_data[,"pred"] <- NULL
+plot_data <- gather(plot_data, key = "key", value = "value")
+plot_data <- plot_data %>% dplyr::group_by(key) %>% dplyr::mutate(n = 1:n())
+
+ggplot(plot_data, aes(x = n, y = value, col = key)) + geom_line()
+```
+
+Važno je napomenuti da se rezultati koje ćete Vi dobiti mogu razlikovati od rezultata sa potonje slike! Razlog je u slučajnom uzorkovanju nizova, koji se provodi prilikom diferenciranja *train* i test skupa. Čitateljima ostavljam da sami prosude uspješnost modela (meni izgleda prilično dobro :)). 
+
+Treba napomenuti da se model može proširivati na nekoliko načina:
+
+1. **Izbor većeg broja varijabli** - Uz zaključne cijene, mogu se koristiti prosječne cijene, prve i zadnje cijene sl. Posebno je interesantan promet dionicama. Osim trgovinskih podataka mogu se koristiti indeksi koji odražavaju sentiment za određenom dionicom. Malo kompliciraniji postupak bi bio uključivanje niskofrekventnih podataka (npr. pokazatelji uspješnosti poslovanja) 
+
+2. **Ugađanje hiperparametara** - U svim modelima dubokog učenja, točnost predviđanja uvelike ovisi o izboru hiperparametara poput: aktivacijske funkcije, stope učenja, broj epoha, veličina *batcha* i td.
+
+3. **Izbor različitih modela** - U ovom primjeru smo koristili LSTM model, ali postoje i drugi modeli poput RNN modela, CNN modela, "obične" neuronske mreže i td.
+
+4. **Uređivanje podataka** - Model se može popraviti uvažavajući karakteristike cijena dionica kao vremenskih serija. Primjerice, poznato je da su cijene dionica nestacionarne, dok su prinosi stacionarni. Stoga bi možda bilo poželjnije koristiti prinose umjesto cijena. Normalizacija se također može provesti na različite načine. Posebno je zanimljiv izbor *loss* funkcije. Bilo bi poželjno da model više penalizira pad nego rast cijene i td.
+
+U nekim od narednih postova ću testirati osjetljivost rezultata na promjene u točkama 1-4. Ostanite s nama!
+
+
+
+
+
