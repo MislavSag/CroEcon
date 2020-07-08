@@ -1,0 +1,104 @@
+baseurl = "http://croecon.contentio.biz/"
+DefaultContentLanguage = "hr"
+#DefaultContentLanguage = "ja"
+title = "CroEcon"
+theme = "beautifulhugo"
+metaDataFormat = "yaml"
+pygmentsStyle = "trac"
+pygmentsUseClasses = true
+pygmentsCodeFences = true
+pygmentsCodefencesGuessSyntax = true
+pygmentOptions = "linenos=table"
+#disqusShortname = "CroEcon"
+#googleAnalytics = "XXX"
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown", "_files$", "_cache$"]
+
+[Params]
+  subtitle = "Blog"
+  logo = "img/avatar-icon.png"
+  favicon = "img/favicon.ico"
+  dateFormat = "January 2, 2006"
+  commit = true
+  rss = true
+  comments = true
+  readingTime = true
+  disqusShortname = "croecon-1"
+  socialShare = true
+  showRelatedPosts = true
+  useHLJS = true
+  delayDisqus = true
+  talkyardServerUrl = "https://comments-demo.talkyard.io"
+#  gcse = "012345678901234567890:abcdefghijk" # Get your code from google.com/cse. Make sure to go to "Look and Feel" and change Layout to "Full Width" and Theme to "Classic"
+
+#[[Params.bigimg]]
+#  src = "img/triangle.jpg"
+#  desc = "Triangle"
+#[[Params.bigimg]]
+#  src = "img/sphere.jpg"
+#  desc = "Sphere"
+#  # position: see values of CSS background-position.
+#  position = "center top"
+#[[Params.bigimg]]
+#  src = "img/hexagon.jpg"
+#  desc = "Hexagon"
+
+[Author]
+  name = "Mislav Sagovac"
+  website = "contentio.biz"
+  email = "mislav.sagovac@contentio.biz"
+#  facebook = "username"
+#  googleplus = "+username" # or xxxxxxxxxxxxxxxxxxxxx
+  github = "MislavSag"
+#  gitlab = "username"
+twitter = "MislavSagovac"
+#  reddit = "username"
+  linkedin = "mislav-šagovac-a72a6044/"
+#  xing = "username"
+  stackoverflow = "users/5937519/mislav"
+#  snapchat = "username"
+#  instagram = "username"
+#  youtube = "user/username" # or channel/channelname
+#  soundcloud = "username"
+#  spotify = "username"
+#  bandcamp = "username"
+#  itchio = "username"
+#  vk = "username"
+#  paypal = "username"
+telegram = "msagovac"
+
+[[menu.main]]
+    name = "Blog"
+    url = ""
+    weight = 1
+
+[[menu.main]]
+    name = "O blogu"
+    url = "page/about/"
+    weight = 3
+
+#[[menu.main]]
+#    identifier = "samples"
+#    name = "Samples"
+#    weight = 2
+
+#[[menu.main]]
+#    parent = "samples"
+#    name = "Big Image Sample"
+#    url = "post/2017-03-07-bigimg-sample"
+#    weight = 1
+
+[[menu.main]]
+    name = "Oznake"
+    url = "tags"
+    weight = 3
+
+[[menu.main]]
+    name = "CroEconApp"
+    url = "https://forensis.shinyapps.io/CroEcon/"
+    hrefTargetBlank = true
+    weight = 3
+    
+[[menu.main]]
+    name = "Newsletter"
+    url = "page/subscribe"
+    weight = 1
